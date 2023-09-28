@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=cyanic
+X-Python-2-Compatible=false
+X-Krita-Manual=manual.html
+Name=Cyanic SD Plugin for Krita
+Comment=A plugin to connect to A1111 or SD.Next webui's

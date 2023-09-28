@@ -1,0 +1,62 @@
+{
+    "server": {
+        "host": "http://127.0.0.1:7860",
+        "save_imgs": false
+    },
+    "defaults": {
+        "sampler": "",
+        "sampling_steps": 20,
+        "model": "",
+        "vae": "",
+        "upscaler": "",
+        "refiner": "",
+        "face_restorer": "",
+        "cfg_scale": 7,
+        "denoise_strength": 0.7
+    },
+    "prompts": {
+        "share_prompts": true,
+        "save_prompts": true,
+        "shared_prompt": "",
+        "shared_negative_prompt": "",
+        "txt2img_prompt": "",
+        "txt2img_negative_prompt": "",
+        "img2img_prompt": "",
+        "img2img_negative_prompt": ""
+    },
+    "resolutions": {
+        "sd_max": 1024,
+        "sd_min": 512,
+        "ignore_if_conflict": "sd_max",
+        "auto_hrfix": true,
+        "auto_hrfix_min": 768,
+        "auto_upscaler": true
+    },
+    "batch": {
+        "count": 1,
+        "size": 1
+    },
+    "previews": {
+        "enabled": true,
+        "refresh_seconds": 1.0
+    },
+    "extra_networks": {
+        "visible": false,
+        "show_thumbnails": true,
+        "show_descriptions": true
+    },
+    "pages": {
+        "last": ""
+    },
+    "hide_ui": {
+        "seed": false,
+        "batch": true,
+        "styles": true,
+        "cfg": true,
+        "clip_skip": true,
+        "color_correction": true,
+        "face_restore": true,
+        "tiling": true,
+        "highres_fix": true
+    }
+}
