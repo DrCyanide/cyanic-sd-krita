@@ -52,12 +52,6 @@ Selecting a source image for Img2Img has a few options. Selecting "Use Layer" wi
 
 ![](readme_imgs/source_image.gif)
 
-# Known Bugs
-* A1111 terminal spammed with the message
-    ```
-    WARNING:  Invalid HTTP request received.
-    WARNING:uvicorn.error:Invalid HTTP request received.
-    ```
 
 # Not yet implemented
 * Generation Settings
