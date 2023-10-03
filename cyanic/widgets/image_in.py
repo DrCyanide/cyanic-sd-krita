@@ -35,9 +35,12 @@ class ImageInWidget(QWidget):
         button_row.setLayout(QHBoxLayout())
         button_row.layout().setContentsMargins(0,0,0,0)
 
-        clear_btn = QPushButton('Clear')
-        clear_btn.clicked.connect(self.clear_previews)
-        button_row.layout().addWidget(clear_btn)
+        # clear_btn = QPushButton('Clear')
+        # clear_btn.clicked.connect(self.clear_previews)
+        # button_row.layout().addWidget(clear_btn)
+        use_selection = QPushButton('Use Selection')
+        use_selection.clicked.connect(self.get_selection_img)
+        button_row.layout().addWidget(use_selection)
 
         use_active = QPushButton('Use Layer')
         use_active.clicked.connect(self.get_layer_img)
@@ -53,6 +56,14 @@ class ImageInWidget(QWidget):
         self.preview_list.clear()
         self.preview_list.addItem(QListWidgetItem(QIcon(), 'No Image Selected'))
         self.image = None
+
+    def get_selection_img(self):
+        # name = self.kc.get_active_layer_name()
+        self.preview_list.clear()
+        name = ''
+        self.image = self.kc.get_selection_img()
+        icon = QIcon(QPixmap.fromImage(self.image))
+        self.preview_list.addItem(QListWidgetItem(icon, name))
 
     def get_layer_img(self):
         # name = self.kc.get_active_layer_name()

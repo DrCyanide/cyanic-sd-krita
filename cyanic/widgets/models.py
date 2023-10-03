@@ -22,6 +22,8 @@ class ModelsWidget(QWidget):
         self.model_box.addItems(models)
         self.model_box.setCurrentText(server_default)
         self.model_box.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
+        self.model_box.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
+        self.model_box.setMaxVisibleItems(10) # Suppose to limit the number of visible options
         settings_model = self.settings_controller.get('defaults.model')
         if len(settings_model) > 0 and settings_model in models:
             self.model_box.setCurrentText(settings_model)
@@ -42,6 +44,8 @@ class ModelsWidget(QWidget):
         self.vae_box.addItems(vaes)
         self.vae_box.setCurrentText(server_default)
         self.vae_box.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
+        self.vae_box.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
+        self.vae_box.setMaxVisibleItems(10) # Suppose to limit the number of visible options
         settings_vae = self.settings_controller.get('defaults.vae')
         if len(settings_vae) > 0 and settings_vae in vaes:
             self.vae_box.setCurrentText(settings_vae)
@@ -70,6 +74,8 @@ class ModelsWidget(QWidget):
         self.sampler_box.addItems(samplers)
         self.sampler_box.setCurrentText(server_default)
         self.sampler_box.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
+        self.sampler_box.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
+        self.sampler_box.setMaxVisibleItems(10) # Suppose to limit the number of visible options
         settings_sampler = self.settings_controller.get('defaults.sampler')
         if len(settings_sampler) > 0 and settings_sampler in samplers:
             self.sampler_box.setCurrentIndex(samplers.index(settings_sampler))

@@ -6,6 +6,10 @@ A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
 
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
+# Updates
+**Oct 3 2023** - First iteration of ControlNet support added. 
+
+
 # Install Instructions
 1. Ensure your server has API access. For A1111, this means adding `--api` to your webui-user.bat (or equivalent) `COMMANDLINE_ARGS`
 2. Open Kritam then go `Settings > Manage Resources`, then in the bottom right click the `Open Resource Folder` button
@@ -64,7 +68,6 @@ Selecting a source image for Img2Img has a few options. Selecting "Use Layer" wi
     * Inpainting
     * Upscaling
 * Extensions
-    * ControlNet
     * After Detailer (ADetailer)
     * Roop/ReActor
     * Remove Background (RemBG)

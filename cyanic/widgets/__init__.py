@@ -7,3 +7,4 @@ from .models import ModelsWidget
 from .generate import GenerateWidget
 from .image_in import ImageInWidget
 from .denoise import DenoiseWidget
+from .extensions import ExtensionWidget

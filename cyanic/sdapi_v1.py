@@ -4,8 +4,8 @@ import json
 import base64
 import time
 # Allow self-signed certs to be used. Self-signed certs allow some WebUI features (like ControlNet's camera) to work over local network.
-import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
+# import ssl
+# ssl._create_default_https_context = ssl._create_unverified_context
 
 class SDAPI():
     DEFAULT_HOST = 'http://127.0.0.1:7860'

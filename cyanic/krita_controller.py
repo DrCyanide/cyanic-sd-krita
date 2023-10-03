@@ -103,11 +103,13 @@ class KritaController():
         # Txt2Img results
         img_layer_parent = self.doc.rootNode()
         if len(results['images']) > 1:
-            group = self.doc.createGroupLayer("My Results Test")
+            group = self.doc.createGroupLayer("Results")
             img_layer_parent = group
         
         for i in range(0, len(results['images'])):
-            name = layer_name if len(layer_name) > 0 else 'Seed: %s' % results['info']['all_seeds'][i]
+            name = 'Image'
+            if len(results['info']['all_seeds']) > i:
+                name = layer_name if len(layer_name) > 0 else 'Seed: %s' % results['info']['all_seeds'][i]
             layer = self.doc.createNode(name, 'paintLayer')
             byte_array, img_w, img_h = self.base64_to_pixeldata(results['images'][i])
             layer.setPixelData(byte_array, x, y, img_w, img_h)
@@ -116,6 +118,8 @@ class KritaController():
 
         if len(results['images']) > 1:
             self.doc.rootNode().addChildNode(group, None)
+        
+        self.doc.refreshProjection()
     
     def get_selected_layer_img(self):
         self.doc = Krita.instance().activeDocument()
@@ -146,6 +150,15 @@ class KritaController():
         y = bounds.y()
         width = bounds.width()
         height = bounds.height()
+        image = self.doc.projection(x, y, width, height)
+        return image
+    
+    def get_selection_img(self):
+        self.doc = Krita.instance().activeDocument()
+        if self.doc is None:
+            self.create_new_doc()
+        
+        x, y, width, height = self.get_selection()
         image = self.doc.projection(x, y, width, height)
         return image
 
