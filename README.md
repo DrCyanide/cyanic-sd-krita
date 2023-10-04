@@ -8,6 +8,7 @@ A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
 
 # Updates
 **Oct 4 2023** - Inpainting added.
+
 **Oct 3 2023** - First iteration of ControlNet support added. 
 
 
