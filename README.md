@@ -58,6 +58,10 @@ Selecting a source image for Img2Img has a few options. Selecting "Use Layer" wi
 
 ![](readme_imgs/source_image.gif)
 
+Inpainting masks are super simple to make - just create a new layer and draw. Any color works, as do multiple colors, because the end mask is based on the transparency of the pixels in your active layer. 
+
+![](readme_imgs/inpaint_mask.gif)
+
 
 # Not yet implemented
 * Generation Settings
@@ -67,7 +71,6 @@ Selecting a source image for Img2Img has a few options. Selecting "Use Layer" wi
     * Tiling
     * Face Restore
 * Modes
-    * Inpainting
     * Upscaling
 * Extensions
     * After Detailer (ADetailer)
