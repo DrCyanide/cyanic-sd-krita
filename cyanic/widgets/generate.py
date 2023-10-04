@@ -55,7 +55,7 @@ class GenerateWidget(QWidget):
         self.update()
 
         # Get the size to generate the image
-        x, y, w, h = self.kc.get_selection()
+        x, y, w, h = self.kc.get_selection_bounds()
         if w == 0 or h == 0:
             x, y = 0, 0
             w, h = self.kc.get_canvas_size()
@@ -64,6 +64,10 @@ class GenerateWidget(QWidget):
             "width": w,
             "height": h,
         }
+
+        # Whether or not to save the images on the server
+        if self.settings_controller.get('server.save_imgs'):
+            data['save_images'] = True
 
         for widget in self.list_of_widgets:
             data.update(widget.get_generation_data())
@@ -121,6 +125,8 @@ class GenerateWidget(QWidget):
         if self.mode == 'txt2img':
             self.results = self.api.txt2img(data)
         elif self.mode == 'img2img':
+            self.results = self.api.img2img(data)
+        elif self.mode == 'inpaint':
             self.results = self.api.img2img(data)
 
     def threadable_return(self, x, y, w, h):

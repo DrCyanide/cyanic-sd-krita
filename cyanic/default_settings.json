@@ -12,7 +12,8 @@
         "refiner": "",
         "face_restorer": "",
         "cfg_scale": 7,
-        "denoise_strength": 0.7
+        "denoise_strength": 0.7,
+        "color_correction": true
     },
     "prompts": {
         "share_prompts": true,
@@ -22,7 +23,9 @@
         "txt2img_prompt": "",
         "txt2img_negative_prompt": "",
         "img2img_prompt": "",
-        "img2img_negative_prompt": ""
+        "img2img_negative_prompt": "",
+        "inpaint_prompt": "",
+        "inpaint_negative_prompt": ""
     },
     "resolutions": {
         "sd_max": 1024,

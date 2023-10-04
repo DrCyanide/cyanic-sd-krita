@@ -4,7 +4,7 @@ from enum import Enum
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..krita_controller import KritaController
-from ..widgets import ImageInWidget
+from ..widgets import ImageInWidget, CollapsibleWidget
 
 class ControlNetExtension(QWidget):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
@@ -60,10 +60,13 @@ class ControlNetUnit(QWidget):
         self.end_step = 0.0
         self.control_mode = 0
         self.resize_mode = 0
-        self.preprocessor_variables = {
+        self.variables = {
             "preprocessor_resolution": 512,
             "threshold_a": -1,
-            "threshold_b": -1
+            "threshold_b": -1,
+            'weight': 1.0,
+            'start': 0,
+            'end': 100,
         }
 
         # The available preprocessor/models, according to what's currently selected
@@ -181,6 +184,18 @@ class ControlNetUnit(QWidget):
 
         self.layout().addWidget(general_controls_row)
 
+        fine_controls = QWidget()
+        fine_controls.setLayout(QFormLayout())
+        fine_controls.layout().setContentsMargins(0,0,0,0)
+        control_weight = self._setup_row('Weight', 0.0, 2.0, 1.0, 'weight', step=0.05)
+        start_step = self._setup_row('Start %', 0, 100, 0, 'start')
+        end_step = self._setup_row('End %', 0, 100, 100, 'end')
+        fine_controls.layout().addWidget(control_weight)
+        fine_controls.layout().addWidget(start_step)
+        fine_controls.layout().addWidget(end_step)
+
+        fine_collapse = CollapsibleWidget('Fine Controls', fine_controls)
+        self.layout().addWidget(fine_collapse)
 
     def _setup_row(self, label:str, min, max, value, variable_name:str, step=1):
         row = QWidget()
@@ -229,7 +244,7 @@ class ControlNetUnit(QWidget):
     def _sync_values(self, value, slider:QSlider, box:QSpinBox, variable_name):
         slider.setValue(value)
         box.setValue(value)
-        self.preprocessor_variables[variable_name] = value
+        self.variables[variable_name] = value
 
     def update_enabled(self, enabled):
         self.enabled = enabled
@@ -323,14 +338,14 @@ class ControlNetUnit(QWidget):
             # 'mask': None, # "mask pixel_perfect to filter the image". Ah yes, clear as crystal...
             'module': self.preprocessor,
             'model': self.model,
-            # 'weight': 1,
+            'weight': self.variables['weight'],
             'resize_mode': self.resize_mode,
             'lowvram': self.low_vram,
-            'preprocessor_res': self.preprocessor_variables['preprocessor_resolution'],
-            'threshold_a': self.preprocessor_variables['threshold_a'], # API only uses this if preprocessor accepts values
-            'threshold_b': self.preprocessor_variables['threshold_b'], # API only uses this if preprocessor accepts values
-            # 'guidance_start': 0.0,
-            # 'guidance_end': 1.0,
+            'preprocessor_res': self.variables['preprocessor_resolution'],
+            'threshold_a': self.variables['threshold_a'], # API only uses this if preprocessor accepts values
+            'threshold_b': self.variables['threshold_b'], # API only uses this if preprocessor accepts values
+            'guidance_start': self.variables['start'] / 100 if self.variables['start'] > 0 else 0.0,
+            'guidance_end': self.variables['end'] / 100 if self.variables['end'] > 0 else 0.0,
             'control_mode': self.control_mode,
             'pixel_perfect': self.pixel_perfect,
         }

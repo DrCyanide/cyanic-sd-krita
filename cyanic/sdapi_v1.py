@@ -29,6 +29,7 @@ class SDAPI():
             'upscaler': '',
             'refiner': '',
             'face_restorer': '',
+            'color_correction': True,
         }
         self.last_url = ''
         self.init_api()
@@ -90,6 +91,7 @@ class SDAPI():
         # self.defaults['upscaler'] = There isn't one in settings
         self.defaults['refiner'] = self.default_settings.get('sd_model_refiner', '')
         self.defaults['face_restorer'] = self.default_settings.get('face_restoration_model', '')
+        self.defaults['color_correction'] = self.default_settings.get('img2img_color_correction', True)
         
         return self.default_settings
 
@@ -274,6 +276,9 @@ class SDAPI():
             data['override_settings']['sd_model_checkpoint'] = data.pop('model')
         if 'vae' in data.keys():
             data['override_settings']['sd_vae'] = data.pop('vae')
+        if 'color_correction' in data.keys():
+            data['override_settings']['img2img_color_correction'] = data.pop('color_correction')
+
         if 'sampler' in data.keys():
             data['sampler_name'] = data.pop('sampler')
 
@@ -281,6 +286,12 @@ class SDAPI():
 
         if 'img2img_img' in data.keys():
             data['init_images'] = [data.pop('img2img_img')]
+
+        if 'inpaint_img' in data.keys():
+            data['init_images'] = [data.pop('inpaint_img')]
+
+        if 'mask_img' in data.keys():
+            data['mask'] = data.pop('mask_img')
 
         return data
 

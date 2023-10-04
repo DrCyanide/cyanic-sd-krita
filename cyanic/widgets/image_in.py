@@ -9,11 +9,12 @@ from ..settings_controller import SettingsController
 # Select an image
 class ImageInWidget(QWidget):
     MAX_HEIGHT = 100
-    def __init__(self, settings_controller:SettingsController, api:SDAPI, mode):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, key:str, mask_mode=False):
         super().__init__()
         self.settings_controller = settings_controller
         self.api = api
-        self.mode = mode # `mode` should be whatever the key get_generation_data() should use to return the image
+        self.key = key # `key` should be whatever the key get_generation_data() should use to return the image
+        self.mask_mode = mask_mode
         self.kc = KritaController()
         self.image:QImage = None
         self.setLayout(QVBoxLayout())
@@ -57,11 +58,18 @@ class ImageInWidget(QWidget):
         self.preview_list.addItem(QListWidgetItem(QIcon(), 'No Image Selected'))
         self.image = None
 
+
     def get_selection_img(self):
         # name = self.kc.get_active_layer_name()
         self.preview_list.clear()
         name = ''
-        self.image = self.kc.get_selection_img()
+        # self.image = self.kc.get_selection_img()
+        if self.mask_mode:
+            self.image = self.kc.get_transparent_selection()
+            self.image = self.image.createAlphaMask(Qt.ImageConversionFlag.MonoOnly)
+            self.image.invertPixels()
+        else:
+            self.image = self.kc.get_selection_img()
         icon = QIcon(QPixmap.fromImage(self.image))
         self.preview_list.addItem(QListWidgetItem(icon, name))
 
@@ -69,7 +77,13 @@ class ImageInWidget(QWidget):
         # name = self.kc.get_active_layer_name()
         self.preview_list.clear()
         name = ''
-        self.image = self.kc.get_selected_layer_img()
+        # self.image = self.kc.get_selected_layer_img()
+        if self.mask_mode:
+            self.image = self.kc.get_transparent_layer()
+            self.image = self.image.createAlphaMask(Qt.ImageConversionFlag.MonoOnly)
+            self.image.invertPixels()
+        else:
+            self.image = self.kc.get_selected_layer_img()
         icon = QIcon(QPixmap.fromImage(self.image))
         self.preview_list.addItem(QListWidgetItem(icon, name))
 
@@ -77,7 +91,13 @@ class ImageInWidget(QWidget):
         # name = self.kc.get_active_layer_name()
         self.preview_list.clear()
         name = ''
-        self.image = self.kc.get_canvas_img()
+        # self.image = self.kc.get_canvas_img()
+        if self.mask_mode:
+            self.image = self.kc.get_transparent_canvas()
+            self.image = self.image.createAlphaMask(Qt.ImageConversionFlag.MonoOnly)
+            self.image.invertPixels()
+        else:
+            self.image = self.kc.get_canvas_img()
         icon = QIcon(QPixmap.fromImage(self.image))
         self.preview_list.addItem(QListWidgetItem(icon, name))
 
@@ -91,5 +111,8 @@ class ImageInWidget(QWidget):
 
     def get_generation_data(self):
         data = {}
-        data[self.mode] = self.qimage_to_b64_str(self.image)
+        if self.image is not None:
+            data[self.key] = self.qimage_to_b64_str(self.image)
+        else:
+            data[self.key] = None # Keeps things from crashing, even if it's not very useful.
         return data

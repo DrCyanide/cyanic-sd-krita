@@ -16,7 +16,7 @@ class CyanicDocker(DockWidget):
         self.setWindowTitle("Cyanic SD")
         self.main_widget = QWidget(self)
         self.main_widget.setLayout(QVBoxLayout())
-        self.setWidget(self.main_widget)
+        self.setWidget(self.main_widget)        
         
         # Set up the page select
         self.page_combobox = QComboBox()
@@ -25,7 +25,7 @@ class CyanicDocker(DockWidget):
             {'name': 'Txt2Img', 'content': self.show_txt2img},
             {'name': 'Img2Img', 'content': self.show_img2img},
             # {'name': 'Extensions', 'content': self.show_extensions},
-            #{'name': 'Inpaint', 'content': self.show_inpaint},
+            {'name': 'Inpaint', 'content': self.show_inpaint},
             #{'name': 'Upscale', 'content': self.show_upscale},
         ]
         for page in self.pages:
@@ -70,7 +70,8 @@ class CyanicDocker(DockWidget):
         self.content_area.setWidget(Img2ImgPage(self.settings_controller, self.api))
 
     def show_inpaint(self):
-        self.showOther('Inpaint')
+        self.content_area.setWidget(InpaintPage(self.settings_controller, self.api))
+
     def show_upscale(self):
         self.showOther('Upscale')
     def show_extensions(self):

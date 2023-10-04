@@ -1,6 +1,6 @@
 from krita import *
 from PyQt5.QtGui import QImage
-from PyQt5.QtCore import QByteArray, QThread, QPointF, pyqtSignal
+from PyQt5.QtCore import QByteArray, QThread, QPointF, pyqtSignal, Qt
 import base64
 # https://scripting.krita.org/lessons/layers
 # https://api.kde.org/krita/html/classNode.html
@@ -50,7 +50,7 @@ class KritaController():
         Krita.instance().activeWindow().addView(new_doc)
         self.doc = new_doc
 
-    def get_selection(self):
+    def get_selection_bounds(self):
         self.doc = Krita.instance().activeDocument()
         if self.doc is None:
             self.create_new_doc()
@@ -63,6 +63,30 @@ class KritaController():
             return x, y, width, height
         else:
             return 0, 0, 0, 0
+
+    def get_canvas_bounds(self):
+        self.doc = Krita.instance().activeDocument()
+        if self.doc is None:
+            self.create_new_doc()
+        
+        bounds = self.doc.bounds()
+        x = bounds.x()
+        y = bounds.y()
+        width = bounds.width()
+        height = bounds.height()
+        return x, y, width, height
+    
+    def get_layer_bounds(self):
+        self.doc = Krita.instance().activeDocument()
+        if self.doc is None:
+            self.create_new_doc()
+
+        bounds = self.doc.activeNode().bounds()
+        x = bounds.x()
+        y = bounds.y()
+        width = bounds.width()
+        height = bounds.height()
+        return x, y, width, height
 
     def get_active_layer_name(self):
         self.doc = Krita.instance().activeDocument()
@@ -120,17 +144,14 @@ class KritaController():
             self.doc.rootNode().addChildNode(group, None)
         
         self.doc.refreshProjection()
-    
+
+
     def get_selected_layer_img(self):
         self.doc = Krita.instance().activeDocument()
         if self.doc is None:
             self.create_new_doc()
 
-        bounds = self.doc.activeNode().bounds()
-        x = bounds.x()
-        y = bounds.y()
-        width = bounds.width()
-        height = bounds.height()
+        x, y, width, height = self.get_layer_bounds()
         # projectionPixelData works for groups, and applies filters, masks, layers in the group, etc.
         # ba = self.doc.activeNode().projectionPixelData(x, y, width, height) # QByteArray
         # # return self.doc.activeNode().thumbnail(width, height) # Gives an image, but it doesn't have the layers below it
@@ -145,11 +166,7 @@ class KritaController():
         if self.doc is None:
             self.create_new_doc()
         
-        bounds = self.doc.bounds()
-        x = bounds.x()
-        y = bounds.y()
-        width = bounds.width()
-        height = bounds.height()
+        x, y, width, height = self.get_canvas_bounds()
         image = self.doc.projection(x, y, width, height)
         return image
     
@@ -158,8 +175,63 @@ class KritaController():
         if self.doc is None:
             self.create_new_doc()
         
-        x, y, width, height = self.get_selection()
+        x, y, width, height = self.get_selection_bounds()
         image = self.doc.projection(x, y, width, height)
+        return image
+    
+    def get_transparent_selection(self):
+        x, y, width, height = self.get_selection_bounds()
+        ba = self.doc.activeNode().projectionPixelData(x, y, width, height) # QByteArray
+        return self.projection_to_qimage(ba, x, y, width, height)
+
+    def get_transparent_layer(self):
+        x, y, width, height = self.get_layer_bounds()
+        ba = self.doc.activeNode().projectionPixelData(x, y, width, height) # QByteArray
+        return self.projection_to_qimage(ba, x, y, width, height)
+
+    def get_transparent_canvas(self):
+        x, y, width, height = self.get_canvas_bounds()
+        ba = self.doc.activeNode().projectionPixelData(x, y, width, height) # QByteArray
+        return self.projection_to_qimage(ba, x, y, width, height)
+
+    def get_mask_and_image(self, mode='canvas'):
+        # mode: 'canvas', 'layer', 'selection'
+        # I'm trying to find the best way to write these repetitive functions.
+        self.doc = Krita.instance().activeDocument()
+        if self.doc is None:
+            return None, None
+        
+        mask_layer = self.doc.activeNode()
+        if not mask_layer.visible():
+            # TODO: Find the next visible layer, use that as the mask.
+            pass
+        
+        x, y, width, height = 0, 0, 0, 0
+        if mode.lower() == 'canvas':
+            x, y, width, height = self.get_canvas_bounds()
+        if mode.lower() == 'layer':
+            x, y, width, height = self.get_layer_bounds()
+        if mode.lower() == 'selection':
+            x, y, width, height = self.get_selection_bounds()
+        
+
+        mask_ba = mask_layer.projectionPixelData(x, y, width, height) # QByteArray
+        mask_img = self.projection_to_qimage(mask_ba, x, y, width, height) # QImage
+        mask_img_bw = mask_img.createAlphaMask(Qt.ImageConversionFlag.MonoOnly) # White is what the transparent was
+        mask_img_bw.invertPixels() # Black is now what the transparent was
+        
+        mask_layer.setVisible(False)
+        self.doc.refreshProjection() # Without this, the canvas doesn't refresh, and the mask is still on top
+        image = self.doc.projection(x, y, width, height)
+        mask_layer.setVisible(True)
+        self.doc.refreshProjection() # Restore the mask
+        return mask_img_bw, image
+
+
+    def projection_to_qimage(self, ba:QByteArray, x, y, width, height):
+        bytes_per_pixel = 4
+        format = QImage.Format.Format_ARGB32
+        image = QImage(ba, width, height, (width * bytes_per_pixel), format)
         return image
 
     def _get_layer_with_uid(self, uid, node=None):
