@@ -31,6 +31,7 @@ class SDAPI():
             'face_restorer': '',
             'color_correction': True,
         }
+        self.connected = False
         self.last_url = ''
         self.init_api()
 
@@ -41,7 +42,9 @@ class SDAPI():
     def init_api(self):
         try:
             response = self.get_status()
+            self.connected = True
         except Exception as e:
+            self.connected = False
             return # There was an issue, but the server might not be online yet.
         init_processes = [
             self.get_models,

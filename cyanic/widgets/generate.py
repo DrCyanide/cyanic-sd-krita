@@ -49,6 +49,7 @@ class GenerateWidget(QWidget):
         self.update()
 
     def generate(self):
+        # TODO: Give some sort of indicator if the backend is loading a new model/VAE, because that makes everything take longer.
         self.is_generating = True
         self.generate_btn.setText('Cancel')
         self.progress_bar.setHidden(False)

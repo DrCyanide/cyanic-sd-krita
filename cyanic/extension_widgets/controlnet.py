@@ -19,7 +19,9 @@ class ControlNetExtension(QWidget):
         server_supported = self.api.script_installed('controlnet')
         if not server_supported:
             error = QLabel('Host "%s" does not have ControlNet installed' % self.api.host)
+            website = QLabel('Get it from https://github.com/lllyasviel/ControlNet')
             self.layout().addWidget(error)
+            self.layout().addWidget(website)
             return
 
         tab_widget = QTabWidget()
@@ -104,6 +106,7 @@ class ControlNetUnit(QWidget):
         control_type_select = QComboBox()
         control_type_select.addItems(self.cnapi.get_control_types_list())
         control_type_select.setCurrentText('All')
+        control_type_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         control_type_select.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
         control_type_select.setMaxVisibleItems(5) # Suppose to limit the number of visible options
         control_type_select.currentIndexChanged.connect(lambda: self.update_model_options(control_type_select.currentText()))

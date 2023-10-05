@@ -18,6 +18,10 @@ class CyanicDocker(DockWidget):
         self.main_widget.setLayout(QVBoxLayout())
         self.setWidget(self.main_widget)        
         
+        # NOTE: This page setup creates a new page each time the select is changed, which would clear prompts/settings.
+        # A better design might be to re-use the pages.
+        # However that has the drawback that there needs to be a way to update the prompts across pages 
+
         # Set up the page select
         self.page_combobox = QComboBox()
         self.pages = [
@@ -33,10 +37,11 @@ class CyanicDocker(DockWidget):
         self.page_combobox.activated.connect(self.change_page)
         self.main_widget.layout().addWidget(self.page_combobox)
 
-        # Resume the last page it was on
-        last_page = self.settings_controller.get('pages.last')
-        if last_page and last_page in list(map(lambda x: x['name'], self.pages)):
-            self.page_combobox.setCurrentText(last_page)
+        # Resume the last page it was on ONLY if the API is running. Otherwise the pages try to pull defaults and it becomes a big mess...
+        if self.api.connected:
+            last_page = self.settings_controller.get('pages.last')
+            if last_page and last_page in list(map(lambda x: x['name'], self.pages)):
+                self.page_combobox.setCurrentText(last_page)
 
         # Initialize contentWidget
         self.content_area = QScrollArea()
