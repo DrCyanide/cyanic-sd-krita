@@ -11,12 +11,13 @@ from ..widgets import PromptWidget
 # All of them should have `def get_generation_data(self)`.
 # Yes, I should've made an abstract class for that.
 class GenerateWidget(QWidget):
-    def __init__(self, settings_controller:SettingsController, api:SDAPI, list_of_widgets:list, mode:str):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, list_of_widgets:list, mode:str, size_dict={"x":0,"y":0,"w":0,"h":0}):
         super().__init__()
         self.settings_controller = settings_controller
         self.api = api
         self.list_of_widgets = list_of_widgets
         self.mode = mode
+        self.size_dict = size_dict
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.kc = KritaController()
@@ -55,11 +56,18 @@ class GenerateWidget(QWidget):
         self.progress_bar.setHidden(False)
         self.update()
 
-        # Get the size to generate the image
-        x, y, w, h = self.kc.get_selection_bounds()
-        if w == 0 or h == 0:
-            x, y = 0, 0
-            w, h = self.kc.get_canvas_size()
+        x = self.size_dict["x"]
+        y = self.size_dict["y"]
+        w = self.size_dict["w"]
+        h = self.size_dict["h"]
+        if w == 0 or h == 0 :
+            # Size dict was not updated, try to use the selection size
+            x, y, w, h = self.kc.get_selection_bounds() 
+            if w == 0 or h == 0:
+                # Nothing was selected, use the canvas size
+                x, y = 0, 0
+                w, h = self.kc.get_canvas_size()
+
         
         data = {
             "width": w,

@@ -11,10 +11,10 @@ class Img2ImgPage(QWidget):
         self.settings_controller = settings_controller
         self.api = api
         self.kc = KritaController()
-        self.is_generating = False
+        self.size_dict = {"x":0,"y":0,"w":0,"h":0}
         self.setLayout(QVBoxLayout())
 
-        self.img_in = ImageInWidget(self.settings_controller, self.api, 'img2img_img')
+        self.img_in = ImageInWidget(self.settings_controller, self.api, 'img2img_img', self.size_dict)
         self.layout().addWidget(self.img_in)
 
         self.color_correction = ColorCorrectionWidget(self.settings_controller, self.api)
@@ -37,7 +37,7 @@ class Img2ImgPage(QWidget):
         extension_collapsed = CollapsibleWidget('Extensions', self.extension_widget)
         self.layout().addWidget(extension_collapsed)
 
-        self.generate_widget = GenerateWidget(self.settings_controller, self.api, [self.img_in, self.color_correction, self.denoise_widget, self.model_widget, self.prompt_widget, self.seed_widget, self.extension_widget], 'img2img')
+        self.generate_widget = GenerateWidget(self.settings_controller, self.api, [self.img_in, self.color_correction, self.denoise_widget, self.model_widget, self.prompt_widget, self.seed_widget, self.extension_widget], 'img2img', self.size_dict)
         self.layout().addWidget(self.generate_widget)
 
         self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top

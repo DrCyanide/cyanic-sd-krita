@@ -9,11 +9,12 @@ from ..settings_controller import SettingsController
 # Select an image
 class ImageInWidget(QWidget):
     MAX_HEIGHT = 100
-    def __init__(self, settings_controller:SettingsController, api:SDAPI, key:str, mask_mode=False):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, key:str, size_dict:dict={"x":0,"y":0,"w":0,"h":0}, mask_mode=False):
         super().__init__()
         self.settings_controller = settings_controller
         self.api = api
         self.key = key # `key` should be whatever the key get_generation_data() should use to return the image
+        self.size_dict = size_dict
         self.mask_mode = mask_mode
         self.kc = KritaController()
         self.image:QImage = None
@@ -60,10 +61,10 @@ class ImageInWidget(QWidget):
 
 
     def get_selection_img(self):
-        # name = self.kc.get_active_layer_name()
         self.preview_list.clear()
         name = ''
-        # self.image = self.kc.get_selection_img()
+
+        self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_selection_bounds()
         if self.mask_mode:
             self.image = self.kc.get_transparent_selection()
             self.image = self.image.createAlphaMask(Qt.ImageConversionFlag.MonoOnly)
@@ -74,10 +75,10 @@ class ImageInWidget(QWidget):
         self.preview_list.addItem(QListWidgetItem(icon, name))
 
     def get_layer_img(self):
-        # name = self.kc.get_active_layer_name()
         self.preview_list.clear()
         name = ''
-        # self.image = self.kc.get_selected_layer_img()
+        
+        self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_layer_bounds()
         if self.mask_mode:
             self.image = self.kc.get_transparent_layer()
             self.image = self.image.createAlphaMask(Qt.ImageConversionFlag.MonoOnly)
@@ -88,10 +89,10 @@ class ImageInWidget(QWidget):
         self.preview_list.addItem(QListWidgetItem(icon, name))
 
     def get_canvas_img(self):
-        # name = self.kc.get_active_layer_name()
         self.preview_list.clear()
         name = ''
-        # self.image = self.kc.get_canvas_img()
+
+        self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_canvas_bounds()
         if self.mask_mode:
             self.image = self.kc.get_transparent_canvas()
             self.image = self.image.createAlphaMask(Qt.ImageConversionFlag.MonoOnly)

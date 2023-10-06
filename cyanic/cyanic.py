@@ -79,8 +79,6 @@ class CyanicDocker(DockWidget):
 
     def show_upscale(self):
         self.showOther('Upscale')
-    def show_extensions(self):
-        self.content_area.setWidget(ExtensionsPage(self.settings_controller, self.api))
 
     def showOther(self, text):
         contentWidget = QWidget()

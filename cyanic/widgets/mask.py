@@ -8,10 +8,11 @@ from ..widgets import CollapsibleWidget
 
 class MaskWidget(QWidget):
     MAX_HEIGHT = 100
-    def __init__(self, settings_controller:SettingsController, api:SDAPI):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, size_dict:dict):
         super().__init__()
         self.settings_controller = settings_controller
         self.api = api
+        self.size_dict = size_dict
         self.kc = KritaController()
         # self.setLayout(QFormLayout())
         self.setLayout(QVBoxLayout())
@@ -124,6 +125,13 @@ class MaskWidget(QWidget):
         self.variables[key] = value
 
     def get_mask_and_img(self, mode='canvas'):
+        if mode == 'selection':
+            self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_selection_bounds()
+        if mode == 'layer':
+            self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_layer_bounds()
+        if mode == 'canvas':
+            self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_canvas_bounds()
+
         self.mask, self.image = self.kc.get_mask_and_image(mode)
         self.preview_list.clear()
         icon = QIcon(QPixmap.fromImage(self.image))
