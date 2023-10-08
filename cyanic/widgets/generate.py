@@ -114,7 +114,7 @@ class GenerateWidget(QWidget):
                 self.progress_timer.stop()
                 self.is_generating = False
                 return
-            self.progress_bar.setValue(results['progress'] * 100)
+            self.progress_bar.setValue(int(results['progress'] * 100))
             # Show the preview
             if self.settings_controller.has_key('previews.enabled') and self.settings_controller.get('previews.enabled'):
                 if results['current_image'] is not None and len(results['current_image']) > 0:
@@ -146,9 +146,12 @@ class GenerateWidget(QWidget):
         self.update()
 
     def cancel(self):
-        self.api.interrupt()
-        self.abort = True
-        self.generate_btn.setText('Generate')
-        self.progress_bar.setValue(0)
-        self.progress_bar.setHidden(True)
-        self.update()
+        try:
+            self.api.interrupt()
+            self.abort = True
+            self.generate_btn.setText('Generate')
+            self.progress_bar.setValue(0)
+            self.progress_bar.setHidden(True)
+            self.update()
+        except Exception as e:
+            raise Exception('Cyanic SD - Exception trying to interrupt: %s' % e)

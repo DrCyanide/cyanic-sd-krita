@@ -16,7 +16,7 @@ class DenoiseWidget(QWidget):
 
         # Denoise label
         default_noise = self.settings_controller.get('defaults.denoise_strength')
-        self.denoise_percent = QLabel('%s%%' % (default_noise * 100))
+        self.denoise_percent = QLabel('%s%%' % int(default_noise * 100))
 
         # Denoise Strength
         self.denoise_slider = QSlider(Qt.Horizontal)
@@ -24,7 +24,7 @@ class DenoiseWidget(QWidget):
         self.denoise_slider.setTickPosition(QSlider.TicksAbove)
         self.denoise_slider.setMinimum(0)
         self.denoise_slider.setMaximum(100)
-        self.denoise_slider.setValue(default_noise * 100)
+        self.denoise_slider.setValue(int(default_noise * 100))
         self.denoise_slider.valueChanged.connect(lambda: self.denoise_percent.setText('%s%%' % self.denoise_slider.value()))
 
         denoise_row.layout().addWidget(self.denoise_slider)
