@@ -94,7 +94,7 @@ class GenerateWidget(QWidget):
             self.progress_timer.timeout.connect(lambda: self.progress_check(x,y,w,h))
             # Set the refresh rate
             if self.settings_controller.has_key('previews.refresh_seconds'):
-                self.progress_timer.start(1000 * self.settings_controller.get('previews.refresh_seconds'))
+                self.progress_timer.start(int(1000 * self.settings_controller.get('previews.refresh_seconds')))
             else:
                 self.progress_timer.start(1000)
 
