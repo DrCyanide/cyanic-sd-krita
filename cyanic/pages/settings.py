@@ -139,6 +139,7 @@ class SettingsPage(QWidget):
             # Test passed, inform user, update api
             self.connection_label.setText('Connected')
             self.api.change_host(host)
+            self.settings_controller.set('server.host', host)
             self.connected = True
         except:
             # Test failed, inform user
