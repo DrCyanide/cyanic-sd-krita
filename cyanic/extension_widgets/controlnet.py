@@ -119,7 +119,8 @@ class ControlNetUnit(QWidget):
         self.preprocessor_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         self.preprocessor_select.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
         self.preprocessor_select.setMaxVisibleItems(5) # Suppose to limit the number of visible options
-        self.preprocessor_select.currentIndexChanged.connect(lambda: self.set_preprocessor_settings(self.preprocessor_select.currentText()))
+        # self.preprocessor_select.currentIndexChanged.connect(lambda: self.set_preprocessor_settings(self.preprocessor_select.currentText())) # ... This steps through EVERY index in between
+        self.preprocessor_select.currentTextChanged.connect(lambda: self.set_preprocessor_settings(self.preprocessor_select.currentText()))
         control_type_row.layout().addRow('Preprocessor', self.preprocessor_select)
 
         # Model select
@@ -129,26 +130,38 @@ class ControlNetUnit(QWidget):
         self.model_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         self.model_select.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
         self.model_select.setMaxVisibleItems(5) # Suppose to limit the number of visible options
-        self.model_select.currentIndexChanged.connect(lambda: self.update_model(self.model_select.currentText()))
+        # self.model_select.currentIndexChanged.connect(lambda: self.update_model(self.model_select.currentText()))
+        self.model_select.currentTextChanged.connect(lambda: self.update_model(self.model_select.currentText()))
         control_type_row.layout().addRow('Model', self.model_select)
 
         self.layout().addWidget(control_type_row)
 
+        # Preprocessor Specific Settings
         self.preprocessor_settings = QGroupBox("Preprocessor Settings")
-        self.preprocessor_settings.setLayout(QFormLayout())
+        self.preprocessor_settings.setLayout(QVBoxLayout())
         self.preprocessor_settings.layout().setContentsMargins(0,0,0,0)
 
         self.resolution_row = self._setup_row('Resolution', 64, 2048, 512, 'preprocessor_resolution')
         self.preprocessor_settings.layout().addWidget(self.resolution_row)
         self.resolution_row.setHidden(True)
 
-        self.threshold_a_row = self._setup_row('A', 64, 2048, 512, 'threshold_a')
-        self.preprocessor_settings.layout().addWidget(self.threshold_a_row)
-        self.threshold_a_row.setHidden(True)
+        # Threshold A (first set of options) Int and Float
+        self.threshold_a_row_int = self._setup_row('A', 64, 2048, 512, 'threshold_a')
+        self.preprocessor_settings.layout().addWidget(self.threshold_a_row_int)
+        self.threshold_a_row_int.setHidden(True)
 
-        self.threshold_b_row = self._setup_row('B', 64, 2048, 512, 'threshold_b')
-        self.preprocessor_settings.layout().addWidget(self.threshold_b_row)
-        self.threshold_b_row.setHidden(True)
+        self.threshold_a_row_float = self._setup_row('A', 0, 100, 0, 'threshold_a', 0.1)
+        self.preprocessor_settings.layout().addWidget(self.threshold_a_row_float)
+        self.threshold_a_row_float.setHidden(True)
+
+        # Threshold B (second set of options) Int and Float
+        self.threshold_b_row_int = self._setup_row('B', 64, 2048, 512, 'threshold_b')
+        self.preprocessor_settings.layout().addWidget(self.threshold_b_row_int)
+        self.threshold_b_row_int.setHidden(True)
+
+        self.threshold_b_row_float = self._setup_row('B', 0, 100, 0, 'threshold_b', 0.1)
+        self.preprocessor_settings.layout().addWidget(self.threshold_b_row_float)
+        self.threshold_b_row_float.setHidden(True)
 
         # TODO: Run Preprocessor button?
         self.layout().addWidget(self.preprocessor_settings)
@@ -187,6 +200,7 @@ class ControlNetUnit(QWidget):
 
         self.layout().addWidget(general_controls_row)
 
+        # Start %, End %, Weight
         fine_controls = QWidget()
         fine_controls.setLayout(QFormLayout())
         fine_controls.layout().setContentsMargins(0,0,0,0)
@@ -200,6 +214,10 @@ class ControlNetUnit(QWidget):
         fine_collapse = CollapsibleWidget('Fine Controls', fine_controls)
         self.layout().addWidget(fine_collapse)
 
+        # self.debug_text = QPlainTextEdit()
+        # self.debug_text.setPlaceholderText('Debugging text')
+        # self.layout().addWidget(self.debug_text)
+
     def _setup_row(self, label:str, min, max, value, variable_name:str, step=1):
         row = QWidget()
         row.setLayout(QHBoxLayout())
@@ -208,21 +226,37 @@ class ControlNetUnit(QWidget):
         row.layout().addWidget(QLabel(label))
 
         slider = QSlider(Qt.Horizontal)
-        slider.setMinimum(min)
-        slider.setMaximum(max)
-        slider.setValue(value)
-        row.layout().addWidget(slider)
-
         box = QSpinBox()
-        if step < 1:
-            box = QDoubleSpinBox()
-        box.setMinimum(min)
-        box.setMaximum(max)
-        box.setValue(value)
-        row.layout().addWidget(box)
+        # Slider can't handle floats, so somethings might need to be adjusted
+        if type(step) is float or type(max) is float or type(min) is float:
+            slider.setMinimum(int(min * 100))
+            slider.setMaximum(int(max * 100))
+            slider.setValue(int(value * 100))
+            row.layout().addWidget(slider)
 
-        slider.valueChanged.connect(lambda: self._sync_values(slider.value(), slider, box, variable_name))
-        box.valueChanged.connect(lambda: self._sync_values(box.value(), slider, box, variable_name))
+            box = QDoubleSpinBox()
+            box.setMinimum(min)
+            box.setMaximum(max)
+            box.setValue(value)
+            row.layout().addWidget(box)
+
+            slider.valueChanged.connect(lambda: self._sync_float_values(slider.value(), slider, box, variable_name))
+            box.valueChanged.connect(lambda: self._sync_float_values(box.value(), slider, box, variable_name))
+
+        else:
+            # all ints, everything is normal
+            slider.setMinimum(min)
+            slider.setMaximum(max)
+            slider.setValue(value)
+            row.layout().addWidget(slider)
+
+            box.setMinimum(min)
+            box.setMaximum(max)
+            box.setValue(value)
+            row.layout().addWidget(box)
+
+            slider.valueChanged.connect(lambda: self._sync_values(slider.value(), slider, box, variable_name))
+            box.valueChanged.connect(lambda: self._sync_values(box.value(), slider, box, variable_name))
 
         return row
     
@@ -231,20 +265,50 @@ class ControlNetUnit(QWidget):
         # row.children()[0] is the QHBoxLayout
         # Label
         row.children()[1].setText(label)
-        # Slider
-        row.children()[2].setMinimum(min)
-        row.children()[2].setMaximum(max)
-        row.children()[2].setValue(value)
-        # Box
-        row.children()[3].setMinimum(min)
-        row.children()[3].setMaximum(max)
-        row.children()[3].setValue(value)
+        if type(step) is float or type(max) is float or type(min) is float:
+            # Sliders can't handle floats, adjust for that
+            # Slider
+            row.children()[2].setMinimum(int(min * 100))
+            row.children()[2].setMaximum(int(max * 100))
+            row.children()[2].setValue(int(value * 100))
+            # Box
+            row.children()[3] = QDoubleSpinBox()
+            row.children()[3].setMinimum(min)
+            row.children()[3].setMaximum(max)
+            row.children()[3].setValue(value)
+            # self.debug_text.setPlainText('%s\n(Floats) %s (%s to %s)' % (self.debug_text.toPlainText(), label, min, max))
+            row.children()[2].valueChanged.connect(lambda: self._sync_float_values(row.children()[2].value(), row.children()[2], row.children()[3], variable_name)) # Slider changed, update box
+            row.children()[3].valueChanged.connect(lambda: self._sync_float_values(row.children()[3].value(), row.children()[2], row.children()[3], variable_name)) # Box changed, update slider
+        else:
+            # Slider
+            row.children()[2].setMinimum(min)
+            row.children()[2].setMaximum(max)
+            row.children()[2].setValue(value)
+            # Box
+            row.children()[3] = QSpinBox()
+            row.children()[3].setMinimum(min)
+            row.children()[3].setMaximum(max)
+            row.children()[3].setValue(value)
+            # self.debug_text.setPlainText('%s\n(Ints) %s (%s to %s)' % (self.debug_text.toPlainText(), label, min, max))
+            row.children()[2].valueChanged.connect(lambda: self._sync_values(row.children()[2].value(), row.children()[2], row.children()[3], variable_name)) # Slider changed, update box
+            row.children()[3].valueChanged.connect(lambda: self._sync_values(row.children()[3].value(), row.children()[2], row.children()[3], variable_name)) # Box changed, update slider
 
-        row.children()[2].valueChanged.connect(lambda: self._sync_values(row.children()[2].value(), row.children()[2], row.children()[3], variable_name)) # Slider changed, update box
-        row.children()[3].valueChanged.connect(lambda: self._sync_values(row.children()[3].value(), row.children()[2], row.children()[3], variable_name)) # Box changed, update slider
 
+    def _sync_float_values(self, float_value, slider:QSlider, box:QDoubleSpinBox, variable_name):
+        # Handle the * 100 for the slider
+        if type(float_value) is int:
+            if float_value > 0:
+                float_value = float_value / 100
+        if float_value == box.value() and int(float_value * 100) == slider.value():
+            return # Don't update
+        slider.setValue(int(float_value * 100))
+        box.setValue(float_value)
+        self.variables[variable_name] = float_value
 
     def _sync_values(self, value, slider:QSlider, box:QSpinBox, variable_name):
+        if value == slider.value() and value == box.value():
+            return # Don't update
+        # self.debug_text.setPlainText('%s\nUpdating %s - %s' % (self.debug_text.toPlainText(), value, variable_name))
         slider.setValue(value)
         box.setValue(value)
         self.variables[variable_name] = value
@@ -265,10 +329,9 @@ class ControlNetUnit(QWidget):
         self.control_mode = index
 
     def update_model_options(self, control_type:str):
-        for _ in self.model_list:
-            self.model_select.removeItem(0)
-        for _ in self.preprocessor_list:
-            self.preprocessor_select.removeItem(0)
+        # Remove the old values from the combobox
+        self.preprocessor_select.clear()
+        self.model_select.clear()
 
         self.preprocessor_list = self.cnapi.control_types[control_type]['module_list']
         self.model_list = self.cnapi.control_types[control_type]['model_list']
@@ -318,17 +381,30 @@ class ControlNetUnit(QWidget):
             self.resolution_row.setHidden(True)
         
         # These are the unique settings that a preprocessor can have, passed into the API as threshold_a and threshold_b
-        self.threshold_a_row.setHidden(True)
-        self.threshold_b_row.setHidden(True)
+        self.threshold_a_row_int.setHidden(True)
+        self.threshold_a_row_float.setHidden(True)
+        self.threshold_b_row_int.setHidden(True)
+        self.threshold_b_row_float.setHidden(True)
         thresholds = details['sliders'][slider_index:len(details['sliders'])] # Remove the Preprocessor Resolution from the list
         if len(thresholds) > 0:
-            self.threshold_a_row.setHidden(False)
-            # self.threshold_a_row = self._setup_row(thresholds[0]['name'], thresholds[0]['min'], thresholds[0]['max'], thresholds[0]['value'], 'threshold_a', thresholds[0].get('step', 1))
-            self._update_row(self.threshold_a_row, thresholds[0]['name'], thresholds[0]['min'], thresholds[0]['max'], thresholds[0]['value'], 'threshold_a', thresholds[0].get('step', 1))
+            steps = thresholds[0].get('step', 1)
+            if type(steps) is float:
+                self.threshold_a_row_float.setHidden(False)
+                # self.debug_text.setPlainText('%s\nFloat %s' % (self.debug_text.toPlainText(), thresholds[0]['name']))
+                self._update_row(self.threshold_a_row_float, thresholds[0]['name'], thresholds[0]['min'], thresholds[0]['max'], thresholds[0]['value'], 'threshold_a', steps)
+            else:
+                self.threshold_a_row_int.setHidden(False)
+                # self.debug_text.setPlainText('%s\nInt %s' % (self.debug_text.toPlainText(), thresholds[0]['name']))
+                self._update_row(self.threshold_a_row_float, thresholds[0]['name'], thresholds[0]['min'], thresholds[0]['max'], thresholds[0]['value'], 'threshold_a', steps)
+
         if len(thresholds) > 1:
-            self.threshold_b_row.setHidden(False)
-            # self.threshold_b_row = self._setup_row(thresholds[1]['name'], thresholds[1]['min'], thresholds[1]['max'], thresholds[1]['value'], 'threshold_b', thresholds[1].get('step', 1))
-            self._update_row(self.threshold_b_row, thresholds[1]['name'], thresholds[1]['min'], thresholds[1]['max'], thresholds[1]['value'], 'threshold_b', thresholds[1].get('step', 1))
+            steps = thresholds[1].get('step', 1)
+            if type(steps) is float:
+                self.threshold_b_row_float.setHidden(False)
+                self._update_row(self.threshold_b_row_float, thresholds[1]['name'], thresholds[1]['min'], thresholds[1]['max'], thresholds[1]['value'], 'threshold_b', steps)
+            else:
+                self.threshold_b_row_int.setHidden(False)
+                self._update_row(self.threshold_b_row_int, thresholds[1]['name'], thresholds[1]['min'], thresholds[1]['max'], thresholds[1]['value'], 'threshold_b', steps)
         self.update()
 
     def get_generation_data(self):
