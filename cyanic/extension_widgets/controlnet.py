@@ -66,7 +66,7 @@ class ControlNetUnit(QWidget):
             "preprocessor_resolution": 512,
             "threshold_a": -1,
             "threshold_b": -1,
-            'weight': 1.0,
+            'weight': 100, # should be 1.0, but I'm adjusting it to make it less broken in Krita
             'start': 0,
             'end': 100,
         }
@@ -204,7 +204,8 @@ class ControlNetUnit(QWidget):
         fine_controls = QWidget()
         fine_controls.setLayout(QFormLayout())
         fine_controls.layout().setContentsMargins(0,0,0,0)
-        control_weight = self._setup_row('Weight', 0.0, 2.0, 1.0, 'weight', step=0.05)
+        # control_weight = self._setup_row('Weight', 0.0, 2.0, 1.0, 'weight', step=0.05)
+        control_weight = self._setup_row('Weight', 1, 200, 100, 'weight')
         start_step = self._setup_row('Start %', 0, 100, 0, 'start')
         end_step = self._setup_row('End %', 0, 100, 100, 'end')
         fine_controls.layout().addWidget(control_weight)
@@ -417,7 +418,7 @@ class ControlNetUnit(QWidget):
             # 'mask': None, # "mask pixel_perfect to filter the image". Ah yes, clear as crystal...
             'module': self.preprocessor,
             'model': self.model,
-            'weight': self.variables['weight'],
+            'weight': self.variables['weight'] / 100, # converting 100% back to 1.0
             'resize_mode': self.resize_mode,
             'lowvram': self.low_vram,
             'preprocessor_res': self.variables['preprocessor_resolution'],
