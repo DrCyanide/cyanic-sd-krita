@@ -64,10 +64,40 @@ class SettingsPage(QWidget):
         prompt_form.layout().addRow('Share Prompts', self.create_checkbox('prompts.share_prompts'))
         self.add_tooltip(prompt_form, 'Share prompt/negative prompt text between Txt2Img, Img2Img, etc.')
 
+        # Excluded from sharing
+        exclude_form = QWidget()
+        exclude_form.setLayout(QVBoxLayout())
+        exclude_txt2img = QCheckBox('Txt2Img')
+        exclude_txt2img.setChecked('txt2img' in self.settings_controller.get('prompts.exclude_sharing'))
+        exclude_txt2img.toggled.connect(lambda: self._toggle_and_save('prompts.exclude_sharing', 'txt2img'))
+        exclude_form.layout().addWidget(exclude_txt2img)
+
+        exclude_img2img = QCheckBox('Img2Img')
+        exclude_img2img.setChecked('img2img' in self.settings_controller.get('prompts.exclude_sharing'))
+        exclude_img2img.toggled.connect(lambda: self._toggle_and_save('prompts.exclude_sharing', 'img2img'))
+        exclude_form.layout().addWidget(exclude_img2img)
+
+        exclude_inpaint = QCheckBox('Inpaint')
+        exclude_inpaint.setChecked('inpaint' in self.settings_controller.get('prompts.exclude_sharing'))
+        exclude_inpaint.toggled.connect(lambda: self._toggle_and_save('prompts.exclude_sharing', 'inpaint'))
+        exclude_form.layout().addWidget(exclude_inpaint)
+
+        if self.api.script_installed('adetailer'):
+            exclude_adetailer = QCheckBox('ADetailer')
+            exclude_adetailer.setChecked('adetailer' in self.settings_controller.get('prompts.exclude_sharing'))
+            exclude_adetailer.toggled.connect(lambda: self._toggle_and_save('prompts.exclude_sharing', 'adetailer'))
+            exclude_form.layout().addWidget(exclude_adetailer)
+        
+        prompt_form.layout().addRow('Exclude from sharing', exclude_form)
+        self.add_tooltip(prompt_form, 'Changes to the checked prompts/negative prompts won\'t override the unchecked')
+
         prompt_form.layout().addRow('Save Prompts', self.create_checkbox('prompts.save_prompts'))
         self.add_tooltip(prompt_form, 'Save prompts/negative prompts in Krita\'s UI for next time.')
         self.layout().addWidget(prompt_form)
 
+    def _toggle_and_save(self, key, value):
+        self.settings_controller.toggle(key, value)
+        self.settings_controller.save()
 
     def _generation_group(self):
         generation_form = QGroupBox('Generation Settings')

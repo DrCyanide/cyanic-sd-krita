@@ -11,7 +11,7 @@ class PromptWidget(QWidget):
         super().__init__()
         self.settings_controller = settings_controller
         self.api = api
-        self.mode = mode.lower() # txt2img / img2img
+        self.mode = mode.lower() # txt2img / img2img / inpaint / adetailer
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
 
@@ -95,7 +95,8 @@ class PromptWidget(QWidget):
         if self.settings_controller.has_key('prompts.save_prompts') and not self.settings_controller.get('prompts.save_prompts'):
             return # The user doesn't want their prompts saved/loaded
         try:
-            if self.settings_controller.has_key('prompts.share_prompts') and self.settings_controller.get('prompts.share_prompts'):
+            excluded = self.settings_controller.get('prompts.exclude_sharing')
+            if self.settings_controller.has_key('prompts.share_prompts') and self.settings_controller.get('prompts.share_prompts') and self.mode not in excluded:
                 # Restore shared prompts
                 self.prompt_text_edit.setPlainText(self.settings_controller.get('prompts.shared_prompt'))
                 self.negative_prompt_text_edit.setPlainText(self.settings_controller.get('prompts.shared_negative_prompt'))
@@ -115,7 +116,8 @@ class PromptWidget(QWidget):
         prompt = self.prompt_text_edit.toPlainText()
         negative_prompt = self.negative_prompt_text_edit.toPlainText()
 
-        if self.settings_controller.has_key('prompts.share_prompts') and self.settings_controller.get('prompts.share_prompts'):
+        excluded = self.settings_controller.get('prompts.exclude_sharing')
+        if self.settings_controller.has_key('prompts.share_prompts') and self.settings_controller.get('prompts.share_prompts') and self.mode not in excluded:
             self.settings_controller.set('prompts.shared_prompt', prompt)
             self.settings_controller.set('prompts.shared_negative_prompt', negative_prompt)
         else:

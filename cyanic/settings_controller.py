@@ -66,6 +66,53 @@ class SettingsController():
                 self.settings[split_key[0]] = {}
             self.settings[split_key[0]][split_key[1]] = value
 
+    def append(self, key, value):
+        # Append the value to the list if it's not in the list.
+        split_key = key.split('.')
+        if len(split_key) == 1:
+            if value not in self.settings[key]:
+                self.settings[key] = [*self.settings[key], value]
+        else:
+            if not split_key[0] in self.settings:
+                self.settings[split_key[0]] = {}
+            if value not in self.settings[split_key[0]][split_key[1]]:
+                self.settings[split_key[0]][split_key[1]] = [*self.settings[split_key[0]][split_key[1]], value]
+
+    def remove(self, key, value):
+        # Remove the value from the list if it's in the list
+        split_key = key.split('.')
+        if len(split_key) == 1:
+            if value in self.settings[key]:
+                self.settings[key].pop(value)
+        else:
+            if not split_key[0] in self.settings:
+                self.settings[split_key[0]] = {}
+            if value in self.settings[split_key[0]][split_key[1]]:
+                self.settings[split_key[0]][split_key[1]].pop(value)
+
+    def toggle(self, key, value=None):
+        # If setting is a boolean, key is enough.
+        # If it's a list, it'll append or remove the value
+        split_key = key.split('.')
+        if len(split_key) == 1:
+            if type(self.settings[key]) is bool:
+                self.settings[key] = not self.settings[key]
+            elif value is not None:
+                if value in self.settings[key]:
+                    self.remove(key, value)
+                else:
+                    self.append(key, value)
+        else:
+            if not split_key[0] in self.settings:
+                self.settings[split_key[0]] = {}
+            if type(self.settings[split_key[0]][split_key[1]]) is bool:
+                self.settings[split_key[0]][split_key[1]] = not self.settings[split_key[0]][split_key[1]]
+            elif value is not None:
+                if value in self.settings[split_key[0]][split_key[1]]:
+                    self.remove(key, value)
+                else:
+                    self.append(key, value)
+
     def has_key(self, key):
         split_key = key.split('.')
         if len(split_key) == 1:

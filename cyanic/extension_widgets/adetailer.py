@@ -48,7 +48,7 @@ class ADetailerExtension(QWidget):
 
 
         # Prompts
-        self.prompt_widget = PromptWidget(self.settings_controller, self.api, 'ad_')
+        self.prompt_widget = PromptWidget(self.settings_controller, self.api, 'adetailer')
         self.layout().addWidget(self.prompt_widget)
 
         # ... a ton of settings I honestly never used.
@@ -75,4 +75,5 @@ class ADetailerExtension(QWidget):
                 }
             }
         }
+        self.prompt_widget.save_prompt()
         return data

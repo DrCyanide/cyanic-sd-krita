@@ -101,5 +101,5 @@ class ModelsWidget(QWidget):
             'sampler': self.settings_controller.get('defaults.sampler'),
             'steps': self.settings_controller.get('defaults.sampling_steps'),
         }
-
+        self.settings_controller.save()
         return data

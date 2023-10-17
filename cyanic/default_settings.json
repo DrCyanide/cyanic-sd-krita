@@ -13,10 +13,12 @@
         "face_restorer": "",
         "cfg_scale": 7,
         "denoise_strength": 0.7,
-        "color_correction": true
+        "color_correction": true,
+        "match_colors": false
     },
     "prompts": {
         "share_prompts": true,
+        "exclude_sharing": ["adetailer", "inpaint"],
         "save_prompts": true,
         "shared_prompt": "",
         "shared_negative_prompt": "",
@@ -25,7 +27,9 @@
         "img2img_prompt": "",
         "img2img_negative_prompt": "",
         "inpaint_prompt": "",
-        "inpaint_negative_prompt": ""
+        "inpaint_negative_prompt": "",
+        "adetailer_prompt": "",
+        "adetailer_negative_prompt": ""
     },
     "resolutions": {
         "sd_max": 1024,
@@ -51,6 +55,13 @@
     "pages": {
         "last": ""
     },
+    "inpaint": {
+        "mask_blur": 4,
+        "mask_mode": 0,
+        "masked_content": 1,
+        "inpaint_area": 0,
+        "padding": 32
+    },
     "hide_ui": {
         "seed": false,
         "batch": true,
@@ -61,5 +72,14 @@
         "face_restore": true,
         "tiling": true,
         "highres_fix": true
+    },
+    "controlnet": {
+        "low_vram": false,
+        "pixel_perfect": false,
+        "control_mode": "Balanced",
+        "resize_mode": "Just Resize"
+    },
+    "adetailer": {
+        "model": "face_yolov8n.pt"
     }
 }

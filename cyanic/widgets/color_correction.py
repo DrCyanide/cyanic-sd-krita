@@ -13,6 +13,7 @@ class ColorCorrectionWidget(QWidget):
 
         # Match Image Colors
         match_colors = QCheckBox('Match Image Colors')
+        match_colors.setChecked(self.settings_controller.get('defaults.match_colors'))
         match_colors.toggled.connect(lambda: self.update_match_colors(match_colors.isChecked()))
         self.layout().addWidget(match_colors)
 
@@ -23,4 +24,6 @@ class ColorCorrectionWidget(QWidget):
         data = {
             'color_correction': self.color_correct,
         }
+        self.settings_controller.set('defaults.match_colors', self.color_correct)
+        self.settings_controller.save()
         return data

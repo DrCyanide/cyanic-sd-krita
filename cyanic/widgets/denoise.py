@@ -33,7 +33,10 @@ class DenoiseWidget(QWidget):
         self.layout().addWidget(denoise_row)
 
     def get_generation_data(self):
+        denoise = self.denoise_slider.value() / 100
         data = {
-            'denoising_strength': self.denoise_slider.value() / 100
+            'denoising_strength': denoise
         }
+        self.settings_controller.set('defaults.denoise_strength', denoise)
+        self.settings_controller.save()
         return data
