@@ -88,7 +88,8 @@ class SettingsController():
             if not split_key[0] in self.settings:
                 self.settings[split_key[0]] = {}
             if value in self.settings[split_key[0]][split_key[1]]:
-                self.settings[split_key[0]][split_key[1]].pop(value)
+                index = self.settings[split_key[0]][split_key[1]].index(value)
+                self.settings[split_key[0]][split_key[1]].pop(index)
 
     def toggle(self, key, value=None):
         # If setting is a boolean, key is enough.
