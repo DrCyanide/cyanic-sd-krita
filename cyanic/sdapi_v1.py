@@ -313,6 +313,12 @@ class SDAPI():
         if type(results['info']) is str:
             results['info'] = json.loads(results['info'])
         return results
+    
+    def extra(self, data):
+        data = self.cleanup_data(data)
+        results = self.post("/sdapi/v1/extra-single-image", data)
+        # No 'info' section to parse
+        return results
 
     # ===========================
     # Debugging fun!

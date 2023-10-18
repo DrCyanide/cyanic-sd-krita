@@ -20,7 +20,7 @@ class CyanicDocker(DockWidget):
         
         # NOTE: This page setup creates a new page each time the select is changed, which would clear prompts/settings.
         # A better design might be to re-use the pages.
-        # However that has the drawback that there needs to be a way to update the prompts across pages 
+        # However my attempts to reuse the page have gotten "object of type <pagename> has been deleted" when switching back
 
         # Set up the page select
         self.page_combobox = QComboBox()
@@ -28,9 +28,8 @@ class CyanicDocker(DockWidget):
             {'name': 'Settings', 'content': self.show_settings},
             {'name': 'Txt2Img', 'content': self.show_txt2img},
             {'name': 'Img2Img', 'content': self.show_img2img},
-            # {'name': 'Extensions', 'content': self.show_extensions},
             {'name': 'Inpaint', 'content': self.show_inpaint},
-            #{'name': 'Upscale', 'content': self.show_upscale},
+            {'name': 'Upscale', 'content': self.show_upscale},
         ]
         for page in self.pages:
             self.page_combobox.addItem(page['name'])
@@ -78,7 +77,7 @@ class CyanicDocker(DockWidget):
         self.content_area.setWidget(InpaintPage(self.settings_controller, self.api))
 
     def show_upscale(self):
-        self.showOther('Upscale')
+        self.content_area.setWidget(UpscalePage(self.settings_controller, self.api))
 
     def showOther(self, text):
         contentWidget = QWidget()

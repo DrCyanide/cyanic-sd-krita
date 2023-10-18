@@ -7,6 +7,8 @@ A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
 # Updates
+**Oct 17 2023** - Upscaler support added.
+
 **Oct 5 2023** - ADetailer support added.
 
 **Oct 4 2023** - Inpainting added.

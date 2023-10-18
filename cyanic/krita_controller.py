@@ -76,6 +76,13 @@ class KritaController():
         height = bounds.height()
         return x, y, width, height
     
+    def resize_canvas(self, width, height):
+        # Use the existing x, y
+        x, y, w_old, h_old = self.get_canvas_bounds()
+        w_real = width - x
+        h_real = height - y
+        self.doc.resizeImage(x, y, w_real, h_real)
+
     def get_layer_bounds(self):
         self.doc = Krita.instance().activeDocument()
         if self.doc is None:
@@ -124,25 +131,36 @@ class KritaController():
             w = results['info']['width']
         if h < 0:
             h = results['info']['height']
-        # Txt2Img results
+
         img_layer_parent = self.doc.rootNode()
-        if len(results['images']) > 1:
-            group = self.doc.createGroupLayer("Results")
-            img_layer_parent = group
-        
-        for i in range(0, len(results['images'])):
+        if 'images' in results: # txt2img or img2img results
+            if len(results['images']) > 1:
+                group = self.doc.createGroupLayer("Results")
+                img_layer_parent = group
+            
+            for i in range(0, len(results['images'])):
+                name = 'Image'
+                if 'info' in results and len(results['info']['all_seeds']) > i:
+                    name = layer_name if len(layer_name) > 0 else 'Seed: %s' % results['info']['all_seeds'][i]
+                layer = self.doc.createNode(name, 'paintLayer')
+                byte_array, img_w, img_h = self.base64_to_pixeldata(results['images'][i])
+                layer.setPixelData(byte_array, x, y, img_w, img_h)
+                img_layer_parent.addChildNode(layer, None)
+                self.doc.refreshProjection()
+
+            if len(results['images']) > 1:
+                self.doc.rootNode().addChildNode(group, None)
+
+        if 'image' in results: # extras results
             name = 'Image'
-            if len(results['info']['all_seeds']) > i:
-                name = layer_name if len(layer_name) > 0 else 'Seed: %s' % results['info']['all_seeds'][i]
+            if len(layer_name) > 0:
+                name = layer_name
             layer = self.doc.createNode(name, 'paintLayer')
-            byte_array, img_w, img_h = self.base64_to_pixeldata(results['images'][i])
+            byte_array, img_w, img_h = self.base64_to_pixeldata(results['image'], w, h)
             layer.setPixelData(byte_array, x, y, img_w, img_h)
             img_layer_parent.addChildNode(layer, None)
             self.doc.refreshProjection()
 
-        if len(results['images']) > 1:
-            self.doc.rootNode().addChildNode(group, None)
-        
         self.doc.refreshProjection()
 
 
