@@ -102,18 +102,10 @@ class ImageInWidget(QWidget):
         icon = QIcon(QPixmap.fromImage(self.image))
         self.preview_list.addItem(QListWidgetItem(icon, name))
 
-    def qimage_to_b64_str(self, image:QImage):
-        ba = QByteArray()
-        buffer = QBuffer(ba)
-        buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-        image.save(buffer, 'PNG')
-        b64_data = ba.toBase64().data()
-        return b64_data.decode()
-
     def get_generation_data(self):
         data = {}
         if self.image is not None:
-            data[self.key] = self.qimage_to_b64_str(self.image)
+            data[self.key] = self.kc.qimage_to_b64_str(self.image)
         else:
             data[self.key] = None # Keeps things from crashing, even if it's not very useful.
         return data

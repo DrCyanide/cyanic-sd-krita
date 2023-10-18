@@ -1,6 +1,6 @@
 from krita import *
 from PyQt5.QtGui import QImage
-from PyQt5.QtCore import QByteArray, QThread, QPointF, pyqtSignal, Qt
+from PyQt5.QtCore import QBuffer, QIODevice, QByteArray, QThread, QPointF, pyqtSignal, Qt
 import base64
 # https://scripting.krita.org/lessons/layers
 # https://api.kde.org/krita/html/classNode.html
@@ -125,15 +125,38 @@ class KritaController():
         byte_array = QByteArray(image_bits.asstring())
         return byte_array, image.width(), image.height()
 
+    def qimage_to_b64_str(self, image:QImage):
+        ba = QByteArray()
+        buffer = QBuffer(ba)
+        buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+        image.save(buffer, 'PNG')
+        b64_data = ba.toBase64().data()
+        return b64_data.decode()
+
     def results_to_layers(self, results, x=0, y=0, w=-1, h=-1, layer_name=''):
         self.doc = Krita.instance().activeDocument()
         if self.doc is None:
             self.create_new_doc()
 
-        if w < 0:
-            w = results['info']['width']
-        if h < 0:
-            h = results['info']['height']
+        if w < 0 or h < 0:
+            # This is for img2img/txt2img results
+            if 'info' in results and 'width' in results['info'] and 'height' in results['info']:
+                w = results['info']['width']
+                h = results['info']['height']
+            else:
+                if 'poses' in results: # ControlNet Preview results
+                    w = results['poses'][0]['canvas_width']
+                    h = results['poses'][0]['canvas_height']
+                else:
+                    s_x, s_y, s_w, s_h = self.get_selection_bounds()
+                    if s_w > 0 and s_h > 0:
+                        w = s_w
+                        h = s_h
+                    else:
+                        c_x, c_y, c_w, c_h = self.get_canvas_bounds()
+                        w = c_w
+                        h = c_h
+
 
         img_layer_parent = self.doc.rootNode()
         if 'images' in results: # txt2img or img2img results
@@ -143,12 +166,14 @@ class KritaController():
             
             for i in range(0, len(results['images'])):
                 name = 'Image'
-                if 'info' in results and len(results['info']['all_seeds']) > i:
+                if 'info' in results and 'all_seeds' in results['info'] and len(results['info']['all_seeds']) > i:
                     name = layer_name if len(layer_name) > 0 else 'Seed: %s' % results['info']['all_seeds'][i]
                 layer = self.doc.createNode(name, 'paintLayer')
                 byte_array, img_w, img_h = self.base64_to_pixeldata(results['images'][i])
                 layer.setPixelData(byte_array, x, y, img_w, img_h)
                 img_layer_parent.addChildNode(layer, None)
+                if img_w != w or img_h != h:
+                    self.transform_to_width_height(layer, x, y, w, h)
                 self.doc.refreshProjection()
 
             if len(results['images']) > 1:
@@ -162,6 +187,8 @@ class KritaController():
             byte_array, img_w, img_h = self.base64_to_pixeldata(results['image'], w, h)
             layer.setPixelData(byte_array, x, y, img_w, img_h)
             img_layer_parent.addChildNode(layer, None)
+            if img_w != w or img_h != h:
+                self.transform_to_width_height(layer, x, y, w, h)
             self.doc.refreshProjection()
 
         self.doc.refreshProjection()
@@ -275,7 +302,8 @@ class KritaController():
                 self.use_transform_mask(layer, x, y, width, height)
             else:
                 self.scale_layer(layer, x, y, width, height) 
-        except:
+        except Exception as e:
+            raise Exception('Cyanic SD - %s' % e)
             self.scale_layer(layer, x, y, width, height) 
 
     def scale_layer(self, layer, x, y, width, height, strategy='Bilinear'):
@@ -288,11 +316,37 @@ class KritaController():
         if self.doc is None:
             self.create_new_doc()
         # Krita 5.2+ only
-        # If there's no transform mask, make one.
-        # Else, reuse the existing transform mask
-        mask = self.doc.createNode('Transform', 'transformmask')
+        mask = self.doc.createTransformMask('Transform')
         layer.addChildNode(mask, None)
-        # mask.fromXML()
+        bounds = layer.bounds()
+        scale_x = width / bounds.width() * 1.0 # 0.4
+        scale_y = height / bounds.height() * 1.0 # 0.4
+        xml_data = """\
+        <!DOCTYPE transform_params>
+        <transform_params>
+            <main id="tooltransformparams"/>
+            <data mode="0">
+                <free_transform>
+                    <transformedCenter type="pointf" x="{x}" y="{y}"/>
+                    <originalCenter type="pointf" x="{x}" y="{y}"/>
+                    <rotationCenterOffset type="pointf" x="{x}" y="{y}"/>
+                    <transformAroundRotationCenter type="value" value="1"/>
+                    <aX type="value" value="0"/>
+                    <aY type="value" value="0"/>
+                    <aZ type="value" value="0"/>
+                    <cameraPos type="vector3d" x="0" z="1024" y="0"/>
+                    <scaleX type="value" value="{scale_x}"/>
+                    <scaleY type="value" value="{scale_y}"/>
+                    <shearX type="value" value="0"/>
+                    <shearY type="value" value="0"/>
+                    <keepAspectRatio type="value" value="0"/>
+                    <flattenedPerspectiveTransform m21="0" type="transform" m13="0" m23="0" m11="1" m22="1" m33="1" m12="0" m31="0" m32="0"/>
+                    <filterId type="value" value="Bicubic"/>
+                </free_transform>
+            </data>
+        </transform_params>
+        """.format(x=x, y=y, scale_x=scale_x, scale_y=scale_y)
+        mask.fromXML(xml_data)
         
 
     def delete_preview_layer(self):

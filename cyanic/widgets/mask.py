@@ -149,14 +149,6 @@ class MaskWidget(QWidget):
         mask_icon = QIcon(QPixmap.fromImage(self.mask))
         self.preview_list.addItem(QListWidgetItem(mask_icon, 'Mask'))
 
-    def qimage_to_b64_str(self, image:QImage):
-        ba = QByteArray()
-        buffer = QBuffer(ba)
-        buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-        image.save(buffer, 'PNG')
-        b64_data = ba.toBase64().data()
-        return b64_data.decode()
-
     def get_generation_data(self):
         # data = {
         #     'mask_blur': self.variables['mask_blur'],
@@ -174,7 +166,7 @@ class MaskWidget(QWidget):
         }
         self.settings_controller.save()
         if self.image is not None:
-            data['inpaint_img'] = self.qimage_to_b64_str(self.image)
+            data['inpaint_img'] = self.kc.qimage_to_b64_str(self.image)
         if self.mask is not None:
-            data['mask_img'] = self.qimage_to_b64_str(self.mask)
+            data['mask_img'] = self.kc.qimage_to_b64_str(self.mask)
         return data

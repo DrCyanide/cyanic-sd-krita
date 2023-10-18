@@ -106,14 +106,6 @@ class UpscalePage(QWidget):
         if self.generating:
             self.upscale_btn.setText('Upscale')
 
-    def qimage_to_b64_str(self, image:QImage):
-        ba = QByteArray()
-        buffer = QBuffer(ba)
-        buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-        image.save(buffer, 'PNG')
-        b64_data = ba.toBase64().data()
-        return b64_data.decode()
-
     def upscale(self):
         tab = self.scale_tabs.currentIndex()
         self.settings_controller.set('upscale.tab', tab)
@@ -126,7 +118,7 @@ class UpscalePage(QWidget):
             'upscaling_resize_h': self.settings_controller.get('upscale.height'),
             'upscaling_crop': self.settings_controller.get('upscale.crop_to_fit'),
             'upscaler_1': self.settings_controller.get('defaults.upscaler'),
-            'image': self.qimage_to_b64_str(self.kc.get_canvas_img()),
+            'image': self.kc.qimage_to_b64_str(self.kc.get_canvas_img()),
         }
         # self.debug_text.setPlainText(json.dumps(data))
         # self.debug_text.setPlainText('%s' % type(data))

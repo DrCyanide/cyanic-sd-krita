@@ -30,6 +30,12 @@ class ControlNetExtension(QWidget):
             tab_widget.addTab(self.units[i], 'Unit %s' % i)
         
         self.layout().addWidget(tab_widget)
+        self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top
+
+    def size_change(self):
+        # Used to fix sizes for CollapsibleWidgets
+        if 'size_change' in dir(self.parent()):
+            self.parent().size_change()
 
     def get_generation_data(self):
         enabled_controlnet_args = [unit.get_generation_data() for unit in self.units if unit.enabled]
@@ -139,33 +145,38 @@ class ControlNetUnit(QWidget):
         # Preprocessor Specific Settings
         self.preprocessor_settings = QGroupBox("Preprocessor Settings")
         self.preprocessor_settings.setLayout(QVBoxLayout())
+        # self.preprocessor_settings.setFixedHeight(150) # It was having issues with variable height... but it's also having issues with fixed height...
         self.preprocessor_settings.layout().setContentsMargins(0,0,0,0)
 
         self.resolution_row = self._setup_row('Resolution', 64, 2048, 512, 'preprocessor_resolution')
         self.preprocessor_settings.layout().addWidget(self.resolution_row)
-        self.resolution_row.setHidden(True)
 
         # Threshold A (first set of options) Int and Float
         self.threshold_a_row_int = self._setup_row('A', 64, 2048, 512, 'threshold_a')
         self.preprocessor_settings.layout().addWidget(self.threshold_a_row_int)
-        self.threshold_a_row_int.setHidden(True)
 
         self.threshold_a_row_float = self._setup_row('A', 0, 100, 0, 'threshold_a', 0.1)
         self.preprocessor_settings.layout().addWidget(self.threshold_a_row_float)
-        self.threshold_a_row_float.setHidden(True)
 
         # Threshold B (second set of options) Int and Float
         self.threshold_b_row_int = self._setup_row('B', 64, 2048, 512, 'threshold_b')
         self.preprocessor_settings.layout().addWidget(self.threshold_b_row_int)
-        self.threshold_b_row_int.setHidden(True)
-
+        
         self.threshold_b_row_float = self._setup_row('B', 0, 100, 0, 'threshold_b', 0.1)
         self.preprocessor_settings.layout().addWidget(self.threshold_b_row_float)
-        self.threshold_b_row_float.setHidden(True)
 
-        # TODO: Run Preprocessor button?
         self.layout().addWidget(self.preprocessor_settings)
-        self.preprocessor_settings.setHidden(True)
+        self.resolution_row.setHidden(True)
+        self.threshold_a_row_int.setHidden(True)
+        self.threshold_a_row_float.setHidden(True)
+        self.threshold_b_row_int.setHidden(True)
+        self.threshold_b_row_float.setHidden(True)
+        # self.preprocessor_settings.setHidden(True)
+
+        # Preview Preprocessor button
+        self.preview_preprocessor_btn = QPushButton("Preview")
+        self.preview_preprocessor_btn.clicked.connect(lambda: self.gen_preview())
+        self.layout().addWidget(self.preview_preprocessor_btn)
 
         # Controls below the prprocessor
         general_controls_row = QWidget()
@@ -218,6 +229,11 @@ class ControlNetUnit(QWidget):
         # self.debug_text = QPlainTextEdit()
         # self.debug_text.setPlaceholderText('Debugging text')
         # self.layout().addWidget(self.debug_text)
+
+    def size_change(self):
+        # Used to fix sizes for CollapsibleWidgets
+        if 'size_change' in dir(self.parent()):
+            self.parent().size_change()
 
     def _setup_row(self, label:str, min, max, value, variable_name:str, step=1):
         row = QWidget()
@@ -381,12 +397,14 @@ class ControlNetUnit(QWidget):
         else:
             self.resolution_row.setHidden(True)
         
+        # raise Exception('Cyanic SD - Aborting')
         # These are the unique settings that a preprocessor can have, passed into the API as threshold_a and threshold_b
         self.threshold_a_row_int.setHidden(True)
         self.threshold_a_row_float.setHidden(True)
         self.threshold_b_row_int.setHidden(True)
         self.threshold_b_row_float.setHidden(True)
         thresholds = details['sliders'][slider_index:len(details['sliders'])] # Remove the Preprocessor Resolution from the list
+        # self.debug_text.setPlainText('%s\n%s' % (preprocessor_name, thresholds))
         if len(thresholds) > 0:
             steps = thresholds[0].get('step', 1)
             if type(steps) is float:
@@ -396,8 +414,9 @@ class ControlNetUnit(QWidget):
             else:
                 self.threshold_a_row_int.setHidden(False)
                 # self.debug_text.setPlainText('%s\nInt %s' % (self.debug_text.toPlainText(), thresholds[0]['name']))
-                self._update_row(self.threshold_a_row_float, thresholds[0]['name'], thresholds[0]['min'], thresholds[0]['max'], thresholds[0]['value'], 'threshold_a', steps)
-
+                self._update_row(self.threshold_a_row_int, thresholds[0]['name'], thresholds[0]['min'], thresholds[0]['max'], thresholds[0]['value'], 'threshold_a', steps)
+                # raise Exception('Cyanic SD - Debugging Aborted')
+        
         if len(thresholds) > 1:
             steps = thresholds[1].get('step', 1)
             if type(steps) is float:
@@ -407,6 +426,14 @@ class ControlNetUnit(QWidget):
                 self.threshold_b_row_int.setHidden(False)
                 self._update_row(self.threshold_b_row_int, thresholds[1]['name'], thresholds[1]['min'], thresholds[1]['max'], thresholds[1]['value'], 'threshold_b', steps)
         self.update()
+    
+    def gen_preview(self):
+        image_data = self.img_in.get_generation_data()
+        results = self.cnapi.preview(image_data['input_image'], self.preprocessor, self.variables['preprocessor_resolution'], self.variables['threshold_a'], self.variables['threshold_b'])
+        kc = KritaController()
+        kc.results_to_layers(results, self.img_in.size_dict['x'], self.img_in.size_dict['y'], self.img_in.size_dict['w'], self.img_in.size_dict['h'], 'ControlNet Preview')
+        # NOTE: For OpenPose, results includes {'poses': [{'people': [{'pose_keypoints_2d': [...]}] }]}
+        # Those pose_keypoints_2d could be used to make a Vector preview of the pose, allowing users to edit the pose more precisely
 
     def get_generation_data(self):
         # https://github.com/Mikubill/sd-webui-controlnet/wiki/API
@@ -435,6 +462,7 @@ class ControlNetUnit(QWidget):
 class ControlNetAPI():
     def __init__(self, api:SDAPI):
         self.api = api
+        self.kc = KritaController()
         self.models = []
         self.module_list = [] # Preprocessors
         self.module_details = {}
@@ -476,4 +504,14 @@ class ControlNetAPI():
         self.settings = self.api.get('/controlnet/settings')
         self.tabs = self.settings['control_net_unit_count']
 
-    # def detect(self, images):
+    def preview(self, image:str, module:str, processor_res, threshold_a, threshold_b):
+        # Module == preprocessor
+        data = {
+            'controlnet_module': module,
+            'controlnet_input_images': [image],
+            'controlnet_processor_res': processor_res,
+            'controlnet_threshold_a': threshold_a,
+            'controlnet_threshold_b': threshold_b,
+        }
+        results = self.api.post('/controlnet/detect', data)
+        return results
