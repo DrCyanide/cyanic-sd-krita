@@ -74,8 +74,6 @@ Inpainting masks are super simple to make - just create a new layer and draw. An
     * High Res Fix
     * Tiling
     * Face Restore
-* Modes
-    * Upscaling
 * Extensions
     * Roop/ReActor
     * Remove Background (RemBG)
