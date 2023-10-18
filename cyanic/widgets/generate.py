@@ -87,7 +87,8 @@ class GenerateWidget(QWidget):
             self.debug_data.setPlainText('%s' % json.dumps(self.api.cleanup_data(data)))
             # return
         try:
-            if self.kc.doc is None:
+            self.kc.refresh_doc()
+            if self.kc.doc is None: 
                 self.kc.create_new_doc()
             self.kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return(x, y, w, h))
             self.progress_timer = QTimer()

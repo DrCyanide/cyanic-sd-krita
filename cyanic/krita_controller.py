@@ -50,6 +50,9 @@ class KritaController():
         Krita.instance().activeWindow().addView(new_doc)
         self.doc = new_doc
 
+    def refresh_doc(self):
+        self.doc = Krita.instance().activeDocument()
+
     def get_selection_bounds(self):
         self.doc = Krita.instance().activeDocument()
         if self.doc is None:
