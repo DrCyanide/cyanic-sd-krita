@@ -103,6 +103,8 @@ class SDAPI():
 
     def get_options(self):
         self.default_settings = self.get("/sdapi/v1/options")
+        if self.default_settings is None: # Some sort of server error while getting the configs?
+            self.default_settings = {}
         # self.defaults['sampler'] = There isn't one in settings
         self.defaults['model'] = self.default_settings.get('sd_model_checkpoint', '')
         self.defaults['vae'] = self.default_settings.get('sd_vae', '')
