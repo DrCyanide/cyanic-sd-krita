@@ -21,6 +21,7 @@ class GenerateWidget(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.kc = KritaController()
+        self.results = None
         self.is_generating = False
         self.abort = False
         self.debug = False
@@ -108,7 +109,7 @@ class GenerateWidget(QWidget):
     def progress_check(self, x, y, w, h):
         try:
             results = self.api.get_progress()
-            if results['progress'] == 0 or self.abort: # The operation has stopped
+            if results is None or results['progress'] == 0 or self.abort: # The operation has stopped
                 self.abort = False
                 self.progress_bar.setValue(1)
                 self.kc.delete_preview_layer()
@@ -132,23 +133,34 @@ class GenerateWidget(QWidget):
     def threadable_run(self, data):
         self.generate_btn.setText('Cancel')
         self.update()
+        # if self.debug:
+            # self.debug_data.setPlainText('%s\nThreadable Run start' % self.debug_data.toPlainText())
         if self.mode == 'txt2img':
             self.results = self.api.txt2img(data)
         elif self.mode == 'img2img':
             self.results = self.api.img2img(data)
         elif self.mode == 'inpaint':
             self.results = self.api.img2img(data)
+        # if self.debug:
+            # self.debug_data.setPlainText('Threadable Run!\n%s' % self.results)
 
     def threadable_return(self, x, y, w, h):
-        KritaController().results_to_layers(self.results, x, y, w, h)
+        # self.debug_data.setPlainText('Threadable Return!\n%s' % self.results)
+        if self.results is not None:
+            KritaController().results_to_layers(self.results, x, y, w, h)
+        else:
+            if self.debug:
+                self.debug_data.setPlainText('%s\nThreadable Return found no results' % self.debug_data.toPlainText())
         self.generate_btn.setText('Generate')
         self.progress_bar.setValue(0)
         self.progress_bar.setHidden(True)
         self.update()
 
     def cancel(self):
+        # raise Exception('Cyanic SD - Cancel!')
         try:
             self.api.interrupt()
+            # self.progress_timer.stop()
             self.abort = True
             self.generate_btn.setText('Generate')
             self.progress_bar.setValue(0)

@@ -12,7 +12,10 @@ class GenericWorker(QObject):
         self.task = task
 
     def run(self):
-        self.task()
+        try:
+            self.task()
+        except Exception as e:
+            pass
         self.finished.emit()
 
 class KritaController():
@@ -37,9 +40,9 @@ class KritaController():
             self.thread = QThread()
             self.worker = GenericWorker(function)
             self.worker.moveToThread(self.thread)
-            self.thread.started.connect(self.worker.run)
             self.worker.finished.connect(after_function)
             self.worker.finished.connect(self.thread.quit)
+            self.thread.started.connect(self.worker.run)
             self.thread.start()
         except Exception as e:
             raise Exception('Cyanic SD - Exception starting thread: %s' % e )

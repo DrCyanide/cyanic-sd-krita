@@ -64,14 +64,29 @@ class SDAPI():
 
     def post(self, url, data):
         self.last_url = "{}{}".format(self.host, url)
-        request = urllib.request.Request(self.last_url, data=json.dumps(data).encode('utf-8'), headers={"Content-Type": "application/json"})
-        response = urllib.request.urlopen(request)
-        return json.loads(response.read())
+        request = urllib.request.Request(self.last_url, data=json.dumps(data).encode('utf-8'), headers={"Content-Type": "application/json"})       
+        try:
+            response = urllib.request.urlopen(request)
+            text = response.read()
+            try:
+                return json.loads(text)
+            except:
+                return text
+        except:
+            return None
+
 
     def get(self, url):
         self.last_url = "{}{}".format(self.host, url)
-        response = urllib.request.urlopen(self.last_url)
-        return json.loads(response.read())
+        try:
+            response = urllib.request.urlopen(self.last_url)
+            text = response.read()
+            try:
+                return json.loads(text)
+            except:
+                return text
+        except:
+            return None
 
     def get_status(self):
         return self.get("/queue/status")

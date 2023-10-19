@@ -104,6 +104,9 @@ class ImageInWidget(QWidget):
 
     def get_generation_data(self):
         data = {}
+        if self.image is None: # Default to the canvas
+            self.get_canvas_img()
+
         if self.image is not None:
             data[self.key] = self.kc.qimage_to_b64_str(self.image)
         else:

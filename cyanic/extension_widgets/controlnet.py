@@ -150,28 +150,28 @@ class ControlNetUnit(QWidget):
 
         self.resolution_row = self._setup_row('Resolution', 64, 2048, 512, 'preprocessor_resolution')
         self.preprocessor_settings.layout().addWidget(self.resolution_row)
+        self.resolution_row.setHidden(True)
 
         # Threshold A (first set of options) Int and Float
         self.threshold_a_row_int = self._setup_row('A', 64, 2048, 512, 'threshold_a')
         self.preprocessor_settings.layout().addWidget(self.threshold_a_row_int)
+        self.threshold_a_row_int.setHidden(True)
 
         self.threshold_a_row_float = self._setup_row('A', 0, 100, 0, 'threshold_a', 0.1)
         self.preprocessor_settings.layout().addWidget(self.threshold_a_row_float)
+        self.threshold_a_row_float.setHidden(True)
 
         # Threshold B (second set of options) Int and Float
         self.threshold_b_row_int = self._setup_row('B', 64, 2048, 512, 'threshold_b')
         self.preprocessor_settings.layout().addWidget(self.threshold_b_row_int)
+        self.threshold_b_row_int.setHidden(True)
         
         self.threshold_b_row_float = self._setup_row('B', 0, 100, 0, 'threshold_b', 0.1)
         self.preprocessor_settings.layout().addWidget(self.threshold_b_row_float)
+        self.threshold_b_row_float.setHidden(True)
 
         self.layout().addWidget(self.preprocessor_settings)
-        self.resolution_row.setHidden(True)
-        self.threshold_a_row_int.setHidden(True)
-        self.threshold_a_row_float.setHidden(True)
-        self.threshold_b_row_int.setHidden(True)
-        self.threshold_b_row_float.setHidden(True)
-        # self.preprocessor_settings.setHidden(True)
+        self.preprocessor_settings.setHidden(True)
 
         # Preview Preprocessor button
         self.preview_preprocessor_btn = QPushButton("Preview")

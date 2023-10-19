@@ -165,6 +165,9 @@ class MaskWidget(QWidget):
             'inpaint_full_res_padding': self.settings_controller.get('inpaint.padding'), # IDK what this actually does
         }
         self.settings_controller.save()
+        if self.image is None:
+            self.get_mask_and_img(mode="canvas")
+
         if self.image is not None:
             data['inpaint_img'] = self.kc.qimage_to_b64_str(self.image)
         if self.mask is not None:
