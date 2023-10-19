@@ -42,7 +42,11 @@ class SDAPI():
     def init_api(self):
         try:
             response = self.get_status()
-            self.connected = True
+            if response is not None:
+                self.connected = True
+            else:
+                self.connected = False
+                return
         except Exception as e:
             self.connected = False
             return # There was an issue, but the server might not be online yet.
@@ -128,7 +132,10 @@ class SDAPI():
         return self.models
     
     def get_model_names(self):
-        return [*map(lambda x: x['model_name'], self.models)]
+        if self.connected:
+            return [*map(lambda x: x['model_name'], self.models)]
+        else:
+            return []
     
     def get_model_name(self, title):
         if len(title) == 0:
@@ -142,13 +149,22 @@ class SDAPI():
             return 'None'
     
     def get_vae_names(self):
-        return [*map(lambda x: x['model_name'], self.vaes)]
+        if self.connected:
+            return [*map(lambda x: x['model_name'], self.vaes)]
+        else:
+            return []
     
     def get_face_restorer_names(self):
-        return [*map(lambda x: x['name'], self.facerestorers)]
+        if self.connected:
+            return [*map(lambda x: x['name'], self.facerestorers)]
+        else:
+            return []
     
     def get_upscaler_names(self):
-        return [*map(lambda x: x['name'], self.upscalers)]
+        if self.connected:
+            return [*map(lambda x: x['name'], self.upscalers)]
+        else:
+            return []
 
     def get_facerestorers(self):
         self.facerestorers = self.get("/sdapi/v1/face-restorers")
@@ -184,23 +200,42 @@ class SDAPI():
     # ===========================
 
     def get_samplers_and_default(self):
-        return list(map(lambda x: x['name'], self.samplers)), self.defaults['sampler']
+        if self.connected:
+            return list(map(lambda x: x['name'], self.samplers)), self.defaults['sampler']
+        else:
+            return [], 'None'
     
     def get_models_and_default(self):
-        return list(map(lambda x: x['title'], self.models)), self.defaults['model']
+        if self.connected:
+            return list(map(lambda x: x['title'], self.models)), self.defaults['model']
+        else:
+            return [], 'None'
     
     def get_vaes_and_default(self):
-        return list(map(lambda x: x['model_name'], self.vaes)), self.defaults['vae']
+        if self.connected:
+            return list(map(lambda x: x['model_name'], self.vaes)), self.defaults['vae']
+        else:
+            return [], 'None'
     
     def get_upscaler_and_default(self):
-        return list(map(lambda x: x['name'], self.upscalers)), self.defaults['upscaler']
+        if self.connected:
+            return list(map(lambda x: x['name'], self.upscalers)), self.defaults['upscaler']
+        else:
+            return [], 'None'
     
     def get_refiners_and_default(self):
-        # No difference in options yet,
-        return list(map(lambda x: x['title'], self.samplers)), self.defaults['refiner']
+        # No difference in options yet between refiners and models
+        if self.connected:
+            return list(map(lambda x: x['title'], self.models)), self.defaults['refiner']
+        else:
+            return [], 'None'
+        
     
     def get_face_restorers_and_default(self):
-        return list(map(lambda x: x['name'], self.facerestorers)), self.defaults['face_restorer']
+        if self.connected:
+            return list(map(lambda x: x['name'], self.facerestorers)), self.defaults['face_restorer']
+        else:
+            return [], 'None'
 
     def script_installed(self, script_name):
         for key in self.scripts.keys():
@@ -209,14 +244,20 @@ class SDAPI():
         return False
     
     def get_style_names(self):
-        return list(map(lambda x: x['name'], self.styles))
+        if self.connected:
+            return list(map(lambda x: x['name'], self.styles))
+        else:
+            return []
     
     def get_style_prompts(self, names:list):
-        prompts_raw = list(map(lambda x: x['prompt'] if x['name'] in names else '', self.styles))
-        prompts = ', '.join(list(filter(lambda x: len(x) > 0, prompts_raw)))
-        negative_prompts_raw = list(map(lambda x: x['negative_prompt'] if x['name'] in names else '', self.styles))
-        negative_prompts = ', '.join(list(filter(lambda x: len(x) > 0, negative_prompts_raw)))
-        return prompts, negative_prompts
+        if self.connected:
+            prompts_raw = list(map(lambda x: x['prompt'] if x['name'] in names else '', self.styles))
+            prompts = ', '.join(list(filter(lambda x: len(x) > 0, prompts_raw)))
+            negative_prompts_raw = list(map(lambda x: x['negative_prompt'] if x['name'] in names else '', self.styles))
+            negative_prompts = ', '.join(list(filter(lambda x: len(x) > 0, negative_prompts_raw)))
+            return prompts, negative_prompts
+        else:
+            return '', ''
 
     # ===========================
     # API calls to make images
