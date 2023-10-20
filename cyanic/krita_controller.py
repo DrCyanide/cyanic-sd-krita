@@ -30,7 +30,7 @@ class KritaController():
         target_version = target_version.split('.')
         for i in range(len(target_version)):
             # TODO: check if either version has any letters in it, for a beta or release candidate
-            if int(target_version[i]) < int(version[i]):
+            if int(target_version[i]) > int(version[i]):
                 return False
         return True
 
@@ -120,7 +120,8 @@ class KritaController():
         image = QImage.fromData(b64img_data, 'PNG') # This formats the bytes in a way Krita can understand them
 
         # If the image is grayscale (like ControlNet previews often are), convert it to full color
-        if image.format() == QImage.Format_Grayscale8 or image.format() == QImage.Format_Grayscale16:
+        # if image.format() == QImage.Format_Grayscale8 or image.format() == QImage.Format_Grayscale16:
+        if image.isGrayscale():
             image = image.convertToFormat(QImage.Format_RGBA8888) 
         
         # scale the image, used for previews to prevent flickering when scaling
