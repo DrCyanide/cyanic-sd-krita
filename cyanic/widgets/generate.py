@@ -24,7 +24,7 @@ class GenerateWidget(QWidget):
         self.results = None
         self.is_generating = False
         self.abort = False
-        self.debug = False
+        self.debug = True
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setMinimum(0)
@@ -147,7 +147,18 @@ class GenerateWidget(QWidget):
     def threadable_return(self, x, y, w, h):
         # self.debug_data.setPlainText('Threadable Return!\n%s' % self.results)
         if self.results is not None:
+            # Prune the results images so that ControlNet preprocessors or masks aren't included in the results
+            if 'images' in self.results and 'parameters' in self.results and 'batch_size' in self.results['parameters'] and 'n_iter' in self.results['parameters']:
+                expected_images = self.results['parameters']['batch_size'] * self.results['parameters']['n_iter']
+                if len(self.results['images']) > expected_images:
+                    self.results['images'] = self.results['images'][:expected_images]
             KritaController().results_to_layers(self.results, x, y, w, h)
+            if self.debug:
+                temp_results = self.results
+                if 'images' in temp_results:
+                    for i in range(len(temp_results['images'])):
+                        temp_results['images'][i] = '...'
+                self.debug_data.setPlainText('%s' % temp_results)
         else:
             if self.debug:
                 self.debug_data.setPlainText('%s\nThreadable Return found no results' % self.debug_data.toPlainText())

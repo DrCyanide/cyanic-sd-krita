@@ -67,8 +67,8 @@ class ControlNetUnit(QWidget):
         self.resize_mode = 0
         self.variables = {
             "preprocessor_resolution": 512,
-            "threshold_a": -1,
-            "threshold_b": -1,
+            "threshold_a": -2,
+            "threshold_b": -3,
             'weight': 100, # should be 1.0, but I'm adjusting it to make it less broken in Krita
             'start': 0,
             'end': 100,
@@ -449,7 +449,7 @@ class ControlNetUnit(QWidget):
             'weight': self.variables['weight'] / 100, # converting 100% back to 1.0
             'resize_mode': self.resize_mode,
             'lowvram': self.low_vram,
-            'preprocessor_res': self.variables['preprocessor_resolution'],
+            'processor_res': self.variables['preprocessor_resolution'],
             'threshold_a': self.variables['threshold_a'], # API only uses this if preprocessor accepts values
             'threshold_b': self.variables['threshold_b'], # API only uses this if preprocessor accepts values
             'guidance_start': self.variables['start'] / 100 if self.variables['start'] > 0 else 0.0,
@@ -457,6 +457,7 @@ class ControlNetUnit(QWidget):
             'control_mode': self.control_mode,
             'pixel_perfect': self.pixel_perfect,
         }
+        # self.debug_text.setPlainText('%s\n%s' % (self.debug_text.toPlainText(), data))
         data.update(self.img_in.get_generation_data()) # Combines the image data with the rest of the data 
         return data
 
