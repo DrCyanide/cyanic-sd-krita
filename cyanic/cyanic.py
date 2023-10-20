@@ -30,6 +30,7 @@ class CyanicDocker(DockWidget):
             {'name': 'Img2Img', 'content': self.show_img2img},
             {'name': 'Inpaint', 'content': self.show_inpaint},
             {'name': 'Upscale', 'content': self.show_upscale},
+            {'name': 'Remove Background', 'content': self.show_rembg},
         ]
         for page in self.pages:
             self.page_combobox.addItem(page['name'])
@@ -78,6 +79,9 @@ class CyanicDocker(DockWidget):
 
     def show_upscale(self):
         self.content_area.setWidget(UpscalePage(self.settings_controller, self.api))
+
+    def show_rembg(self):
+        self.content_area.setWidget(RemBGPage(self.settings_controller, self.api))
 
     def showOther(self, text):
         contentWidget = QWidget()

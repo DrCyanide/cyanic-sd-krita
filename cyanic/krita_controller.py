@@ -1,7 +1,8 @@
 from krita import *
 from PyQt5.QtGui import QImage
-from PyQt5.QtCore import QBuffer, QIODevice, QByteArray, QThread, QPointF, pyqtSignal, Qt
+from PyQt5.QtCore import QBuffer, QIODevice, QByteArray, QThread, QPointF, pyqtSignal, Qt, QTimer
 import base64
+import random
 # https://scripting.krita.org/lessons/layers
 # https://api.kde.org/krita/html/classNode.html
 
@@ -209,6 +210,19 @@ class KritaController():
 
         self.doc.refreshProjection()
 
+    def result_to_transparency_mask(self, results, x=0, y=0, w=-1, h=-1):
+        # Pass to results_to_layers() with a unique name
+        uniqueName = 'cyanic_sd_transparent-%s' % random.randint(10000, 99999)
+        self.results_to_layers(results, x, y, w, h, uniqueName)
+        # Find the node with that unique name
+        transparency_layer = self.doc.nodeByName(uniqueName)
+        self.doc.setActiveNode(transparency_layer)
+        self.doc.refreshProjection()
+        self.doc.waitForDone()
+        # This was firing too fast, so...
+        # Krita.instance().action('convert_to_transparency_mask').trigger()
+        QTimer.singleShot(500, lambda: Krita.instance().action('convert_to_transparency_mask').trigger())
+        
 
     def get_selected_layer_img(self):
         self.doc = Krita.instance().activeDocument()
@@ -363,7 +377,6 @@ class KritaController():
         </transform_params>
         """.format(x=x, y=y, scale_x=scale_x, scale_y=scale_y)
         mask.fromXML(xml_data)
-        
 
     def delete_preview_layer(self):
         if self.preview_layer_uid is None:

@@ -7,7 +7,7 @@ A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
 # Updates
-**Oct 20 2023** - ControlNet Preprocessor Previews supported
+**Oct 20 2023** - RemBG support added, ControlNet Preprocessor Previews supported.
 
 **Oct 17 2023** - Upscaler support added.
 
@@ -78,7 +78,6 @@ Inpainting masks are super simple to make - just create a new layer and draw. An
     * Face Restore
 * Extensions
     * Roop/ReActor
-    * Remove Background (RemBG)
 
 # Not planning to implement
 * Scripts

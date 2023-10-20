@@ -89,5 +89,13 @@
     },
     "adetailer": {
         "model": "face_yolov8n.pt"
+    },
+    "rembg": {
+        "model": "u2net",
+        "results_as_mask": true,
+        "alpha_matting": false,
+        "erode_size": 10,
+        "foreground_threshold": 240,
+        "background_threshold": 10
     }
 }

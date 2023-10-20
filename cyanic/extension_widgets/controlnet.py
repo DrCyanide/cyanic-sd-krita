@@ -431,6 +431,7 @@ class ControlNetUnit(QWidget):
         if results is not None:
             kc = KritaController()
             # self.debug_text.setPlainText('%s' % results)
+            # TODO: Replace the self.img_in.size_dict with self.size_dict, which is passed in as a variable to self.img_in on creation
             kc.results_to_layers(results, self.img_in.size_dict['x'], self.img_in.size_dict['y'], self.img_in.size_dict['w'], self.img_in.size_dict['h'], 'ControlNet Preview')
             # kc.results_to_layers(results, layer_name='ControlNet Preview')
         # NOTE: For OpenPose, results includes {'poses': [{'people': [{'pose_keypoints_2d': [...]}] }]}
