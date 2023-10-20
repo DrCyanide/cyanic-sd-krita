@@ -59,20 +59,18 @@ class ADetailerExtension(QWidget):
         if not self.enable_cb.isChecked():
             return {}
         prompt_data = self.prompt_widget.get_generation_data()
-        data = {
-            'alwayson_scripts': {
-                'ADetailer': {
-                    'args': [
-                        True, # Enabled... and technically optionall
-                        {
-                            'ad_model': self.model_select.currentText(),
-                            'ad_prompt': prompt_data['prompt'],
-                            'ad_negative_prompt': prompt_data['negative_prompt'],
-                            # Many more args I'm skipping and using the defaults for
-                        }
-                        # Could add more tabs, just add their args down here in the same way
-                    ]
-                }
+        data = { # Whatever is requesting this data will have to add the `alwayson_scripts`, otherwise multiple extensions will delete each other
+            'ADetailer': {
+                'args': [
+                    True, # Enabled... and technically optionall
+                    {
+                        'ad_model': self.model_select.currentText(),
+                        'ad_prompt': prompt_data['prompt'],
+                        'ad_negative_prompt': prompt_data['negative_prompt'],
+                        # Many more args I'm skipping and using the defaults for
+                    }
+                    # Could add more tabs, just add their args down here in the same way
+                ]
             }
         }
         self.prompt_widget.save_prompt()

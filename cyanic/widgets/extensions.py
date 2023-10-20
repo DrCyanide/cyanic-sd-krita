@@ -30,8 +30,12 @@ class ExtensionWidget(QWidget):
         data = {}
         # Go through each widget get their data
         if self.server_supported['controlnet']:
-            data.update(self.controlnet_widget.get_generation_data())
+            if not 'alwayson_scripts' in data.keys():
+                data['alwayson_scripts'] = {}
+            data['alwayson_scripts'].update(self.controlnet_widget.get_generation_data())
 
-        if self.server_supported['adetailer']: 
-            data.update(self.adetailer_widget.get_generation_data())
+        if self.server_supported['adetailer']:
+            if not 'alwayson_scripts' in data.keys():
+                data['alwayson_scripts'] = {}
+            data['alwayson_scripts'].update(self.adetailer_widget.get_generation_data())
         return data

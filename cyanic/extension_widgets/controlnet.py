@@ -41,11 +41,9 @@ class ControlNetExtension(QWidget):
         if len(enabled_controlnet_args) == 0:
             return {}
         
-        data = {
-            'alwayson_scripts': {
-                'controlnet': {
-                    'args': enabled_controlnet_args
-                }
+        data = { # Whatever is requesting this data will have to add the `alwayson_scripts`, otherwise multiple extensions will delete each other
+            'controlnet': {
+                'args': enabled_controlnet_args
             }
         }
         return data
