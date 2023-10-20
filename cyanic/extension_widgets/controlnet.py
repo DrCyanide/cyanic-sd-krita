@@ -406,7 +406,7 @@ class ControlNetUnit(QWidget):
         # self.debug_text.setPlainText('%s\n%s' % (preprocessor_name, thresholds))
         if len(thresholds) > 0:
             steps = thresholds[0].get('step', 1)
-            if type(steps) is float:
+            if type(steps) is float or type(thresholds[0]['min']) is float or type(thresholds[0]['max']) is float or type(thresholds[0]['value']) is float:
                 self.threshold_a_row_float.setHidden(False)
                 # self.debug_text.setPlainText('%s\nFloat %s' % (self.debug_text.toPlainText(), thresholds[0]['name']))
                 self._update_row(self.threshold_a_row_float, thresholds[0]['name'], thresholds[0]['min'], thresholds[0]['max'], thresholds[0]['value'], 'threshold_a', steps)
