@@ -166,7 +166,11 @@ class MaskWidget(QWidget):
         }
         self.settings_controller.save()
         if self.image is None:
-            self.get_mask_and_img(mode="canvas")
+            s_x, s_y, s_w, s_h = self.kc.get_selection_bounds()
+            if s_w > 0 and s_h > 0:
+                self.get_mask_and_img(mode="selection")
+            else:
+                self.get_mask_and_img(mode="canvas")
 
         if self.image is not None:
             data['inpaint_img'] = self.kc.qimage_to_b64_str(self.image)
