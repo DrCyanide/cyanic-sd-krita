@@ -118,6 +118,11 @@ class KritaController():
     def base64_to_pixeldata(self, base64str:str, width=-1, height=-1):
         b64img_data = base64.b64decode(base64str)
         image = QImage.fromData(b64img_data, 'PNG') # This formats the bytes in a way Krita can understand them
+
+        # If the image is grayscale (like ControlNet previews often are), convert it to full color
+        if image.format() == QImage.Format_Grayscale8 or image.format() == QImage.Format_Grayscale16:
+            image = image.convertToFormat(QImage.Format_RGBA8888) 
+        
         # scale the image, used for previews to prevent flickering when scaling
         if width > -1:
             image = image.scaledToWidth(width)
@@ -147,7 +152,7 @@ class KritaController():
                 w = results['info']['width']
                 h = results['info']['height']
             else:
-                if 'poses' in results: # ControlNet Preview results
+                if 'poses' in results: # ControlNet OpenPose Preview results
                     w = results['poses'][0]['canvas_width']
                     h = results['poses'][0]['canvas_height']
                 else:
@@ -169,8 +174,13 @@ class KritaController():
             
             for i in range(0, len(results['images'])):
                 name = 'Image'
-                if 'info' in results and 'all_seeds' in results['info'] and len(results['info']['all_seeds']) > i:
-                    name = layer_name if len(layer_name) > 0 else 'Seed: %s' % results['info']['all_seeds'][i]
+                if len(layer_name) > 0:
+                    name = layer_name
+                elif 'info' in results and 'all_seeds' in results['info'] and len(results['info']['all_seeds']) > i:
+                    name = 'Seed: %s' % results['info']['all_seeds'][i]
+                if len(results['images'][i]) == 0:
+                    # This can happen if there's no ControlNet Preview available
+                    continue
                 layer = self.doc.createNode(name, 'paintLayer')
                 byte_array, img_w, img_h = self.base64_to_pixeldata(results['images'][i])
                 layer.setPixelData(byte_array, x, y, img_w, img_h)
@@ -186,6 +196,8 @@ class KritaController():
             name = 'Image'
             if len(layer_name) > 0:
                 name = layer_name
+            if len(results['image']) == 0:
+                return 
             layer = self.doc.createNode(name, 'paintLayer')
             byte_array, img_w, img_h = self.base64_to_pixeldata(results['image'], w, h)
             layer.setPixelData(byte_array, x, y, img_w, img_h)

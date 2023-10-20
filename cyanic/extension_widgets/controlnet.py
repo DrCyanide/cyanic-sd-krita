@@ -30,7 +30,6 @@ class ControlNetExtension(QWidget):
             tab_widget.addTab(self.units[i], 'Unit %s' % i)
         
         self.layout().addWidget(tab_widget)
-        self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top
 
     def size_change(self):
         # Used to fix sizes for CollapsibleWidgets
@@ -430,8 +429,12 @@ class ControlNetUnit(QWidget):
     def gen_preview(self):
         image_data = self.img_in.get_generation_data()
         results = self.cnapi.preview(image_data['input_image'], self.preprocessor, self.variables['preprocessor_resolution'], self.variables['threshold_a'], self.variables['threshold_b'])
-        kc = KritaController()
-        kc.results_to_layers(results, self.img_in.size_dict['x'], self.img_in.size_dict['y'], self.img_in.size_dict['w'], self.img_in.size_dict['h'], 'ControlNet Preview')
+        # self.debug_text.setPlainText('%s' % results)
+        if results is not None:
+            kc = KritaController()
+            # self.debug_text.setPlainText('%s' % results)
+            kc.results_to_layers(results, self.img_in.size_dict['x'], self.img_in.size_dict['y'], self.img_in.size_dict['w'], self.img_in.size_dict['h'], 'ControlNet Preview')
+            # kc.results_to_layers(results, layer_name='ControlNet Preview')
         # NOTE: For OpenPose, results includes {'poses': [{'people': [{'pose_keypoints_2d': [...]}] }]}
         # Those pose_keypoints_2d could be used to make a Vector preview of the pose, allowing users to edit the pose more precisely
 
