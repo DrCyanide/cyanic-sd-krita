@@ -24,7 +24,7 @@ class GenerateWidget(QWidget):
         self.results = None
         self.is_generating = False
         self.abort = False
-        self.debug = True
+        self.debug = False
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setMinimum(0)
