@@ -93,6 +93,7 @@
     "rembg": {
         "model": "u2net",
         "results_as_mask": true,
+        "apply_mask": true,
         "alpha_matting": false,
         "erode_size": 10,
         "foreground_threshold": 240,

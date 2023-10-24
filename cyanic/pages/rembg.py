@@ -42,8 +42,14 @@ class RemBGPage(QWidget):
         as_mask_cb = QCheckBox('Results as Mask')
         as_mask_cb.setToolTip('Enable to automatically make the results a mask of the active layer')
         as_mask_cb.setChecked(self.settings_controller.get('rembg.results_as_mask'))
-        as_mask_cb.stateChanged.connect(lambda: self.settings_controller.set('rembg.results_as_mask', as_mask_cb.isChecked()))
+        as_mask_cb.stateChanged.connect(lambda: self.set_as_mask(as_mask_cb.isChecked()))
         self.layout().addWidget(as_mask_cb)
+
+        # Apply Mask
+        self.apply_mask_cb = QCheckBox('Apply Mask')
+        self.apply_mask_cb.setChecked(self.settings_controller.get('rembg.apply_mask'))
+        self.apply_mask_cb.stateChanged.connect(lambda: self.settings_controller.set('rembg.apply_mask', self.apply_mask_cb.isChecked()))
+        self.layout().addWidget(self.apply_mask_cb)
 
         # Alpha Matting
         alpha_matting_cb = QCheckBox('Alpha Matting')
@@ -56,30 +62,16 @@ class RemBGPage(QWidget):
         self.alpha_matting_settings = QGroupBox()
         self.alpha_matting_settings.setLayout(QFormLayout())
         self.alpha_matting_settings.setVisible(self.settings_controller.get('rembg.alpha_matting'))
+
         #   Erode Size
-        # erode_size = QSlider(Qt.Horizontal)
-        # erode_size.setMinimum(0)
-        # erode_size.setMaximum(40)
-        # erode_size.setValue(self.settings_controller.get('rembg.erode_size'))
-        # erode_size.valueChanged.connect(lambda: self.settings_controller.set('rembg.erode_size', erode_size.value()))
         erode_size = self.make_slider_row(0, 40, 'rembg.erode_size')
         self.alpha_matting_settings.layout().addRow('Erode Size', erode_size)
 
         #   Foreground Threshold
-        # foreground_threshold = QSlider(Qt.Horizontal)
-        # foreground_threshold.setMinimum(0)
-        # foreground_threshold.setMaximum(255)
-        # foreground_threshold.setValue(self.settings_controller.get('rembg.foreground_threshold'))
-        # foreground_threshold.valueChanged.connect(lambda: self.settings_controller.set('rembg.foreground_threshold', foreground_threshold.value()))
         foreground_threshold = self.make_slider_row(0, 255, 'rembg.foreground_threshold')
         self.alpha_matting_settings.layout().addRow('Foreground Threshold', foreground_threshold)
 
         #   Background Threshold
-        # background_threshold = QSlider(Qt.Horizontal)
-        # background_threshold.setMinimum(0)
-        # background_threshold.setMaximum(255)
-        # background_threshold.setValue(self.settings_controller.get('rembg.background_threshold'))
-        # background_threshold.valueChanged.connect(lambda: self.settings_controller.set('rembg.background_threshold', background_threshold.value()))
         background_threshold = self.make_slider_row(0, 255, 'rembg.background_threshold')
         self.alpha_matting_settings.layout().addRow('Background Threshold', background_threshold)
         self.layout().addWidget(self.alpha_matting_settings)
@@ -90,7 +82,7 @@ class RemBGPage(QWidget):
         self.layout().addWidget(generate_btn)
 
         # Disclaimer
-        disclaimer_text = "The RemBG extension is created by Automatic1111, and available in the extensions tab as 'stable-diffusion-webui-rembg'."
+        disclaimer_text = "The RemBG extension is created by Automatic1111, and is available in the extensions tab as 'stable-diffusion-webui-rembg'."
         disclaimer = QLabel(disclaimer_text)
         disclaimer.setWordWrap(True)
         self.layout().addWidget(disclaimer)
@@ -138,6 +130,10 @@ class RemBGPage(QWidget):
         # Disable/Enable the other alpha_matting settings
         self.alpha_matting_settings.setVisible(value)
 
+    def set_as_mask(self, value):
+        self.settings_controller.set('rembg.results_as_mask', value)
+        self.apply_mask_cb.setDisabled(not value)
+
     def get_generation_data(self):
         data = {
             'model': self.settings_controller.get('rembg.model'),
@@ -153,12 +149,12 @@ class RemBGPage(QWidget):
     
     def run_rembg(self):
         data = self.get_generation_data()
-        # if self.debug:
-        #     self.debug_text.setPlainText('%s' % json.dumps(data))
         # TODO: Make this async
         results = self.api.post('/rembg', data)
         if results is not None:
-            if not self.settings_controller.get('rembg.results_as_mask'):
+            apply_mask = self.settings_controller.get('rembg.apply_mask')
+            as_mask = self.settings_controller.get('rembg.results_as_mask')
+            if (as_mask and not apply_mask) or not as_mask:
                 self.kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
             else:
                 self.kc.result_to_transparency_mask(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])

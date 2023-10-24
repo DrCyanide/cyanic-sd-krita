@@ -143,7 +143,7 @@ class KritaController():
         b64_data = ba.toBase64().data()
         return b64_data.decode()
 
-    def results_to_layers(self, results, x=0, y=0, w=-1, h=-1, layer_name=''):
+    def results_to_layers(self, results, x=0, y=0, w=-1, h=-1, layer_name='', below_active=False):
         self.doc = Krita.instance().activeDocument()
         if self.doc is None:
             self.create_new_doc()
@@ -166,7 +166,6 @@ class KritaController():
                         c_x, c_y, c_w, c_h = self.get_canvas_bounds()
                         w = c_w
                         h = c_h
-
 
         img_layer_parent = self.doc.rootNode()
         if 'images' in results: # txt2img or img2img results
@@ -203,7 +202,22 @@ class KritaController():
             layer = self.doc.createNode(name, 'paintLayer')
             byte_array, img_w, img_h = self.base64_to_pixeldata(results['image'], w, h)
             layer.setPixelData(byte_array, x, y, img_w, img_h)
-            img_layer_parent.addChildNode(layer, None)
+            target = None
+            if below_active: # Needed to get the Transparency Mask in the right position
+                active_node = self.doc.activeNode()
+                active_node_index = active_node.index()
+                active_parent = active_node.parentNode()
+                active_parent_children = active_parent.childNodes()
+                max_index = len(active_parent_children)
+
+                target = None
+                if active_node_index == max_index - 1:
+                    target = active_node
+                else:
+                    target = active_parent_children[active_node_index - 1]
+
+            img_layer_parent.addChildNode(layer, target)
+
             if img_w != w or img_h != h:
                 self.transform_to_width_height(layer, x, y, w, h)
             self.doc.refreshProjection()
@@ -213,14 +227,13 @@ class KritaController():
     def result_to_transparency_mask(self, results, x=0, y=0, w=-1, h=-1):
         # Pass to results_to_layers() with a unique name
         uniqueName = 'cyanic_sd_transparent-%s' % random.randint(10000, 99999)
-        self.results_to_layers(results, x, y, w, h, uniqueName)
+        self.results_to_layers(results, x, y, w, h, uniqueName, below_active=True)
         # Find the node with that unique name
         transparency_layer = self.doc.nodeByName(uniqueName)
         self.doc.setActiveNode(transparency_layer)
         self.doc.refreshProjection()
         self.doc.waitForDone()
-        # This was firing too fast, so...
-        # Krita.instance().action('convert_to_transparency_mask').trigger()
+        # Krita.instance().action('convert_to_transparency_mask').trigger() # This was firing too fast, so...
         QTimer.singleShot(500, lambda: Krita.instance().action('convert_to_transparency_mask').trigger())
         
 

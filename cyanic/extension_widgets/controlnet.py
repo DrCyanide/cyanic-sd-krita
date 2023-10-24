@@ -73,6 +73,7 @@ class ControlNetUnit(QWidget):
             'start': 0,
             'end': 100,
         }
+        self.size_dict = {"x":0,"y":0,"w":0,"h":0}
 
         # The available preprocessor/models, according to what's currently selected
         self.preprocessor_list = self.cnapi.module_list
@@ -81,7 +82,7 @@ class ControlNetUnit(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
 
-        self.img_in = ImageInWidget(self.settings_controller, self.api, 'input_image')
+        self.img_in = ImageInWidget(self.settings_controller, self.api, 'input_image', self.size_dict)
         self.layout().addWidget(self.img_in)
 
         check_row = QWidget()
@@ -427,13 +428,9 @@ class ControlNetUnit(QWidget):
     def gen_preview(self):
         image_data = self.img_in.get_generation_data()
         results = self.cnapi.preview(image_data['input_image'], self.preprocessor, self.variables['preprocessor_resolution'], self.variables['threshold_a'], self.variables['threshold_b'])
-        # self.debug_text.setPlainText('%s' % results)
         if results is not None:
             kc = KritaController()
-            # self.debug_text.setPlainText('%s' % results)
-            # TODO: Replace the self.img_in.size_dict with self.size_dict, which is passed in as a variable to self.img_in on creation
-            kc.results_to_layers(results, self.img_in.size_dict['x'], self.img_in.size_dict['y'], self.img_in.size_dict['w'], self.img_in.size_dict['h'], 'ControlNet Preview')
-            # kc.results_to_layers(results, layer_name='ControlNet Preview')
+            kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'], 'ControlNet Preview')
         # NOTE: For OpenPose, results includes {'poses': [{'people': [{'pose_keypoints_2d': [...]}] }]}
         # Those pose_keypoints_2d could be used to make a Vector preview of the pose, allowing users to edit the pose more precisely
 
