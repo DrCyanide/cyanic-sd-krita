@@ -16,15 +16,18 @@ class ExtensionWidget(QWidget):
             'adetailer': self.api.script_installed('adetailer'),
         }
         
-        if self.server_supported['controlnet']:
-            self.controlnet_widget = ControlNetExtension(self.settings_controller, self.api)
-            controlnet_collapse = CollapsibleWidget('ControlNet', self.controlnet_widget)
+        
+        self.controlnet_widget = ControlNetExtension(self.settings_controller, self.api)
+        controlnet_collapse = CollapsibleWidget('ControlNet', self.controlnet_widget)
+        if self.server_supported['controlnet'] and not 'controlnet' in self.settings_controller.get('hide_ui.hidden_extensions'):
             self.layout().addWidget(controlnet_collapse)
 
-        if self.server_supported['adetailer']:
-            self.adetailer_widget = ADetailerExtension(self.settings_controller, self.api)
-            adetailer_collapse = CollapsibleWidget('ADetailer', self.adetailer_widget)
+        self.adetailer_widget = ADetailerExtension(self.settings_controller, self.api)
+        adetailer_collapse = CollapsibleWidget('ADetailer', self.adetailer_widget)
+        if self.server_supported['adetailer'] and not 'adetailer' in self.settings_controller.get('hide_ui.hidden_extensions'):
             self.layout().addWidget(adetailer_collapse)
+
+        # TODO: Add some message about no supported extensions
 
     def get_generation_data(self):
         data = {}

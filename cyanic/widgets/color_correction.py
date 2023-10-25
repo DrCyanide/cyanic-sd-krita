@@ -20,10 +20,13 @@ class ColorCorrectionWidget(QWidget):
     def update_match_colors(self, match):
         self.color_correct = match
 
+    def save_settings(self):
+        self.settings_controller.set('defaults.match_colors', self.color_correct)
+
     def get_generation_data(self):
         data = {
             'color_correction': self.color_correct,
         }
-        self.settings_controller.set('defaults.match_colors', self.color_correct)
+        self.save_settings()
         self.settings_controller.save()
         return data

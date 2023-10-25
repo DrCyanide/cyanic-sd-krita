@@ -10,3 +10,4 @@ from .denoise import DenoiseWidget
 from .extensions import ExtensionWidget
 from .mask import MaskWidget
 from .color_correction import ColorCorrectionWidget
+from .batch import BatchWidget

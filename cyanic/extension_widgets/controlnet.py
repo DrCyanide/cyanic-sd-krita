@@ -222,7 +222,8 @@ class ControlNetUnit(QWidget):
         fine_controls.layout().addWidget(end_step)
 
         fine_collapse = CollapsibleWidget('Fine Controls', fine_controls)
-        self.layout().addWidget(fine_collapse)
+        if not self.settings_controller.get('hide_ui.controlnet_fine_settings'):
+            self.layout().addWidget(fine_collapse)
 
         # self.debug_text = QPlainTextEdit()
         # self.debug_text.setPlaceholderText('Debugging text')
@@ -378,6 +379,9 @@ class ControlNetUnit(QWidget):
         self.model_select.setHidden(details['model_free'])
         
         self.preprocessor_settings.setHidden(len(details['sliders']) == 0) # If there's no sliders, just hide it all
+        if self.settings_controller.get('hide_ui.controlnet_preprocessor_settings'):
+            self.preprocessor_settings.setHidden(True)
+
         if details is None or details['sliders'] is None or len(details['sliders']) == 0:
             return
         

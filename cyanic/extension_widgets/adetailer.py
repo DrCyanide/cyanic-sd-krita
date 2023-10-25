@@ -13,6 +13,7 @@ class ADetailerExtension(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.units = []
+        self.enabled = False
 
         server_supported = self.api.script_installed('adetailer')
         if not server_supported:
@@ -24,6 +25,7 @@ class ADetailerExtension(QWidget):
 
         # Checkbox to Enable
         self.enable_cb = QCheckBox('Enable')
+        self.enable_cb.stateChanged.connect(lambda: self.set_enabled(self.enable_cb.isChecked()))
         self.layout().addWidget(self.enable_cb)
 
         # Model Select
@@ -54,10 +56,14 @@ class ADetailerExtension(QWidget):
         # ... a ton of settings I honestly never used.
         # Although there is a use steps option that might make it work as a post-processing...
 
+    def set_enabled(self, value):
+        self.enabled = value
+
     def get_generation_data(self):
         # https://github.com/Bing-su/adetailer/wiki/API
-        if not self.enable_cb.isChecked():
+        if not self.enabled:
             return {}
+        
         prompt_data = self.prompt_widget.get_generation_data()
         data = { # Whatever is requesting this data will have to add the `alwayson_scripts`, otherwise multiple extensions will delete each other
             'ADetailer': {

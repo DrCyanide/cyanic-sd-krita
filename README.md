@@ -7,6 +7,8 @@ A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
 # Updates
+**Oct 25 2023** - Batch controls added, Simplify UI tab added (to hide features you don't use to make it more like Fooocus)
+
 **Oct 20 2023** - RemBG support added, ControlNet Preprocessor Previews supported.
 
 **Oct 17 2023** - Upscaler support added.
@@ -68,6 +70,9 @@ Inpainting masks are super simple to make - just create a new layer and draw. An
 
 ![](readme_imgs/inpaint_mask.gif)
 
+Want something a little bit more like Fooocus, with fewer settings in your way? "Simplify UI" to reduce the amount of clutter.
+
+![](readme_imgs/simplify_ui.gif)
 
 # Not yet implemented
 * Generation Settings

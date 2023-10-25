@@ -14,7 +14,11 @@ class PromptWidget(QWidget):
         self.mode = mode.lower() # txt2img / img2img / inpaint / adetailer
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
+        self.style_name_list = QListWidget()
 
+        self.draw_ui()
+
+    def draw_ui(self):
         self.prompt_text_edit = QPlainTextEdit()
         self.prompt_text_edit.setPlaceholderText('Prompt')
         self.prompt_text_edit.setFixedHeight(self.prompt_text_edit.fontMetrics().lineSpacing() * PromptWidget.NUM_LINES)
@@ -25,9 +29,11 @@ class PromptWidget(QWidget):
         self.negative_prompt_text_edit.setPlaceholderText('Negative prompt')
         self.negative_prompt_text_edit.setFixedHeight(self.negative_prompt_text_edit.fontMetrics().lineSpacing() * PromptWidget.NUM_LINES)
         self.negative_prompt_text_edit.setToolTip('Negative Prompt')
-        self.layout().addWidget(self.negative_prompt_text_edit)
+        if not self.settings_controller.get('hide_ui.negative_prompt'):
+            self.layout().addWidget(self.negative_prompt_text_edit)
 
-        self.layout().addWidget(self.styles_control())
+        if not self.settings_controller.get('hide_ui.styles'):
+            self.layout().addWidget(self.styles_control())
         # self.layout().addWidget(self.network_control()) # TODO: But adding Networks is laborous. 
 
         self.load_prompt()

@@ -343,7 +343,7 @@ class SDAPI():
         if 'sampler' in data.keys():
             data['sampler_name'] = data.pop('sampler')
 
-        data['override_settings_restore_afterwards'] = False
+        data['override_settings_restore_afterwards'] = False # It just takes WAY too long to load different models to leave this off
 
         if 'img2img_img' in data.keys():
             data['init_images'] = [data.pop('img2img_img')]
@@ -353,6 +353,9 @@ class SDAPI():
 
         if 'mask_img' in data.keys():
             data['mask'] = data.pop('mask_img')
+
+        if 'batch_count' in data.keys():
+            data['n_iter'] = data.pop('batch_count')
 
         return data
 

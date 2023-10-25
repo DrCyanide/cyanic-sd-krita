@@ -43,6 +43,11 @@
         "count": 1,
         "size": 1
     },
+    "seed": {
+        "seed": -1,
+        "subseed": -1,
+        "subseed_strength": 0.0
+    },
     "previews": {
         "enabled": true,
         "refresh_seconds": 1.0
@@ -71,15 +76,25 @@
         "resize_canvas": true
     },
     "hide_ui": {
+        "auto_save": true,
+        "model": false,
+        "vae": false,
+        "sampler": false,
         "seed": false,
-        "batch": true,
-        "styles": true,
-        "cfg": true,
-        "clip_skip": true,
-        "color_correction": true,
-        "face_restore": true,
-        "tiling": true,
-        "highres_fix": true
+        "batch": false,
+        "negative_prompt": false,
+        "styles": false,
+        "cfg": false,
+        "clip_skip": false,
+        "color_correction": false,
+        "denoise_strength": false,
+        "face_restore": false,
+        "tiling": false,
+        "highres_fix": false,
+        "extensions": false,
+        "hidden_extensions": [],
+        "controlnet_preprocessor_settings": false,
+        "controlnet_fine_settings": false
     },
     "controlnet": {
         "low_vram": false,

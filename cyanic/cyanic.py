@@ -26,6 +26,7 @@ class CyanicDocker(DockWidget):
         self.page_combobox = QComboBox()
         self.pages = [
             {'name': 'Settings', 'content': self.show_settings},
+            {'name': 'Simplify UI', 'content': self.show_simplify},
             {'name': 'Txt2Img', 'content': self.show_txt2img},
             {'name': 'Img2Img', 'content': self.show_img2img},
             {'name': 'Inpaint', 'content': self.show_inpaint},
@@ -67,6 +68,9 @@ class CyanicDocker(DockWidget):
 
     def show_settings(self):
         self.content_area.setWidget(SettingsPage(self.settings_controller, self.api))
+
+    def show_simplify(self):
+        self.content_area.setWidget(SimplifyPage(self.settings_controller, self.api))
 
     def show_txt2img(self):
         self.content_area.setWidget(Txt2ImgPage(self.settings_controller, self.api))
