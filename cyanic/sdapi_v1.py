@@ -342,6 +342,8 @@ class SDAPI():
 
         if 'sampler' in data.keys():
             data['sampler_name'] = data.pop('sampler')
+        if 'sampling_steps' in data.keys():
+            data['steps'] = data.pop('sampling_steps')
 
         data['override_settings_restore_afterwards'] = False # It just takes WAY too long to load different models to leave this off
 
