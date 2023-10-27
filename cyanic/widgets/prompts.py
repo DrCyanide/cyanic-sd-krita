@@ -15,6 +15,13 @@ class PromptWidget(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.style_name_list = QListWidget()
+        self.name_list = QListWidget()
+
+        self.network_types = {
+            'Loras': [],
+            'Textual Inversions': [],
+            'Hypernetworks': [],
+        }
 
         self.draw_ui()
 
@@ -34,7 +41,8 @@ class PromptWidget(QWidget):
 
         if not self.settings_controller.get('hide_ui.styles'):
             self.layout().addWidget(self.styles_control())
-        # self.layout().addWidget(self.network_control()) # TODO: But adding Networks is laborous. 
+        if not self.settings_controller.get('hide_ui.extra_networks'):
+            self.layout().addWidget(self.network_control())
 
         self.load_prompt()
 
@@ -68,9 +76,38 @@ class PromptWidget(QWidget):
         return CollapsibleWidget('Styles', style_form)
     
     def network_control(self):
-        # Want a drop down to select between Lora, Textual Inversion, Hypernetwork, etc.
-        # ... that might have to be another file
-        return CollapsibleWidget('Networks', QLabel('Networks'))
+        self.network_types['Loras'] = self.api.get_lora_names()
+        self.network_types['Textual Inversions'] = self.api.get_embedding_names() 
+        self.network_types['Hypernetworks'] = self.api.get_hypernetwork_names()
+
+        networks_form = QWidget()
+        networks_form.setLayout(QVBoxLayout())
+    
+        self.network_type_select = QComboBox()
+        self.network_type_select.addItems(list(self.network_types.keys()))
+        self.network_type_select.activated.connect(lambda: self.change_list(self.network_type_select.currentText()))
+        self.network_type_select.setCurrentIndex(0)
+        self.change_list(self.network_type_select.currentText())
+        networks_form.layout().addWidget(self.network_type_select)
+
+        networks_form.layout().addWidget(self.name_list)
+        self.name_list.itemPressed.connect(self.add_to_prompt)
+        return CollapsibleWidget('Extra Networks', networks_form)
+
+    def change_list(self, list_name):
+        names = self.network_types[list_name]
+        self.name_list.clear()
+        self.name_list.addItems(names)
+
+    def add_to_prompt(self, item):
+        text = item.text()
+        current_tab = self.network_type_select.currentText().lower()
+        if 'text' not in current_tab:
+            text = ' <%s:%s:1.0>' % (current_tab[:-1], text)
+        self.append_to_prompt(text)
+
+    def append_to_prompt(self, text):
+        self.prompt_text_edit.setPlainText('%s%s' % (self.prompt_text_edit.toPlainText(), text))
 
     def get_selected_style_names(self):
         items = []

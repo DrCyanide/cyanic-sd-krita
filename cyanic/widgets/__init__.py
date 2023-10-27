@@ -1,5 +1,3 @@
-# from .settings import SettingsWidget
-# from .txt2img import Txt2ImgWidget
 from .collapsible import CollapsibleWidget
 from .prompts import PromptWidget
 from .seed import SeedWidget

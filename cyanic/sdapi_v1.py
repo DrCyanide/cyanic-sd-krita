@@ -195,6 +195,8 @@ class SDAPI():
         self.hypernetworks = self.get("/sdapi/v1/hypernetworks")
         return self.hypernetworks
     
+    # TODO: /sdapi/v1/lycos exists in SD.Next
+    
     # ===========================
     # Calls to make UI dev easier
     # ===========================
@@ -258,6 +260,26 @@ class SDAPI():
             return prompts, negative_prompts
         else:
             return '', ''
+
+    def get_lora_names(self):
+        if self.connected:
+            return list(map(lambda x: x['name'], self.loras))
+        else:
+            return []
+
+    def get_embedding_names(self):
+        if self.connected:
+            if 'loaded' in self.embeddings:
+                return list(self.embeddings['loaded'].keys())
+        return []
+
+    def get_hypernetwork_names(self):
+        if self.connected:
+            return list(map(lambda x: x['name'], self.hypernetworks))
+        else:
+            return []
+
+    # TODO: SD.Next supports lycos
 
     # ===========================
     # API calls to make images

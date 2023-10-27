@@ -18,6 +18,7 @@ class SimplifyPage(QWidget):
             'seed': self.settings_controller.get('hide_ui.seed'),
             'negative_prompt': self.settings_controller.get('hide_ui.negative_prompt'),
             'styles': self.settings_controller.get('hide_ui.styles'),
+            'extra_networks': self.settings_controller.get('hide_ui.extra_networks'),
             'color_correction': self.settings_controller.get('hide_ui.color_correction'),
             'denoise_strength': self.settings_controller.get('hide_ui.denoise_strength'),
             'extensions': self.settings_controller.get('hide_ui.extensions'),
@@ -111,7 +112,8 @@ class SimplifyPage(QWidget):
         hide_styles = self._setup_checkbox('Hide Styles', 'styles')
         prompt_settings.layout().addWidget(hide_styles)
         # Extra Networks
-        # TODO: implement extra networks...
+        hide_extra_networks = self._setup_checkbox('Hide Extra Networks', 'extra_networks')
+        prompt_settings.layout().addWidget(hide_extra_networks)
         self.layout().addWidget(prompt_settings)
 
         # CFG

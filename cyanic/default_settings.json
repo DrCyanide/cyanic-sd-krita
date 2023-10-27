@@ -84,6 +84,7 @@
         "batch": false,
         "negative_prompt": false,
         "styles": false,
+        "extra_networks": false,
         "cfg": false,
         "clip_skip": false,
         "color_correction": false,
