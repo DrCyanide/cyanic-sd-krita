@@ -70,6 +70,14 @@ class KritaController():
             return x, y, width, height
         else:
             return 0, 0, 0, 0
+    
+    def set_selection(self, x, y, w, h):
+        self.doc = Krita.instance().activeDocument()
+        if self.doc is None:
+            self.create_new_doc()
+        selection = Selection()
+        selection.select(x, y, w, h, 255) # 255 = totally selected
+        self.doc.setSelection(selection)
 
     def get_canvas_bounds(self):
         self.doc = Krita.instance().activeDocument()
@@ -101,6 +109,9 @@ class KritaController():
         width = bounds.width()
         height = bounds.height()
         return x, y, width, height
+
+    def set_layer_visible(self, layer, visible=True):
+        layer.setVisible(visible)
 
     def get_active_layer_name(self):
         self.doc = Krita.instance().activeDocument()
@@ -143,7 +154,24 @@ class KritaController():
         b64_data = ba.toBase64().data()
         return b64_data.decode()
 
-    def results_to_layers(self, results, x=0, y=0, w=-1, h=-1, layer_name='', below_active=False):
+    def find_below(self, below_layer=None):
+        dest = None
+        target_node = self.doc.activeNode()
+        if below_layer is not None:
+            target_node = below_layer
+        target_node_index = target_node.index()
+        target_parent = target_node.parentNode()
+        target_parent_children = target_parent.childNodes()
+        max_index = len(target_parent_children)
+
+        dest = None
+        if target_node_index == max_index - 1:
+            dest = target_node
+        else:
+            dest = target_parent_children[target_node_index - 1]
+        return dest
+
+    def results_to_layers(self, results, x=0, y=0, w=-1, h=-1, layer_name='', below_active=False, below_layer=None):
         self.doc = Krita.instance().activeDocument()
         if self.doc is None:
             self.create_new_doc()
@@ -185,7 +213,10 @@ class KritaController():
                 layer = self.doc.createNode(name, 'paintLayer')
                 byte_array, img_w, img_h = self.base64_to_pixeldata(results['images'][i])
                 layer.setPixelData(byte_array, x, y, img_w, img_h)
-                img_layer_parent.addChildNode(layer, None)
+                dest = None
+                if below_active or below_layer is not None:
+                    dest = self.find_below(below_layer)
+                img_layer_parent.addChildNode(layer, dest)
                 if img_w != w or img_h != h:
                     self.transform_to_width_height(layer, x, y, w, h)
                 self.doc.refreshProjection()
@@ -202,21 +233,25 @@ class KritaController():
             layer = self.doc.createNode(name, 'paintLayer')
             byte_array, img_w, img_h = self.base64_to_pixeldata(results['image'], w, h)
             layer.setPixelData(byte_array, x, y, img_w, img_h)
-            target = None
-            if below_active: # Needed to get the Transparency Mask in the right position
-                active_node = self.doc.activeNode()
-                active_node_index = active_node.index()
-                active_parent = active_node.parentNode()
-                active_parent_children = active_parent.childNodes()
-                max_index = len(active_parent_children)
+            dest = None
+            if below_active or below_layer is not None:
+                dest = self.find_below(below_layer)
+            # if below_active or below_layer is not None: # Needed to get the Transparency Mask in the right position
+            #     target_node = self.doc.activeNode()
+            #     if below_layer is not None:
+            #         target_node = below_layer
+            #     target_node_index = target_node.index()
+            #     target_parent = target_node.parentNode()
+            #     target_parent_children = target_parent.childNodes()
+            #     max_index = len(target_parent_children)
 
-                target = None
-                if active_node_index == max_index - 1:
-                    target = active_node
-                else:
-                    target = active_parent_children[active_node_index - 1]
+            #     dest = None
+            #     if target_node_index == max_index - 1:
+            #         dest = target_node
+            #     else:
+            #         dest = target_parent_children[target_node_index - 1]
 
-            img_layer_parent.addChildNode(layer, target)
+            img_layer_parent.addChildNode(layer, dest)
 
             if img_w != w or img_h != h:
                 self.transform_to_width_height(layer, x, y, w, h)
@@ -236,6 +271,24 @@ class KritaController():
         # Krita.instance().action('convert_to_transparency_mask').trigger() # This was firing too fast, so...
         QTimer.singleShot(500, lambda: Krita.instance().action('convert_to_transparency_mask').trigger())
         
+    def get_active_layer_uuid(self):
+        self.doc = Krita.instance().activeDocument()
+        if self.doc is None:
+            self.create_new_doc()
+        
+        return self.doc.activeNode().uniqueId()
+    
+    def get_layer_from_uuid(self, uuid):
+        self.doc = Krita.instance().activeDocument()
+        if self.doc is None:
+            self.create_new_doc()
+        if type(uuid) is str:
+            uuid = QUuid(uuid)
+        return self.doc.nodeByUniqueID(uuid)
+    
+    def set_layer_uuid_as_active(self, uuid):
+        node = self.get_layer_from_uuid(uuid)
+        self.doc.setActiveNode(node)
 
     def get_selected_layer_img(self):
         self.doc = Krita.instance().activeDocument()

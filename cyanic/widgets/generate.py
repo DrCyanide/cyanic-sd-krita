@@ -79,19 +79,23 @@ class GenerateWidget(QWidget):
         if self.settings_controller.get('server.save_imgs'):
             data['save_images'] = True
 
+        processing_instructions = {}
         for widget in self.list_of_widgets:
             data.update(widget.get_generation_data())
-            if type(widget) is PromptWidget:
-                widget.save_prompt()
+            if 'CYANIC' in data.keys(): # Special instructions for processing results are passed through with this tag.
+                processing_instructions.update(data.pop('CYANIC'))
+            # if type(widget) is PromptWidget:
+            #     widget.save_prompt()
         # TODO: Check settings for anything that changes the parameters, such as limiting generation size, HR Fix, upscaling, clip skip, etc
         if self.debug:
             self.debug_data.setPlainText('%s' % json.dumps(self.api.cleanup_data(data)))
             # return
+        
         try:
             self.kc.refresh_doc()
             if self.kc.doc is None: 
                 self.kc.create_new_doc()
-            self.kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return(x, y, w, h))
+            self.kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return(x, y, w, h, processing_instructions))
             self.progress_timer = QTimer()
             self.progress_timer.timeout.connect(lambda: self.progress_check(x,y,w,h))
             # Set the refresh rate
@@ -144,7 +148,8 @@ class GenerateWidget(QWidget):
         # if self.debug:
             # self.debug_data.setPlainText('Threadable Run!\n%s' % self.results)
 
-    def threadable_return(self, x, y, w, h):
+    def threadable_return(self, x, y, w, h, processing_instructions={}):
+        kc = KritaController()
         # self.debug_data.setPlainText('Threadable Return!\n%s' % self.results)
         if self.results is not None:
             # Prune the results images so that ControlNet preprocessors or masks aren't included in the results
@@ -152,7 +157,13 @@ class GenerateWidget(QWidget):
                 expected_images = self.results['parameters']['batch_size'] * self.results['parameters']['n_iter']
                 if len(self.results['images']) > expected_images:
                     self.results['images'] = self.results['images'][:expected_images]
-            KritaController().results_to_layers(self.results, x, y, w, h)
+
+            if 'results_below_layer_uuid' in processing_instructions:
+                layer = kc.get_layer_from_uuid(processing_instructions['results_below_layer_uuid'])
+                kc.results_to_layers(self.results, x, y, w, h, below_layer=layer)
+            else:
+                kc.results_to_layers(self.results, x, y, w, h)
+
             if self.debug:
                 temp_results = self.results
                 if 'images' in temp_results:

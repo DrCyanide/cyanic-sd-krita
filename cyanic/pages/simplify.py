@@ -25,10 +25,19 @@ class SimplifyPage(QWidget):
             'hidden_extensions': self.settings_controller.get('hide_ui.hidden_extensions'),
             'controlnet_preprocessor_settings': self.settings_controller.get('hide_ui.controlnet_preprocessor_settings'),
             'controlnet_fine_settings': self.settings_controller.get('hide_ui.controlnet_fine_settings'),
+            'inpaint_auto_update': self.settings_controller.get('hide_ui.inpaint_auto_update'),
+            'inpaint_below_mask': self.settings_controller.get('hide_ui.inpaint_below_mask'),
+            'inpaint_hide_mask': self.settings_controller.get('hide_ui.inpaint_hide_mask'),
         }
         self.server_supported = {
             'controlnet': self.api.script_installed('controlnet'),
             'adetailer': self.api.script_installed('adetailer'),
+        }
+        self.variables = {
+            # These are variables that can't be updated by importing their component widget
+            'auto_update_mask': self.settings_controller.get('inpaint.auto_update_mask'),
+            'results_below_mask': self.settings_controller.get('inpaint.results_below_mask'),
+            'hide_mask_on_gen': self.settings_controller.get('inpaint.hide_mask_on_gen'),
         }
 
         self.draw_ui()
@@ -62,7 +71,7 @@ class SimplifyPage(QWidget):
 
         self.layout().addWidget(model_settings)
 
-        # Img2Img
+        # Img2Img and Inpainting
         img2img_settings = QGroupBox('Img2Img and Inpainting')
         img2img_settings.setLayout(QVBoxLayout())        
 
@@ -72,6 +81,8 @@ class SimplifyPage(QWidget):
         hide_color_correction = self._setup_checkbox('Hide Color Correction', 'color_correction')
         img2img_settings.layout().addWidget(hide_color_correction)
 
+        img2img_settings.layout().addWidget(QSplitter())
+
         self.denoise_widget = DenoiseWidget(self.settings_controller)
         img2img_settings.layout().addWidget(self.denoise_widget)
 
@@ -79,6 +90,46 @@ class SimplifyPage(QWidget):
         img2img_settings.layout().addWidget(self.color_correction)
 
         self.layout().addWidget(img2img_settings)
+
+        # Inpaint Only settings
+        inpaint_settings = QGroupBox('Inpainting')
+        inpaint_settings.setLayout(QVBoxLayout())
+
+        hide_auto_update = self._setup_checkbox('Hide Update Mask before Generation', 'inpaint_auto_update')
+        inpaint_settings.layout().addWidget(hide_auto_update)
+
+        hide_below_mask = self._setup_checkbox('Hide Results below Mask', 'inpaint_below_mask')
+        inpaint_settings.layout().addWidget(hide_below_mask)
+        
+        hide_hide_mask = self._setup_checkbox('Hide... hide mask while generating', 'inpaint_hide_mask')
+        hide_hide_mask.setToolTip('Yeah, I know...')
+        inpaint_settings.layout().addWidget(hide_hide_mask)
+
+        # TODO: add Mask Blur, Mask Mode, Masked Content, Inpaint Area
+
+        # Update Mask before Generating
+        auto_update_mask_cb = QCheckBox('Update mask before generating')
+        auto_update_mask_cb.setToolTip('Will remember the last layer used as a mask and use the current state of that layer whenever the "Generate" button is clicked')
+        auto_update_mask_cb.setChecked(self.variables['auto_update_mask'])
+        auto_update_mask_cb.stateChanged.connect(lambda: self._update_variable('auto_update_mask', auto_update_mask_cb.isChecked()))
+        inpaint_settings.layout().addWidget(auto_update_mask_cb)
+
+        # Add Results below Mask
+        results_below_mask_cb = QCheckBox('Results below mask')
+        results_below_mask_cb.setToolTip('Will insert the results as a new layer below the mask')
+        results_below_mask_cb.setChecked(self.variables['results_below_mask'])
+        results_below_mask_cb.stateChanged.connect(lambda: self._update_variable('results_below_mask', results_below_mask_cb.isChecked()))
+        inpaint_settings.layout().addWidget(results_below_mask_cb)
+
+        # Hide mask on generation
+        hide_mask_cb = QCheckBox('Hide mask when generating')
+        hide_mask_cb.setToolTip('Turns off mask visibility so that you can see the results faster')
+        hide_mask_cb.setChecked(self.variables['hide_mask_on_gen'])
+        hide_mask_cb.stateChanged.connect(lambda: self._update_variable('hide_mask_on_gen', hide_mask_cb.isChecked()))
+        inpaint_settings.layout().addWidget(hide_mask_cb)
+
+        self.layout().addWidget(inpaint_settings)
+        
 
         # Batch
         batch_settings = QGroupBox('Batch')
@@ -189,6 +240,9 @@ class SimplifyPage(QWidget):
         self.auto_save = value
         self.settings_controller.set('hide_ui.auto_save', value) # Yes, it's ironic that autosave will always autosave itself
 
+    def _update_variable(self, key, value):
+        self.variables[key] = value
+
     def save_hidden(self):
         for key in self.hidden.keys():
             self.settings_controller.set('hide_ui.%s' % key, self.hidden[key])
@@ -201,4 +255,10 @@ class SimplifyPage(QWidget):
         widgets = [self.model_widget, self.batch_widget, self.seed_widget, self.color_correction, self.denoise_widget]
         for widget in widgets:
             widget.save_settings()
+        
+        # Save the variables
+        self.settings_controller.set('inpaint.auto_update_mask', self.variables['auto_update_mask'])
+        self.settings_controller.set('inpaint.results_below_mask', self.variables['results_below_mask'])
+        self.settings_controller.set('inpaint.hide_mask_on_gen', self.variables['hide_mask_on_gen'])
+
     

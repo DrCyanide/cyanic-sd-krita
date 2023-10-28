@@ -47,6 +47,7 @@ class PromptWidget(QWidget):
         self.load_prompt()
 
     def get_generation_data(self):
+        self.save_prompt()
         data = {
             'prompt': self.prompt_text_edit.toPlainText(),
             'negative_prompt': self.negative_prompt_text_edit.toPlainText(),

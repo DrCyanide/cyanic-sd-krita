@@ -9,18 +9,21 @@ from ..settings_controller import SettingsController
 # Select an image
 class ImageInWidget(QWidget):
     MAX_HEIGHT = 100
-    def __init__(self, settings_controller:SettingsController, api:SDAPI, key:str, size_dict:dict={"x":0,"y":0,"w":0,"h":0}, mask_mode=False):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, key:str, size_dict:dict={"x":0,"y":0,"w":0,"h":0}, hide_refresh=True):
         super().__init__()
         self.settings_controller = settings_controller
         self.api = api
         self.key = key # `key` should be whatever the key get_generation_data() should use to return the image
         self.size_dict = size_dict
-        self.mask_mode = mask_mode
+        self.hide_refresh = hide_refresh
+        self.selection_mode = 'canvas'
         self.kc = KritaController()
         self.image:QImage = None
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
+        self.draw_ui()
 
+    def draw_ui(self):
         self.preview_list = QListWidget()
         self.preview_list.setFixedHeight(ImageInWidget.MAX_HEIGHT)
         self.preview_list.setFlow(QListView.Flow.LeftToRight)
@@ -54,6 +57,12 @@ class ImageInWidget(QWidget):
 
         self.layout().addWidget(button_row)
 
+        self.refresh_before_gen_cb = QCheckBox('Refresh image before generating')
+        self.refresh_before_gen_cb.setToolTip("If checked, it'll act like you clicked the 'Use Selection'/'Use Layer'/'Use Canvas' button again right before clicking 'Generate'. Defaults to 'Use Canvas'")
+        # Set default value? 
+        if not self.hide_refresh:
+            self.layout().addWidget(self.refresh_before_gen_cb)
+
     def clear_previews(self):
         self.preview_list.clear()
         self.preview_list.addItem(QListWidgetItem(QIcon(), 'No Image Selected'))
@@ -61,49 +70,55 @@ class ImageInWidget(QWidget):
 
 
     def get_selection_img(self):
-        self.preview_list.clear()
-        name = ''
-
+        self.selection_mode = 'selection'
         self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_selection_bounds()
-        if self.mask_mode:
-            self.image = self.kc.get_transparent_selection()
-            self.image = self.image.createAlphaMask(Qt.ImageConversionFlag.MonoOnly)
-            self.image.invertPixels()
-        else:
-            self.image = self.kc.get_selection_img()
-        icon = QIcon(QPixmap.fromImage(self.image))
-        self.preview_list.addItem(QListWidgetItem(icon, name))
+        self.get_img()
 
     def get_layer_img(self):
-        self.preview_list.clear()
-        name = ''
-        
+        self.selection_mode = 'layer'
         self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_layer_bounds()
-        if self.mask_mode:
-            self.image = self.kc.get_transparent_layer()
-            self.image = self.image.createAlphaMask(Qt.ImageConversionFlag.MonoOnly)
-            self.image.invertPixels()
-        else:
-            self.image = self.kc.get_selected_layer_img()
-        icon = QIcon(QPixmap.fromImage(self.image))
-        self.preview_list.addItem(QListWidgetItem(icon, name))
+        self.get_img()
 
     def get_canvas_img(self):
+        self.selection_mode = 'canvas'
+        self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_canvas_bounds()
+        self.get_img()
+
+    def get_img(self, selection_mode=None):
+        if selection_mode is None:
+            selection_mode = self.selection_mode
         self.preview_list.clear()
         name = ''
 
-        self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_canvas_bounds()
-        if self.mask_mode:
-            self.image = self.kc.get_transparent_canvas()
-            self.image = self.image.createAlphaMask(Qt.ImageConversionFlag.MonoOnly)
-            self.image.invertPixels()
+        if selection_mode is 'selection':
+            self.image = self.kc.get_selection_img()
+        elif selection_mode is 'layer':
+            self.image = self.kc.get_selected_layer_img()
         else:
             self.image = self.kc.get_canvas_img()
         icon = QIcon(QPixmap.fromImage(self.image))
         self.preview_list.addItem(QListWidgetItem(icon, name))
 
+
     def get_generation_data(self):
         data = {}
+
+        if self.refresh_before_gen_cb.isChecked():
+            clear_selection = False
+            # Should selection_mode == 'selection' repeat the previous selection? Or just use the current?
+            if self.selection_mode is 'selection':
+                x, y, w, h = self.kc.get_selection_bounds()
+                if w == 0 and h == 0:
+                    # The selection was cleared, reset the previous selection before refreshing the image
+                    clear_selection = True
+                    self.kc.set_selection(self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
+
+            self.get_img() # Refresh self.img
+
+            if clear_selection:
+                self.kc.set_selection(0,0,0,0)
+
+
         if self.image is None: # Default to the canvas
             s_x, s_y, s_w, s_h = self.kc.get_selection_bounds()
             if s_w > 0 and s_h > 0:

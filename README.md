@@ -7,6 +7,8 @@ A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
 # Updates
+**Oct 28 2023** - Better Inpaint Masking options (Thank you Miraihi [for all your help finding bugs](https://github.com/DrCyanide/cyanic-sd-krita/issues?q=author%3AMiraihi+))
+
 **Oct 26 2023** - Lora, Textual Inversion, and Hypernetwork lists added, under Extra Networks 
 
 **Oct 25 2023** - Batch controls added, Simplify UI tab added (to hide features you don't use to make it more like Fooocus)

@@ -65,7 +65,10 @@
         "mask_mode": 0,
         "masked_content": 1,
         "inpaint_area": 0,
-        "padding": 32
+        "padding": 32,
+        "auto_update_mask": true,
+        "results_below_mask": true,
+        "hide_mask_on_gen": true
     },
     "upscale": {
         "tab": 0,
@@ -95,7 +98,10 @@
         "extensions": false,
         "hidden_extensions": [],
         "controlnet_preprocessor_settings": false,
-        "controlnet_fine_settings": false
+        "controlnet_fine_settings": false,
+        "inpaint_auto_update": false,
+        "inpaint_below_mask": false,
+        "inpaint_hide_mask": false
     },
     "controlnet": {
         "low_vram": false,
