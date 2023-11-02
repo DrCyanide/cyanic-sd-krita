@@ -367,6 +367,9 @@ class SDAPI():
         if 'sampling_steps' in data.keys():
             data['steps'] = data.pop('sampling_steps')
 
+        if 'hr_steps' in data.keys():
+            data['hr_second_pass_steps'] = data.pop('hr_steps')
+
         data['override_settings_restore_afterwards'] = False # It just takes WAY too long to load different models to leave this off
 
         if 'img2img_img' in data.keys():

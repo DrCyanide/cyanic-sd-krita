@@ -21,6 +21,10 @@ class SimplifyPage(QWidget):
             'extra_networks': self.settings_controller.get('hide_ui.extra_networks'),
             'color_correction': self.settings_controller.get('hide_ui.color_correction'),
             'denoise_strength': self.settings_controller.get('hide_ui.denoise_strength'),
+            'hires_fix': self.settings_controller.get('hide_ui.hires_fix'),
+            'hires_fix_auto': self.settings_controller.get('hide_ui.hires_fix_auto'),
+            'hires_upscaler': self.settings_controller.get('hide_ui.hires_upscaler'),
+            'hires_denoise': self.settings_controller.get('hide_ui.hires_denoise'),
             'extensions': self.settings_controller.get('hide_ui.extensions'),
             'hidden_extensions': self.settings_controller.get('hide_ui.hidden_extensions'),
             'controlnet_preprocessor_settings': self.settings_controller.get('hide_ui.controlnet_preprocessor_settings'),
@@ -70,6 +74,27 @@ class SimplifyPage(QWidget):
         model_settings.layout().addWidget(self.model_widget)
 
         self.layout().addWidget(model_settings)
+
+        # Hires Fix
+        hires_fix_settings = QGroupBox('Hires Fix')
+        hires_fix_settings.setLayout(QVBoxLayout())
+
+        hide_hires_fix = self._setup_checkbox('Hide Hires Fix', 'hires_fix')
+        hires_fix_settings.layout().addWidget(hide_hires_fix)
+
+        hide_hires_fix_auto = self._setup_checkbox('Hide Automatic Hires Fix', 'hires_fix_auto')
+        hires_fix_settings.layout().addWidget(hide_hires_fix_auto)
+
+        hide_hires_upscaler = self._setup_checkbox('Hide Hires Fix Upscaler and Steps', 'hires_upscaler')
+        hires_fix_settings.layout().addWidget(hide_hires_upscaler)
+
+        hide_hires_denoise = self._setup_checkbox('Hide Hires Fix Denoise Strength', 'hires_denoise')
+        hires_fix_settings.layout().addWidget(hide_hires_denoise)
+
+        self.hires_fix_widget = HiResFixWidget(self.settings_controller, self.api, ignore_hidden=True)
+        hires_fix_settings.layout().addWidget(self.hires_fix_widget)
+
+        self.layout().addWidget(hires_fix_settings)
 
         # Img2Img and Inpainting
         img2img_settings = QGroupBox('Img2Img and Inpainting')
@@ -252,7 +277,7 @@ class SimplifyPage(QWidget):
         self.save_hidden()
 
         # Save default settings
-        widgets = [self.model_widget, self.batch_widget, self.seed_widget, self.color_correction, self.denoise_widget]
+        widgets = [self.model_widget, self.hires_fix_widget, self.batch_widget, self.seed_widget, self.color_correction, self.denoise_widget]
         for widget in widgets:
             widget.save_settings()
         

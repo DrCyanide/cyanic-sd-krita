@@ -31,13 +31,13 @@
         "adetailer_prompt": "",
         "adetailer_negative_prompt": ""
     },
-    "resolutions": {
-        "sd_max": 1024,
-        "sd_min": 512,
-        "ignore_if_conflict": "sd_max",
+    "hr_fix": {
         "auto_hrfix": true,
         "auto_hrfix_min": 768,
-        "auto_upscaler": true
+        "sd_min": 512,
+        "upscaler": "Latent",
+        "hrfix_steps": 0,
+        "denoise_strength": 0.7
     },
     "batch": {
         "count": 1,
@@ -94,7 +94,10 @@
         "denoise_strength": false,
         "face_restore": false,
         "tiling": false,
-        "highres_fix": false,
+        "hires_fix": false,
+        "hires_fix_auto": false,
+        "hires_upscaler": false,
+        "hires_denoise": false,
         "extensions": false,
         "hidden_extensions": [],
         "controlnet_preprocessor_settings": false,

@@ -7,6 +7,8 @@ A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
 # Updates
+**Nov 1 2023** - Hires Fix support added.
+
 **Oct 28 2023** - Better Inpaint Masking options (Thank you Miraihi [for all your help finding bugs](https://github.com/DrCyanide/cyanic-sd-krita/issues?q=author%3AMiraihi+))
 
 **Oct 26 2023** - Lora, Textual Inversion, and Hypernetwork lists added, under Extra Networks 
@@ -82,11 +84,13 @@ Want something a little bit more like Fooocus, with fewer settings in your way? 
 * Generation Settings
     * CFG
     * Clip Skip
-    * High Res Fix
     * Tiling
     * Face Restore
 * Extensions
     * Roop/ReActor
+* Extra Features
+    * ControlNet Segmentation Mask color lookup
+    * Webcam-to-layer
 
 # Not planning to implement
 * Scripts
