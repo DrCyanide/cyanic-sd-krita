@@ -11,11 +11,8 @@ class ControlNetExtension(QWidget):
         super().__init__()
         self.settings_controller = settings_controller
         self.api = api
-        self.cnapi = ControlNetAPI(self.api)
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0,0,0,0)
-        self.units = []
 
+        # Double check that the server supports ControlNet before trying to init the ControlNetAPI
         server_supported = self.api.script_installed('controlnet')
         if not server_supported:
             error = QLabel('Host "%s" does not have ControlNet installed' % self.api.host)
@@ -23,6 +20,11 @@ class ControlNetExtension(QWidget):
             self.layout().addWidget(error)
             self.layout().addWidget(website)
             return
+
+        self.cnapi = ControlNetAPI(self.api)
+        self.setLayout(QVBoxLayout())
+        self.layout().setContentsMargins(0,0,0,0)
+        self.units = []
 
         tab_widget = QTabWidget()
         for i in range(0, self.cnapi.tabs):
@@ -480,6 +482,7 @@ class ControlNetAPI():
         self.get_settings()
 
 
+
     def get_control_types_list(self):
         return self.control_types.keys()
     
@@ -494,19 +497,28 @@ class ControlNetAPI():
     
     def get_models(self):
         self.models = self.api.get('/controlnet/model_list?update=true')
-        # return self.models 
     
     def get_modules(self):
         results = self.api.get('/controlnet/module_list?alias_names=true')
-        self.module_list = results['module_list']
-        self.module_details = results['module_detail']
+        try:
+            self.module_list = results['module_list']
+            self.module_details = results['module_detail']
+        except:
+            pass
 
     def get_control_types(self):
-        self.control_types = self.api.get('/controlnet/control_types')['control_types']
+        try:
+            self.control_types = self.api.get('/controlnet/control_types')['control_types']
+        except:
+            return []
 
     def get_settings(self):
         self.settings = self.api.get('/controlnet/settings')
-        self.tabs = self.settings['control_net_unit_count']
+        try:
+            self.tabs = self.settings['control_net_unit_count'] # Version 2
+        except:
+            self.tabs = 1
+            # raise Exception('Cyanic SD - Error reading ControlNet settings, defaulting to 1 tab mode')
 
     def preview(self, image:str, module:str, processor_res, threshold_a, threshold_b):
         # Module == preprocessor
