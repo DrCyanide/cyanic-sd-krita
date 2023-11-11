@@ -142,9 +142,12 @@ class KritaController():
         if height > -1:
             image = image.scaledToHeight(height)
         image_bits = image.bits()
-        image_bits.setsize(image.byteCount())
-        byte_array = QByteArray(image_bits.asstring())
-        return byte_array, image.width(), image.height()
+        if image_bits is not None:
+            image_bits.setsize(image.byteCount())
+            byte_array = QByteArray(image_bits.asstring())
+            return byte_array, image.width(), image.height()
+        else:
+            return QByteArray(), 0, 0
 
     def qimage_to_b64_str(self, image:QImage):
         ba = QByteArray()
@@ -207,7 +210,7 @@ class KritaController():
                     name = layer_name
                 elif 'info' in results and 'all_seeds' in results['info'] and len(results['info']['all_seeds']) > i:
                     name = 'Seed: %s' % results['info']['all_seeds'][i]
-                if len(results['images'][i]) == 0:
+                if results['images'][i] is None or len(results['images'][i]) == 0:
                     # This can happen if there's no ControlNet Preview available
                     continue
                 layer = self.doc.createNode(name, 'paintLayer')
