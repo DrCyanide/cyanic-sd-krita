@@ -113,12 +113,15 @@ class GenerateWidget(QWidget):
     def progress_check(self, x, y, w, h):
         try:
             results = self.api.get_progress()
-            if results is None or results['progress'] == 0 or self.abort: # The operation has stopped
+            skipped_or_interrupted = results['state'] and (results['state']['skipped'] or results['state']['interrupted'])
+            # if results is None or results['progress'] == 0 or self.abort: # The operation has stopped
+            if results is None or skipped_or_interrupted or self.abort: # The operation has stopped
                 self.abort = False
                 self.progress_bar.setValue(1)
                 self.kc.delete_preview_layer()
                 self.progress_timer.stop()
                 self.is_generating = False
+                # raise Exception('Cyanic SD - Early progress end - Abort: %s Progress: %s' % (self.abort, results['progress']))
                 return
             self.progress_bar.setValue(int(results['progress'] * 100))
             # Show the preview
@@ -132,7 +135,7 @@ class GenerateWidget(QWidget):
             self.kc.delete_preview_layer()
             self.progress_timer.stop()
             self.is_generating = False
-            raise Exception('Cyanic SD - Error in progress loop: %s' % e)
+            # raise Exception('Cyanic SD - Error in progress loop: %s' % e)
 
     def threadable_run(self, data):
         self.generate_btn.setText('Cancel')
