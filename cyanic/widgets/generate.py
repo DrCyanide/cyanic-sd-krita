@@ -24,6 +24,7 @@ class GenerateWidget(QWidget):
         self.results = None
         self.is_generating = False
         self.abort = False
+        self.finished = False
         self.debug = False
 
         self.progress_bar = QProgressBar()
@@ -115,8 +116,9 @@ class GenerateWidget(QWidget):
             results = self.api.get_progress()
             skipped_or_interrupted = results['state'] and (results['state']['skipped'] or results['state']['interrupted'])
             # if results is None or results['progress'] == 0 or self.abort: # The operation has stopped
-            if results is None or skipped_or_interrupted or self.abort: # The operation has stopped
+            if results is None or skipped_or_interrupted or self.abort or self.finished: # The operation has stopped
                 self.abort = False
+                self.finished = False
                 self.progress_bar.setValue(1)
                 self.kc.delete_preview_layer()
                 self.progress_timer.stop()
@@ -131,6 +133,7 @@ class GenerateWidget(QWidget):
         except Exception as e:
             # Kill the progress check
             self.abort = False
+            self.finished = False
             self.progress_bar.setValue(1)
             self.kc.delete_preview_layer()
             self.progress_timer.stop()
@@ -155,6 +158,7 @@ class GenerateWidget(QWidget):
         kc = KritaController()
         # self.debug_data.setPlainText('Threadable Return!\n%s' % self.results)
         if self.results is not None:
+            self.finished = True
             # Prune the results images so that ControlNet preprocessors or masks aren't included in the results
             if 'images' in self.results and 'parameters' in self.results and 'batch_size' in self.results['parameters'] and 'n_iter' in self.results['parameters']:
                 expected_images = self.results['parameters']['batch_size'] * self.results['parameters']['n_iter']
