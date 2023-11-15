@@ -19,6 +19,7 @@ class SimplifyPage(QWidget):
             'negative_prompt': self.settings_controller.get('hide_ui.negative_prompt'),
             'styles': self.settings_controller.get('hide_ui.styles'),
             'extra_networks': self.settings_controller.get('hide_ui.extra_networks'),
+            'cfg': self.settings_controller.get('hide_ui.cfg'),
             'color_correction': self.settings_controller.get('hide_ui.color_correction'),
             'denoise_strength': self.settings_controller.get('hide_ui.denoise_strength'),
             'hires_fix': self.settings_controller.get('hide_ui.hires_fix'),
@@ -95,6 +96,17 @@ class SimplifyPage(QWidget):
         hires_fix_settings.layout().addWidget(self.hires_fix_widget)
 
         self.layout().addWidget(hires_fix_settings)
+
+        # CFG
+        cfg_settings = QGroupBox('CFG Scale')
+        cfg_settings.setLayout(QVBoxLayout())
+        hide_cfg = self._setup_checkbox('Hide CFG Scale', 'cfg')
+        cfg_settings.layout().addWidget(hide_cfg)
+
+        self.cfg_widget = CFGWidget(self.settings_controller, self.api)
+        cfg_settings.layout().addWidget(self.cfg_widget)
+
+        self.layout().addWidget(cfg_settings)
 
         # Img2Img and Inpainting
         img2img_settings = QGroupBox('Img2Img and Inpainting')
@@ -277,7 +289,7 @@ class SimplifyPage(QWidget):
         self.save_hidden()
 
         # Save default settings
-        widgets = [self.model_widget, self.hires_fix_widget, self.batch_widget, self.seed_widget, self.color_correction, self.denoise_widget]
+        widgets = [self.model_widget, self.hires_fix_widget, self.cfg_widget, self.batch_widget, self.seed_widget, self.color_correction, self.denoise_widget]
         for widget in widgets:
             widget.save_settings()
         

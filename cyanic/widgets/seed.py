@@ -81,7 +81,9 @@ class SeedWidget(QWidget):
     def get_seed_from_active_layer(self):
         kc = KritaController()
         name = kc.get_active_layer_name()
-        seed = name.lower().replace('seed: ', '').strip()
+        seed = ''
+        if 'seed' in name.lower():
+            seed = name.lower().replace('seed: ', '').strip()
         self.seed_edit.setText(seed)
 
     def _update_variable(self, key, value):

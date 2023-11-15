@@ -24,6 +24,10 @@ class Txt2ImgPage(QWidget):
         if not self.settings_controller.get('hide_ui.batch'):
             self.layout().addWidget(self.batch_widget)
 
+        self.cfg_widget = CFGWidget(self.settings_controller, self.api)
+        if not self.settings_controller.get('hide_ui.cfg'):
+            self.layout().addWidget(self.cfg_widget)
+
         self.seed_widget = SeedWidget(self.settings_controller)
         seed_collapsed = CollapsibleWidget('Seed Details', self.seed_widget)
         if not self.settings_controller.get('hide_ui.seed'):
@@ -39,7 +43,7 @@ class Txt2ImgPage(QWidget):
         if not self.settings_controller.get('hide_ui.extensions'):
             self.layout().addWidget(extension_collapsed)
 
-        self.generate_widget = GenerateWidget(self.settings_controller, self.api, [self.model_widget, self.prompt_widget, self.batch_widget, self.seed_widget, self.hires_widget, self.extension_widget], 'txt2img')
+        self.generate_widget = GenerateWidget(self.settings_controller, self.api, [self.model_widget, self.prompt_widget, self.batch_widget, self.cfg_widget, self.seed_widget, self.hires_widget, self.extension_widget], 'txt2img')
         self.layout().addWidget(self.generate_widget)
 
         self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top

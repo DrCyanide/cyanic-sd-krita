@@ -7,6 +7,8 @@ A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
 # Updates
+**Nov 15 2023** - CFG Scale support added.
+
 **Nov 2 2023** - Hires Fix support added.
 
 **Oct 28 2023** - Better Inpaint Masking options (Thank you Miraihi [for all your help finding bugs](https://github.com/DrCyanide/cyanic-sd-krita/issues?q=author%3AMiraihi+))
@@ -82,7 +84,6 @@ Want something a little bit more like Fooocus, with fewer settings in your way? 
 
 # Not yet implemented
 * Generation Settings
-    * CFG
     * Clip Skip
     * Tiling
     * Face Restore

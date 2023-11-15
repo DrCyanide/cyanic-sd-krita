@@ -10,3 +10,4 @@ from .mask import MaskWidget
 from .color_correction import ColorCorrectionWidget
 from .batch import BatchWidget
 from .hires_fix import HiResFixWidget
+from .cfg import CFGWidget
