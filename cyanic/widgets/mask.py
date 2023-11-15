@@ -177,8 +177,7 @@ class MaskWidget(QWidget):
     def _update_variable(self, key, value):
         self.variables[key] = value
 
-    def get_mask_and_img(self, mode='canvas'):
-        self.selection_mode = mode
+    def update_size_dict(self, mode='canvas'):
         if mode == 'selection':
             self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_selection_bounds()
         if mode == 'layer':
@@ -186,13 +185,26 @@ class MaskWidget(QWidget):
         if mode == 'canvas':
             self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'] = self.kc.get_canvas_bounds()
 
-        self.mask_uuid = self.kc.get_active_layer_uuid()
-        self.mask, self.image = self.kc.get_mask_and_image(mode)
+    def update_preview_icons(self):
         self.preview_list.clear()
         icon = QIcon(QPixmap.fromImage(self.image))
         self.preview_list.addItem(QListWidgetItem(icon, 'Image'))
         mask_icon = QIcon(QPixmap.fromImage(self.mask))
         self.preview_list.addItem(QListWidgetItem(mask_icon, 'Mask'))
+
+    def update_mask_only(self, mode='canvas'):
+        self.update_size_dict(mode)
+        self.mask, _ = self.kc.get_mask_and_image(mode)
+        self.update_preview_icons()
+        
+
+    def get_mask_and_img(self, mode='canvas'):
+        self.selection_mode = mode
+        self.update_size_dict(mode)
+
+        self.mask_uuid = self.kc.get_active_layer_uuid()
+        self.mask, self.image = self.kc.get_mask_and_image(mode)
+        self.update_preview_icons()
 
     def save_settings(self):
         self.settings_controller.set('inpaint.mask_blur', self.variables['mask_blur'])
@@ -227,10 +239,12 @@ class MaskWidget(QWidget):
             self.kc.set_layer_uuid_as_active(self.mask_uuid)
             if self.selection_mode is 'selection':
                 s_x, s_y, s_w, s_h = self.kc.get_selection_bounds()
-                if s_w > 0 and s_h > 0:
+                if s_w == 0 and s_h == 0:
                     # The selection was cleared, fallback to using the canvas instead
                     self.selection_mode = 'canvas'
-            self.get_mask_and_img(mode=self.selection_mode)
+                    self.get_mask_and_img(mode=self.selection_mode)
+            # self.get_mask_and_img(mode=self.selection_mode)
+            self.update_mask_only(mode=self.selection_mode)
 
 
         if self.image is None:

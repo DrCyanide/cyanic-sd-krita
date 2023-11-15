@@ -271,8 +271,8 @@ class KritaController():
         self.doc.setActiveNode(transparency_layer)
         self.doc.refreshProjection()
         self.doc.waitForDone()
-        # Krita.instance().action('convert_to_transparency_mask').trigger() # This was firing too fast, so...
-        QTimer.singleShot(500, lambda: Krita.instance().action('convert_to_transparency_mask').trigger())
+        # Krita.instance().action('convert_to_transparency_mask').trigger() # This was firing too fast, so I added a delay
+        QTimer.singleShot(500, lambda: Krita.instance().action('convert_to_transparency_mask').trigger()) # first value is ms delay
         
     def get_active_layer_uuid(self):
         self.doc = Krita.instance().activeDocument()
