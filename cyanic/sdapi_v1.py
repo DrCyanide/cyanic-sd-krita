@@ -3,6 +3,7 @@ import urllib.error
 import json
 import base64
 import time
+import os
 # Allow self-signed certs to be used. Self-signed certs allow some WebUI features (like ControlNet's camera) to work over local network.
 # import ssl
 # ssl._create_default_https_context = ssl._create_unverified_context
@@ -319,7 +320,7 @@ class SDAPI():
     #         "n_iter": batch_count,
     #         "steps": steps,
     #         "cfg_scale": cfg_scale,
-    #         "image_cfg_scale": 0,
+    #         "image_cfg_scale": 0, # Used by Instruct Pix2Pix models
     #         "clip_skip": clip_skip,
     #         "width": width,
     #         "height": height,
@@ -392,6 +393,7 @@ class SDAPI():
         results = self.post("/sdapi/v1/txt2img", data)
         if type(results['info']) is str:
             results['info'] = json.loads(results['info'])
+        self.log_request_and_response(data, results)
         return results
 
     def img2img(self, data):
@@ -400,17 +402,28 @@ class SDAPI():
         results = self.post("/sdapi/v1/img2img", data)
         if type(results['info']) is str:
             results['info'] = json.loads(results['info'])
+        self.log_request_and_response(data, results)
         return results
     
     def extra(self, data):
         data = self.cleanup_data(data)
         results = self.post("/sdapi/v1/extra-single-image", data)
         # No 'info' section to parse
+        self.log_request_and_response(data, results)
         return results
 
     # ===========================
     # Debugging fun!
     # ===========================
+
+    def log_request_and_response(self, data, response, filename='log.json'):
+        plugin_dir = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(plugin_dir, filename), 'w') as output_file:
+            log = {
+                'request': data,
+                'response': response
+            }
+            output_file.write(json.dumps(log))
 
     def write_img_to_file(self, base64_str, filename='saved.png'):
         with open(filename, 'wb') as output_file:

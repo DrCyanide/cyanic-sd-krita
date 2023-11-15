@@ -9,6 +9,8 @@ from ..widgets import ImageInWidget, CollapsibleWidget
 class ControlNetExtension(QWidget):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
         super().__init__()
+        self.setLayout(QVBoxLayout())
+        self.layout().setContentsMargins(0,0,0,0)
         self.settings_controller = settings_controller
         self.api = api
 
@@ -22,8 +24,6 @@ class ControlNetExtension(QWidget):
             return
 
         self.cnapi = ControlNetAPI(self.api)
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0,0,0,0)
         self.units = []
 
         tab_widget = QTabWidget()

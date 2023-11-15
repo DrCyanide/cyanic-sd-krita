@@ -28,7 +28,7 @@ class BatchWidget(QWidget):
         size_spin.setMinimum(1)
         size_spin.setMaximum(8)
         size_spin.setValue(self.variables['batch_size'])
-        count_spin.valueChanged.connect(lambda: self._update_variable('batch_size', size_spin.value()))
+        size_spin.valueChanged.connect(lambda: self._update_variable('batch_size', size_spin.value()))
 
         self.layout().addWidget(QLabel('Batch Count'))
         self.layout().addWidget(count_spin)
@@ -41,6 +41,7 @@ class BatchWidget(QWidget):
     def save_settings(self):
         self.settings_controller.set('batch.count', self.variables['batch_count'])
         self.settings_controller.set('batch.size', self.variables['batch_size'])
+        self.settings_controller.save()
 
     def get_generation_data(self):
         data = {
