@@ -13,6 +13,7 @@ class SimplifyPage(QWidget):
         self.hidden = {
             'model': self.settings_controller.get('hide_ui.model'),
             'vae': self.settings_controller.get('hide_ui.vae'),
+            'refiner': self.settings_controller.get('hide_ui.refiner'),
             'sampler': self.settings_controller.get('hide_ui.sampler'),
             'batch': self.settings_controller.get('hide_ui.batch'),
             'seed': self.settings_controller.get('hide_ui.seed'),
@@ -67,6 +68,9 @@ class SimplifyPage(QWidget):
 
         hide_vae = self._setup_checkbox('Hide VAE', 'vae')
         model_settings.layout().addWidget(hide_vae)
+
+        hide_refiner = self._setup_checkbox('Hide Refiner options', 'refiner')
+        model_settings.layout().addWidget(hide_refiner)
 
         hide_sampler = self._setup_checkbox('Hide Sampler and Steps', 'sampler')
         model_settings.layout().addWidget(hide_sampler)

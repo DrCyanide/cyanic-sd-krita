@@ -229,7 +229,12 @@ class SDAPI():
     def get_refiners_and_default(self):
         # No difference in options yet between refiners and models
         if self.connected:
-            return list(map(lambda x: x['title'], self.models)), self.defaults['refiner']
+            refiner_titles = list(map(lambda x: x['title'], self.models))
+            if 'None' not in refiner_titles:
+                temp = ['None']
+                temp.extend(refiner_titles)
+                refiner_titles = temp
+            return refiner_titles, self.defaults['refiner']
         else:
             return [], 'None'
         
@@ -372,6 +377,12 @@ class SDAPI():
             data['hr_second_pass_steps'] = data.pop('hr_steps')
 
         data['override_settings_restore_afterwards'] = False # It just takes WAY too long to load different models to leave this off
+
+        # This will take a long time to load...
+        if 'refiner' in data.keys() and len(data['refiner']) > 0 and data['refiner'].lower() != 'none':
+            data['refiner_checkpoint'] = data.pop('refiner')
+        if 'refiner_start' in data.keys():
+            data['refiner_switch_at'] = data.pop('refiner_start')
 
         if 'img2img_img' in data.keys():
             data['init_images'] = [data.pop('img2img_img')]

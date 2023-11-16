@@ -10,6 +10,8 @@
         "vae": "",
         "upscaler": "",
         "refiner": "",
+        "enable_refiner": false,
+        "refiner_start": 0.8,
         "face_restorer": "",
         "cfg_scale": 7,
         "denoise_strength": 0.7,
@@ -81,6 +83,7 @@
     "hide_ui": {
         "auto_save": true,
         "model": false,
+        "refiner": false,
         "vae": false,
         "sampler": false,
         "seed": false,

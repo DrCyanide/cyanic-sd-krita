@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import Qt
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 
@@ -15,6 +16,9 @@ class ModelsWidget(QWidget):
         self.variables = {
             'model': '',
             'vae': '',
+            'enable_refiner': self.settings_controller.get('defaults.enable_refiner'),
+            'refiner': '',
+            'refiner_start': self.settings_controller.get('defaults.refiner_start'),
             'sampler': '',
             'steps': '',
         }
@@ -34,6 +38,12 @@ class ModelsWidget(QWidget):
         settings_vae = self.settings_controller.get('defaults.vae')
         if len(settings_vae) > 0 and settings_vae in vaes:
             self.variables['vae'] = settings_vae
+
+        # Refiner
+        refiners, self.variables['refiner'] = self.api.get_refiners_and_default() # Refiners are treated the same as models right now, but could change in the future
+        settings_refiner = self.settings_controller.get('defaults.refiner')
+        if len(settings_refiner) > 0 and settings_refiner in refiners:
+            self.variables['refiner'] = settings_refiner
 
         # Sampler
         samplers, self.variables['sampler'] = self.api.get_samplers_and_default()
@@ -99,12 +109,55 @@ class ModelsWidget(QWidget):
         if self.ignore_hidden or not self.settings_controller.get('hide_ui.vae'):
             select_form.layout().addRow('VAE', self.vae_box)
         
+        # Refiner enable
+        self.refiner_enable = QCheckBox()
+        self.refiner_enable.setChecked(self.variables['enable_refiner'])
+        self.refiner_enable.stateChanged.connect(lambda: self._update_variables('enable_refiner', self.refiner_enable.isChecked()))
 
+        # Refiner select
+        self.refiner_box = QComboBox()
+        refiners, server_default_refiner = self.api.get_models_and_default()
+        self.refiner_box.addItems(refiners)
+        self.refiner_box.setCurrentText(self.variables['refiner'])
+        self.refiner_box.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
+        self.refiner_box.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
+        self.refiner_box.setMaxVisibleItems(10) # Suppose to limit the number of visible options
+        self.refiner_box.currentTextChanged.connect(lambda: self._update_variables('refiner', self.refiner_box.currentText()))
+        self.refiner_box.setToolTip('Refiner model')
+
+        # Refiner start at
+        refiner_start = QWidget()
+        refiner_start.setLayout(QHBoxLayout())
+        refiner_start.layout().setContentsMargins(0,0,0,0)
+        self.refiner_start_slider = QSlider(Qt.Horizontal)
+        self.refiner_start_slider.setTickInterval(10)
+        self.refiner_start_slider.setTickPosition(QSlider.TicksAbove)
+        self.refiner_start_slider.setMinimum(0)
+        self.refiner_start_slider.setMaximum(100)
+        self.refiner_start_slider.setValue(int(self.variables['refiner_start'] * 100))
+        self.refiner_start_slider.valueChanged.connect(lambda: self.update_slider(self.refiner_start_slider.value()))
+        refiner_start.layout().addWidget(self.refiner_start_slider)
+        self.refiner_start_label = QLabel()
+        self.refiner_start_label.setText('%s%%' % int(self.variables['refiner_start'] * 100))
+        refiner_start.layout().addWidget(self.refiner_start_label)
+
+        if self.ignore_hidden or not self.settings_controller.get('hide_ui.refiner'):
+            select_form.layout().addRow('Enable Refiner', self.refiner_enable)
+            select_form.layout().addRow('Refiner', self.refiner_box)
+            select_form.layout().addRow('Refiner start %', refiner_start)
+        
         # Sampler and Steps
         if self.ignore_hidden or not self.settings_controller.get('hide_ui.sampler'):
             select_form.layout().addRow('Sampler', self._sampler_settings())
 
         self.layout().addWidget(select_form)
+
+    def update_slider(self, value):
+        if value == 0:
+            self._update_variables('refiner_start', value)
+        else:
+            self._update_variables('refiner_start', value / 100)
+        self.refiner_start_label.setText('%s%%' % int(self.variables['refiner_start'] * 100))
 
     def _sampler_settings(self):
         sampler_row = QWidget()
@@ -149,15 +202,19 @@ class ModelsWidget(QWidget):
         self.settings_controller.set('defaults.vae', self.variables['vae'])
         self.settings_controller.set('defaults.sampler', self.variables['sampler'])
         self.settings_controller.set('defaults.sampling_steps', self.variables['steps'])
+        self.settings_controller.set('defaults.enable_refiner', self.variables['enable_refiner'])
+        self.settings_controller.set('defaults.refiner', self.variables['refiner'])
+        self.settings_controller.set('defaults.refiner_start', self.variables['refiner_start'])
     
     def get_generation_data(self):
-        # data = {
-        #     'model': self.settings_controller.get('defaults.model'),
-        #     'vae': self.settings_controller.get('defaults.vae'), # Note: Not sure if 'None', None, or '' are the expected value for the API
-        #     'sampler': self.settings_controller.get('defaults.sampler'),
-        #     'steps': self.settings_controller.get('defaults.sampling_steps'),
-        # }
         self.save_settings()
         self.settings_controller.save()
-        # return data
-        return self.variables
+        data = {**self.variables}
+        if not data['enable_refiner']:
+            # Remove the refiner stuff if it's not enabled
+            # data['refiner'] = 'none'
+            # data['refiner_start'] = 1.0
+            data.pop('refiner')
+            data.pop('refiner_start')
+        data.pop('enable_refiner')
+        return data
