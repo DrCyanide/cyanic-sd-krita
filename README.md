@@ -7,7 +7,7 @@ A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
 # Updates
-**Nov 15 2023** - CFG Scale and Refiner support added.
+**Nov 15 2023** - CFG Scale support added. Refiner support for A1111 added.
 
 **Nov 2 2023** - Hires Fix support added.
 

@@ -378,11 +378,18 @@ class SDAPI():
 
         data['override_settings_restore_afterwards'] = False # It just takes WAY too long to load different models to leave this off
 
-        # This will take a long time to load...
+        # A1111:
         if 'refiner' in data.keys() and len(data['refiner']) > 0 and data['refiner'].lower() != 'none':
             data['refiner_checkpoint'] = data.pop('refiner')
         if 'refiner_start' in data.keys():
             data['refiner_switch_at'] = data.pop('refiner_start')
+        
+        # SD.Next
+        # if 'refiner' in data.keys() and len(data['refiner']) > 0 and data['refiner'].lower() != 'none':
+        #    data['override_settings']['sd_model_refiner'] = data.pop('refiner')
+        # refiner_steps
+        # refiner_start
+        
 
         if 'img2img_img' in data.keys():
             data['init_images'] = [data.pop('img2img_img')]
