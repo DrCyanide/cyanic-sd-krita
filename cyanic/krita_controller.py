@@ -278,7 +278,8 @@ class KritaController():
         self.doc = Krita.instance().activeDocument()
         if self.doc is None:
             self.create_new_doc()
-        
+        if len(self.doc.activeNode().channels()) == 0: # Masks don't have channels
+            self.doc.setActiveNode(self.doc.activeNode().parentNode())
         return self.doc.activeNode().uniqueId()
     
     def get_layer_from_uuid(self, uuid):
@@ -349,6 +350,10 @@ class KritaController():
             return None, None
         
         mask_layer = self.doc.activeNode()
+        if len(mask_layer.channels()) == 0:
+            # This is a mask on a layer, not the layer we want to use as a mask
+            mask_layer = mask_layer.parentNode()
+            self.doc.setActiveNode(mask_layer)
         if not mask_layer.visible():
             # TODO: Find the next visible layer, use that as the mask.
             pass

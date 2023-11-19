@@ -29,7 +29,7 @@ class CFGWidget(QWidget):
         self.layout().addWidget(cfg_entry)
 
     def _update_variable(self, key, value):
-        self.variables[key] = value
+        self.variables[key] = round(value, 2)
 
     def save_settings(self):
         self.settings_controller.set('defaults.cfg_scale', self.variables['cfg'])

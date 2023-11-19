@@ -202,9 +202,12 @@ class MaskWidget(QWidget):
         self.selection_mode = mode
         self.update_size_dict(mode)
 
-        self.mask_uuid = self.kc.get_active_layer_uuid()
-        self.mask, self.image = self.kc.get_mask_and_image(mode)
-        self.update_preview_icons()
+        try:
+            self.mask_uuid = self.kc.get_active_layer_uuid()
+            self.mask, self.image = self.kc.get_mask_and_image(mode)
+            self.update_preview_icons()
+        except Exception as e:
+            raise Exception('Cyanic SD - Error updating mask: %s' % e)
 
     def save_settings(self):
         self.settings_controller.set('inpaint.mask_blur', self.variables['mask_blur'])
