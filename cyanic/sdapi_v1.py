@@ -12,6 +12,8 @@ class SDAPI():
     DEFAULT_HOST = 'http://127.0.0.1:7860'
     def __init__(self, host=DEFAULT_HOST):
         self.host = host
+        self.host_version = 'A1111' # SD.Next also supported
+        self.supports_refiners = True # SD.Next with sd_backend == "original" does not support refiners
         self.models = []
         self.vaes = []
         self.samplers = []
@@ -106,10 +108,39 @@ class SDAPI():
     # API calls that cache values
     # ===========================
 
+    def set_host_version(self):
+        # Look at differences in the settings to figure out which backend is being run
+        # If a backend has more than half of these settings, it's likely SD.Next
+        # I don't want to use ALL of the settings, because if a setting is removed it'll guess incorrectly
+        sdnext_unique = [
+            'cross_attention_sep',
+            'cuda_compile_sep',
+            'models_paths_sep_options',
+            'outdir_sep_dirs',
+            'outdir_sep_grids',
+            'postprocessing_sep_img2img',
+            'postprocessing_sep_upscalers',
+            'sd_lyco',
+        ]
+        sdnext_points = 0
+        for key in sdnext_unique:
+            if key in self.default_settings.keys():
+                sdnext_points = sdnext_points + 1
+        if sdnext_points > len(sdnext_unique) / 2:
+            self.host_version = 'SD.Next'
+        else:
+            self.host_version = 'A1111'
+
     def get_options(self):
         self.default_settings = self.get("/sdapi/v1/options")
         if self.default_settings is None: # Some sort of server error while getting the configs?
             self.default_settings = {}
+
+        self.set_host_version()
+        if self.host_version == 'SD.Next':
+            if self.default_settings['sd_backend'].lower() == 'original':
+                self.supports_refiners = False
+
         # self.defaults['sampler'] = There isn't one in settings
         self.defaults['model'] = self.default_settings.get('sd_model_checkpoint', '')
         self.defaults['vae'] = self.default_settings.get('sd_vae', '')
@@ -378,17 +409,27 @@ class SDAPI():
 
         data['override_settings_restore_afterwards'] = False # It just takes WAY too long to load different models to leave this off
 
-        # A1111:
-        if 'refiner' in data.keys() and len(data['refiner']) > 0 and data['refiner'].lower() != 'none':
-            data['refiner_checkpoint'] = data.pop('refiner')
-        if 'refiner_start' in data.keys():
-            data['refiner_switch_at'] = data.pop('refiner_start')
+        # A1111 unique settings
+        if self.host_version == 'A1111':
+            if 'refiner' in data.keys() and len(data['refiner']) > 0 and data['refiner'].lower() != 'none':
+                data['refiner_checkpoint'] = data.pop('refiner')
+            if 'refiner_start' in data.keys():
+                data['refiner_switch_at'] = data.pop('refiner_start')
         
-        # SD.Next
-        # if 'refiner' in data.keys() and len(data['refiner']) > 0 and data['refiner'].lower() != 'none':
-        #    data['override_settings']['sd_model_refiner'] = data.pop('refiner')
-        # refiner_steps
-        # refiner_start
+        # SD.Next unique settings
+        if self.host_version == 'SD.Next':
+            if 'refiner' in data.keys() and len(data['refiner']) > 0 and data['refiner'].lower() != 'none':
+                data['override_settings']['sd_model_refiner'] = data.pop('refiner')
+            if 'refiner_start' in data.keys():
+                data['enable_hr'] = True
+                data['hr_force'] = True
+                # 'refiner_start' is percentage based
+                start = int(data['steps'] * data['refiner_start'])
+                steps = int(data['steps'] - start)
+                # data['refiner_start'] = start
+                data['refiner_steps'] = steps
+                data['refiner_prompt'] = data['prompt']
+                data['refiner_negative_prompt'] = data['negative_prompt']
         
 
         if 'img2img_img' in data.keys():

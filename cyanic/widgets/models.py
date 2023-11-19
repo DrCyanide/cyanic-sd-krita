@@ -109,6 +109,7 @@ class ModelsWidget(QWidget):
         if self.ignore_hidden or not self.settings_controller.get('hide_ui.vae'):
             select_form.layout().addRow('VAE', self.vae_box)
         
+        
         # Refiner enable
         self.refiner_enable = QCheckBox()
         self.refiner_enable.setChecked(self.variables['enable_refiner'])
@@ -142,9 +143,18 @@ class ModelsWidget(QWidget):
         refiner_start.layout().addWidget(self.refiner_start_label)
 
         if self.ignore_hidden or not self.settings_controller.get('hide_ui.refiner'):
-            select_form.layout().addRow('Enable Refiner', self.refiner_enable)
-            select_form.layout().addRow('Refiner', self.refiner_box)
-            select_form.layout().addRow('Refiner start %', refiner_start)
+            if self.api.supports_refiners:
+                select_form.layout().addRow('Enable Refiner', self.refiner_enable)
+                select_form.layout().addRow('Refiner', self.refiner_box)
+                select_form.layout().addRow('Refiner start %', refiner_start)
+            else:
+                message = QLabel()
+                if self.api.host_version == 'SD.Next':
+                    message = QLabel('SD.Next setting "Execution Backend" must be "Diffusers" to use refiners.')
+                else:
+                    message = QLabel("Your API doesn't support refiners")
+                message.setWordWrap(True)
+                select_form.layout().addRow('Refiner', message)
         
         # Sampler and Steps
         if self.ignore_hidden or not self.settings_controller.get('hide_ui.sampler'):
