@@ -129,7 +129,12 @@ class KritaController():
     
     def base64_to_pixeldata(self, base64str:str, width=-1, height=-1):
         b64img_data = base64.b64decode(base64str)
-        image = QImage.fromData(b64img_data, 'PNG') # This formats the bytes in a way Krita can understand them
+        png_start = 'iVBORw0KGgo' # this byte sequence is always at the start of PNG images
+        image = None
+        if base64str.find(png_start) == 0:
+            image = QImage.fromData(b64img_data, 'PNG') # This formats the bytes in a way Krita can understand them
+        else:
+            image = QImage.fromData(b64img_data, 'JPEG')
 
         # If the image is grayscale (like ControlNet previews often are), convert it to full color
         # if image.format() == QImage.Format_Grayscale8 or image.format() == QImage.Format_Grayscale16:
@@ -407,7 +412,6 @@ class KritaController():
             else:
                 self.scale_layer(layer, x, y, width, height) 
         except Exception as e:
-            raise Exception('Cyanic SD - %s' % e)
             self.scale_layer(layer, x, y, width, height) 
 
     def scale_layer(self, layer, x, y, width, height, strategy='Bilinear'):
@@ -482,4 +486,12 @@ class KritaController():
         layer.setLocked(True) # Prevent users accidentally drawing on layer       
         self.doc.refreshProjection() # Without this, the preview image doesn't draw on the canvas
 
-        
+    def get_foreground_color_hex(self):
+        view = Application.activeWindow.activeView()
+        canvas = view.canvas()
+        return view.foregroundColor().colorForCanvas(canvas).name() # "name" is the hex value, with lowercase letters
+    
+    def get_background_color_hex(self):
+        view = Application.activeWindow.activeView()
+        canvas = view.canvas()
+        return view.backgroundColor().colorForCanvas(canvas).name() # "name" is the hex value, with lowercase letters
