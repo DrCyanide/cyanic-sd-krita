@@ -423,6 +423,9 @@ class KritaController():
         mask = self.doc.createTransformMask('Transform')
         layer.addChildNode(mask, None)
         bounds = layer.bounds()
+        if bounds.width() == 0 or bounds.height() == 0:
+            # Uh... panic? Adding this to avoid a divide by zero error
+            bounds = self.doc.bounds()
         scale_x = width / bounds.width() * 1.0 # 0.4
         scale_y = height / bounds.height() * 1.0 # 0.4
         xml_data = """\
