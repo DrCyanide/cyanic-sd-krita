@@ -179,6 +179,12 @@ class KritaController():
             dest = target_parent_children[target_node_index - 1]
         return dest
 
+    def find_parent_node(self, layer=None):
+        child_node = layer
+        if child_node is None:
+            child_node = self.doc.activeNode()
+        return child_node.parentNode()
+
     def results_to_layers(self, results, x=0, y=0, w=-1, h=-1, layer_name='', below_active=False, below_layer=None):
         self.doc = Krita.instance().activeDocument()
         if self.doc is None:
@@ -204,6 +210,9 @@ class KritaController():
                         h = c_h
 
         img_layer_parent = self.doc.rootNode()
+        if below_active or below_layer is not None:
+            img_layer_parent = self.find_parent_node(below_layer)
+
         if 'images' in results: # txt2img or img2img results
             if len(results['images']) > 1:
                 group = self.doc.createGroupLayer("Results")
@@ -230,7 +239,11 @@ class KritaController():
                 self.doc.refreshProjection()
 
             if len(results['images']) > 1:
-                self.doc.rootNode().addChildNode(group, None)
+                if below_active or below_layer is not None:
+                    parent = self.find_parent_node(below_layer)
+                    parent.addChildNode(group, None)
+                else:
+                    self.doc.rootNode().addChildNode(group, None)
 
         if 'image' in results: # extras results
             name = 'Image'
@@ -267,17 +280,31 @@ class KritaController():
 
         self.doc.refreshProjection()
 
+
     def result_to_transparency_mask(self, results, x=0, y=0, w=-1, h=-1):
+        delay = 500 #ms
+        old_active = self.doc.activeNode()
+        is_group = old_active.type() == 'grouplayer'
+        parent_node = old_active.parentNode()
+
         # Pass to results_to_layers() with a unique name
         uniqueName = 'cyanic_sd_transparent-%s' % random.randint(10000, 99999)
         self.results_to_layers(results, x, y, w, h, uniqueName, below_active=True)
         # Find the node with that unique name
         transparency_layer = self.doc.nodeByName(uniqueName)
-        self.doc.setActiveNode(transparency_layer)
+        
+        # self.doc.setActiveNode(transparency_layer)
+        QTimer.singleShot(delay, lambda: self.doc.setActiveNode(transparency_layer)) # Was activating too fast in group layers
         self.doc.refreshProjection()
         self.doc.waitForDone()
-        # Krita.instance().action('convert_to_transparency_mask').trigger() # This was firing too fast, so I added a delay
-        QTimer.singleShot(500, lambda: Krita.instance().action('convert_to_transparency_mask').trigger()) # first value is ms delay
+        QTimer.singleShot(delay, lambda: Krita.instance().action('convert_to_transparency_mask').trigger()) # Was activating before the new layer was active
+        if parent_node.type() == 'grouplayer' and not is_group:
+            # If the user selected a group, the transparency mask should apply to the whole group - which is default behavior
+            # If selection was a layer inside a group, parent the transparency_layer to the old_active
+            # transparency_layer.remove() # Should remove it from it's parent node
+            # old_active.addChildNode(transparency_layer, None)
+            # The transparency mask is the new active
+            QTimer.singleShot(delay, lambda:old_active.addChildNode(self.doc.activeNode(), None))
         
     def get_active_layer_uuid(self):
         self.doc = Krita.instance().activeDocument()

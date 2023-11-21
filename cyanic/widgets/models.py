@@ -20,7 +20,7 @@ class ModelsWidget(QWidget):
             'refiner': '',
             'refiner_start': self.settings_controller.get('defaults.refiner_start'),
             'sampler': '',
-            'steps': '',
+            'sampling_steps': self.settings_controller.get('defaults.sampling_steps'),
         }
         self.init_variables()
 
@@ -52,7 +52,7 @@ class ModelsWidget(QWidget):
             self.variables['sampler'] = settings_sampler
 
         # Steps
-        self.variables['steps'] = self.settings_controller.get('defaults.sampling_steps')
+        self.variables['sampling_steps'] = self.settings_controller.get('defaults.sampling_steps')
 
 
     def draw_ui(self):
@@ -102,7 +102,6 @@ class ModelsWidget(QWidget):
         else:
             self.settings_controller.set('defaults.vae', server_default_vae)
         # Send the changed model to settings. It'll get saved when the generate button is clicked
-        # self.vae_box.currentTextChanged.connect(lambda: self.settings_controller.set('defaults.vae', self.vae_box.currentText()))
         self.vae_box.currentTextChanged.connect(lambda: self._update_variables('vae', self.vae_box.currentText()))
         self.vae_box.setToolTip('VAE')
 
@@ -187,7 +186,6 @@ class ModelsWidget(QWidget):
         else:
             self.settings_controller.set('defaults.sampler', server_default_sampler)
         # Send the changed sampler to the settings. It'll get saved when the generate button is clicked
-        # self.sampler_box.currentTextChanged.connect(lambda: self.settings_controller.set('defaults.sampler', self.sampler_box.currentText()))
         self.sampler_box.currentTextChanged.connect(lambda: self._update_variables('sampler', self.sampler_box.currentText()))
         self.sampler_box.setToolTip('Sampling method')
         sampler_row.layout().addWidget(self.sampler_box)
@@ -195,9 +193,8 @@ class ModelsWidget(QWidget):
         self.sampling_steps = QSpinBox()
         self.sampling_steps.setMinimum(1)
         # self.sampling_steps.setValue(self.settings_controller.get('defaults.sampling_steps'))
-        self.sampling_steps.setValue(self.variables['steps'])
+        self.sampling_steps.setValue(self.variables['sampling_steps'])
         self.sampling_steps.setMaximum(100)
-        # self.sampling_steps.valueChanged.connect(lambda: self.settings_controller.set('defaults.sampling_steps', self.sampling_steps.value()))
         self.sampling_steps.valueChanged.connect(lambda: self._update_variables('sampling_steps', self.sampling_steps.value()))
         self.sampling_steps.setToolTip('Sampling steps')
         sampler_row.layout().addWidget(self.sampling_steps)
@@ -211,10 +208,11 @@ class ModelsWidget(QWidget):
         self.settings_controller.set('defaults.model', self.variables['model'])
         self.settings_controller.set('defaults.vae', self.variables['vae'])
         self.settings_controller.set('defaults.sampler', self.variables['sampler'])
-        self.settings_controller.set('defaults.sampling_steps', self.variables['steps'])
+        self.settings_controller.set('defaults.sampling_steps', self.variables['sampling_steps'])
         self.settings_controller.set('defaults.enable_refiner', self.variables['enable_refiner'])
         self.settings_controller.set('defaults.refiner', self.variables['refiner'])
         self.settings_controller.set('defaults.refiner_start', self.variables['refiner_start'])
+        self.settings_controller.save()
     
     def get_generation_data(self):
         self.save_settings()
