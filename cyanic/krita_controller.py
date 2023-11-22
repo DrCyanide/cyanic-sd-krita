@@ -231,7 +231,7 @@ class KritaController():
                 byte_array, img_w, img_h = self.base64_to_pixeldata(results['images'][i])
                 layer.setPixelData(byte_array, x, y, img_w, img_h)
                 dest = None
-                if below_active or below_layer is not None:
+                if len(results['images']) == 1 and (below_active or below_layer is not None):
                     dest = self.find_below(below_layer)
                 img_layer_parent.addChildNode(layer, dest)
                 if img_w != w or img_h != h:
@@ -241,7 +241,8 @@ class KritaController():
             if len(results['images']) > 1:
                 if below_active or below_layer is not None:
                     parent = self.find_parent_node(below_layer)
-                    parent.addChildNode(group, None)
+                    dest = self.find_below(below_layer)
+                    parent.addChildNode(group, dest)
                 else:
                     self.doc.rootNode().addChildNode(group, None)
 
