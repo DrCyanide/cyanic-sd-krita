@@ -299,6 +299,7 @@ class KritaController():
         self.doc.waitForDone()
         QTimer.singleShot(delay, lambda: Krita.instance().action('convert_to_transparency_mask').trigger()) # Was activating before the new layer was active
         if parent_node.type() == 'grouplayer' and not is_group:
+            # TODO: revisit this... it's still applying to the group
             # If the user selected a group, the transparency mask should apply to the whole group - which is default behavior
             # If selection was a layer inside a group, parent the transparency_layer to the old_active
             # transparency_layer.remove() # Should remove it from it's parent node
