@@ -1,0 +1,1908 @@
+{
+    "origin": "https://docs.google.com/spreadsheets/d/1se8YEtb2detS7OuPE86fXGyD269pMycAWe2mtKUj2W8/edit#gid=0",
+    "key": [
+        {
+            "rgb": [
+                120,
+                120,
+                120
+            ],
+            "hex": "#787878",
+            "desc": [
+                "wall"
+            ]
+        },
+        {
+            "rgb": [
+                180,
+                120,
+                120
+            ],
+            "hex": "#B47878",
+            "desc": [
+                "building",
+                "edifice"
+            ]
+        },
+        {
+            "rgb": [
+                6,
+                230,
+                230
+            ],
+            "hex": "#06E6E6",
+            "desc": [
+                "sky"
+            ]
+        },
+        {
+            "rgb": [
+                80,
+                50,
+                50
+            ],
+            "hex": "#503232",
+            "desc": [
+                "floor",
+                "flooring"
+            ]
+        },
+        {
+            "rgb": [
+                4,
+                200,
+                3
+            ],
+            "hex": "#04C803",
+            "desc": [
+                "tree"
+            ]
+        },
+        {
+            "rgb": [
+                120,
+                120,
+                80
+            ],
+            "hex": "#787850",
+            "desc": [
+                "ceiling"
+            ]
+        },
+        {
+            "rgb": [
+                140,
+                140,
+                140
+            ],
+            "hex": "#8C8C8C",
+            "desc": [
+                "road",
+                "route"
+            ]
+        },
+        {
+            "rgb": [
+                204,
+                5,
+                255
+            ],
+            "hex": "#CC05FF",
+            "desc": [
+                "bed"
+            ]
+        },
+        {
+            "rgb": [
+                230,
+                230,
+                230
+            ],
+            "hex": "#E6E6E6",
+            "desc": [
+                "windowpane",
+                "window"
+            ]
+        },
+        {
+            "rgb": [
+                4,
+                250,
+                7
+            ],
+            "hex": "#04FA07",
+            "desc": [
+                "grass"
+            ]
+        },
+        {
+            "rgb": [
+                224,
+                5,
+                255
+            ],
+            "hex": "#E005FF",
+            "desc": [
+                "cabinet"
+            ]
+        },
+        {
+            "rgb": [
+                235,
+                255,
+                7
+            ],
+            "hex": "#EBFF07",
+            "desc": [
+                "sidewalk",
+                "pavement"
+            ]
+        },
+        {
+            "rgb": [
+                150,
+                5,
+                61
+            ],
+            "hex": "#96053D",
+            "desc": [
+                "person",
+                "individual",
+                "someone",
+                "somebody",
+                "mortal",
+                "soul"
+            ]
+        },
+        {
+            "rgb": [
+                120,
+                120,
+                70
+            ],
+            "hex": "#787846",
+            "desc": [
+                "earth",
+                "ground"
+            ]
+        },
+        {
+            "rgb": [
+                8,
+                255,
+                51
+            ],
+            "hex": "#08FF33",
+            "desc": [
+                "door",
+                "double",
+                "door"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                6,
+                82
+            ],
+            "hex": "#FF0652",
+            "desc": [
+                "table"
+            ]
+        },
+        {
+            "rgb": [
+                143,
+                255,
+                140
+            ],
+            "hex": "#8FFF8C",
+            "desc": [
+                "mountain",
+                "mount"
+            ]
+        },
+        {
+            "rgb": [
+                204,
+                255,
+                4
+            ],
+            "hex": "#CCFF04",
+            "desc": [
+                "plant",
+                "flora",
+                "plant",
+                "life"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                51,
+                7
+            ],
+            "hex": "#FF3307",
+            "desc": [
+                "curtain",
+                "drape",
+                "drapery",
+                "mantle",
+                "pall"
+            ]
+        },
+        {
+            "rgb": [
+                204,
+                70,
+                3
+            ],
+            "hex": "#CC4603",
+            "desc": [
+                "chair"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                102,
+                200
+            ],
+            "hex": "#0066C8",
+            "desc": [
+                "car",
+                "auto",
+                "automobile",
+                "machine",
+                "motorcar"
+            ]
+        },
+        {
+            "rgb": [
+                61,
+                230,
+                250
+            ],
+            "hex": "#3DE6FA",
+            "desc": [
+                "water"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                6,
+                51
+            ],
+            "hex": "#FF0633",
+            "desc": [
+                "painting",
+                "picture"
+            ]
+        },
+        {
+            "rgb": [
+                11,
+                102,
+                255
+            ],
+            "hex": "#0B66FF",
+            "desc": [
+                "sofa",
+                "couch",
+                "lounge"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                7,
+                71
+            ],
+            "hex": "#FF0747",
+            "desc": [
+                "shelf"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                9,
+                224
+            ],
+            "hex": "#FF09E0",
+            "desc": [
+                "house"
+            ]
+        },
+        {
+            "rgb": [
+                9,
+                7,
+                230
+            ],
+            "hex": "#0907E6",
+            "desc": [
+                "sea"
+            ]
+        },
+        {
+            "rgb": [
+                220,
+                220,
+                220
+            ],
+            "hex": "#DCDCDC",
+            "desc": [
+                "mirror"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                9,
+                92
+            ],
+            "hex": "#FF095C",
+            "desc": [
+                "rug",
+                "carpet",
+                "carpeting"
+            ]
+        },
+        {
+            "rgb": [
+                112,
+                9,
+                255
+            ],
+            "hex": "#7009FF",
+            "desc": [
+                "field"
+            ]
+        },
+        {
+            "rgb": [
+                8,
+                255,
+                214
+            ],
+            "hex": "#08FFD6",
+            "desc": [
+                "armchair"
+            ]
+        },
+        {
+            "rgb": [
+                7,
+                255,
+                224
+            ],
+            "hex": "#07FFE0",
+            "desc": [
+                "seat"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                184,
+                6
+            ],
+            "hex": "#FFB806",
+            "desc": [
+                "fence",
+                "fencing"
+            ]
+        },
+        {
+            "rgb": [
+                10,
+                255,
+                71
+            ],
+            "hex": "#0AFF47",
+            "desc": [
+                "desk"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                41,
+                10
+            ],
+            "hex": "#FF290A",
+            "desc": [
+                "rock",
+                "stone"
+            ]
+        },
+        {
+            "rgb": [
+                7,
+                255,
+                255
+            ],
+            "hex": "#07FFFF",
+            "desc": [
+                "wardrobe",
+                "closet",
+                "press"
+            ]
+        },
+        {
+            "rgb": [
+                224,
+                255,
+                8
+            ],
+            "hex": "#E0FF08",
+            "desc": [
+                "lamp"
+            ]
+        },
+        {
+            "rgb": [
+                102,
+                8,
+                255
+            ],
+            "hex": "#6608FF",
+            "desc": [
+                "bathtub",
+                "bathing",
+                "tub",
+                "bath",
+                "tub"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                61,
+                6
+            ],
+            "hex": "#FF3D06",
+            "desc": [
+                "railing",
+                "rail"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                194,
+                7
+            ],
+            "hex": "#FFC207",
+            "desc": [
+                "cushion"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                122,
+                8
+            ],
+            "hex": "#FF7A08",
+            "desc": [
+                "base",
+                "pedestal",
+                "stand"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                20
+            ],
+            "hex": "#00FF14",
+            "desc": [
+                "box"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                8,
+                41
+            ],
+            "hex": "#FF0829",
+            "desc": [
+                "column",
+                "pillar"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                5,
+                153
+            ],
+            "hex": "#FF0599",
+            "desc": [
+                "signboard",
+                "sign"
+            ]
+        },
+        {
+            "rgb": [
+                6,
+                51,
+                255
+            ],
+            "hex": "#0633FF",
+            "desc": [
+                "chest",
+                "of",
+                "drawers",
+                "chest",
+                "bureau",
+                "dresser"
+            ]
+        },
+        {
+            "rgb": [
+                235,
+                12,
+                255
+            ],
+            "hex": "#EB0CFF",
+            "desc": [
+                "counter"
+            ]
+        },
+        {
+            "rgb": [
+                160,
+                150,
+                20
+            ],
+            "hex": "#A09614",
+            "desc": [
+                "sand"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                163,
+                255
+            ],
+            "hex": "#00A3FF",
+            "desc": [
+                "sink"
+            ]
+        },
+        {
+            "rgb": [
+                140,
+                140,
+                140
+            ],
+            "hex": "#8C8C8C",
+            "desc": [
+                "skyscraper"
+            ]
+        },
+        {
+            "rgb": [
+                250,
+                10,
+                15
+            ],
+            "hex": "#FA0A0F",
+            "desc": [
+                "fireplace",
+                "hearth",
+                "open",
+                "fireplace"
+            ]
+        },
+        {
+            "rgb": [
+                20,
+                255,
+                0
+            ],
+            "hex": "#14FF00",
+            "desc": [
+                "refrigerator",
+                "icebox"
+            ]
+        },
+        {
+            "rgb": [
+                31,
+                255,
+                0
+            ],
+            "hex": "#1FFF00",
+            "desc": [
+                "grandstand",
+                "covered",
+                "stand"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                31,
+                0
+            ],
+            "hex": "#FF1F00",
+            "desc": [
+                "path"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                224,
+                0
+            ],
+            "hex": "#FFE000",
+            "desc": [
+                "stairs",
+                "steps"
+            ]
+        },
+        {
+            "rgb": [
+                153,
+                255,
+                0
+            ],
+            "hex": "#99FF00",
+            "desc": [
+                "runway"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                0,
+                255
+            ],
+            "hex": "#0000FF",
+            "desc": [
+                "case",
+                "display",
+                "case",
+                "showcase",
+                "vitrine"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                71,
+                0
+            ],
+            "hex": "#FF4700",
+            "desc": [
+                "pool",
+                "table",
+                "billiard",
+                "table",
+                "snooker",
+                "table"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                235,
+                255
+            ],
+            "hex": "#00EBFF",
+            "desc": [
+                "pillow"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                173,
+                255
+            ],
+            "hex": "#00ADFF",
+            "desc": [
+                "screen",
+                "door",
+                "screen"
+            ]
+        },
+        {
+            "rgb": [
+                31,
+                0,
+                255
+            ],
+            "hex": "#1F00FF",
+            "desc": [
+                "stairway",
+                "staircase"
+            ]
+        },
+        {
+            "rgb": [
+                11,
+                200,
+                200
+            ],
+            "hex": "#0BC8C8",
+            "desc": [
+                "river"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                82,
+                0
+            ],
+            "hex": "#FF5200",
+            "desc": [
+                "bridge",
+                "span"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                245
+            ],
+            "hex": "#00FFF5",
+            "desc": [
+                "bookcase"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                61,
+                255
+            ],
+            "hex": "#003DFF",
+            "desc": [
+                "blind",
+                "screen"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                112
+            ],
+            "hex": "#00FF70",
+            "desc": [
+                "coffee",
+                "table",
+                "cocktail",
+                "table"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                133
+            ],
+            "hex": "#00FF85",
+            "desc": [
+                "toilet",
+                "can",
+                "commode",
+                "crapper",
+                "pot",
+                "potty",
+                "stool",
+                "throne"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                0
+            ],
+            "hex": "#FF0000",
+            "desc": [
+                "flower"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                163,
+                0
+            ],
+            "hex": "#FFA300",
+            "desc": [
+                "book"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                102,
+                0
+            ],
+            "hex": "#FF6600",
+            "desc": [
+                "hill"
+            ]
+        },
+        {
+            "rgb": [
+                194,
+                255,
+                0
+            ],
+            "hex": "#C2FF00",
+            "desc": [
+                "bench"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                143,
+                255
+            ],
+            "hex": "#008FFF",
+            "desc": [
+                "countertop"
+            ]
+        },
+        {
+            "rgb": [
+                51,
+                255,
+                0
+            ],
+            "hex": "#33FF00",
+            "desc": [
+                "stove",
+                "kitchen",
+                "stove",
+                "range",
+                "kitchen",
+                "range",
+                "cooking",
+                "stove"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                82,
+                255
+            ],
+            "hex": "#0052FF",
+            "desc": [
+                "palm",
+                "palm",
+                "tree"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                41
+            ],
+            "hex": "#00FF29",
+            "desc": [
+                "kitchen",
+                "island"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                173
+            ],
+            "hex": "#00FFAD",
+            "desc": [
+                "computer",
+                "computing",
+                "machine",
+                "computing",
+                "device",
+                "data",
+                "processor",
+                "electronic",
+                "computer",
+                "information",
+                "processing",
+                "system"
+            ]
+        },
+        {
+            "rgb": [
+                10,
+                0,
+                255
+            ],
+            "hex": "#0A00FF",
+            "desc": [
+                "swivel",
+                "chair"
+            ]
+        },
+        {
+            "rgb": [
+                173,
+                255,
+                0
+            ],
+            "hex": "#ADFF00",
+            "desc": [
+                "boat"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                153
+            ],
+            "hex": "#00FF99",
+            "desc": [
+                "bar"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                92,
+                0
+            ],
+            "hex": "#FF5C00",
+            "desc": [
+                "arcade",
+                "machine"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                255
+            ],
+            "hex": "#FF00FF",
+            "desc": [
+                "hovel",
+                "hut",
+                "hutch",
+                "shack",
+                "shanty"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                245
+            ],
+            "hex": "#FF00F5",
+            "desc": [
+                "bus",
+                "autobus",
+                "coach",
+                "charabanc",
+                "double-decker",
+                "jitney",
+                "motorbus",
+                "motorcoach",
+                "omnibus",
+                "passenger",
+                "vehicle"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                102
+            ],
+            "hex": "#FF0066",
+            "desc": [
+                "towel"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                173,
+                0
+            ],
+            "hex": "#FFAD00",
+            "desc": [
+                "light",
+                "light",
+                "source"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                20
+            ],
+            "hex": "#FF0014",
+            "desc": [
+                "truck",
+                "motortruck"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                184,
+                184
+            ],
+            "hex": "#FFB8B8",
+            "desc": [
+                "tower"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                31,
+                255
+            ],
+            "hex": "#001FFF",
+            "desc": [
+                "chandelier",
+                "pendant",
+                "pendent"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                61
+            ],
+            "hex": "#00FF3D",
+            "desc": [
+                "awning",
+                "sunshade",
+                "sunblind"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                71,
+                255
+            ],
+            "hex": "#0047FF",
+            "desc": [
+                "streetlight",
+                "street",
+                "lamp"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                204
+            ],
+            "hex": "#FF00CC",
+            "desc": [
+                "booth",
+                "cubicle",
+                "stall",
+                "kiosk"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                194
+            ],
+            "hex": "#00FFC2",
+            "desc": [
+                "television",
+                "television",
+                "receiver",
+                "television",
+                "set",
+                "tv",
+                "tv",
+                "set",
+                "idiot",
+                "box",
+                "boob",
+                "tube",
+                "telly",
+                "goggle",
+                "box"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                82
+            ],
+            "hex": "#00FF52",
+            "desc": [
+                "airplane",
+                "aeroplane",
+                "plane"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                10,
+                255
+            ],
+            "hex": "#000AFF",
+            "desc": [
+                "dirt",
+                "track"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                112,
+                255
+            ],
+            "hex": "#0070FF",
+            "desc": [
+                "apparel",
+                "wearing",
+                "apparel",
+                "dress",
+                "clothes"
+            ]
+        },
+        {
+            "rgb": [
+                51,
+                0,
+                255
+            ],
+            "hex": "#3300FF",
+            "desc": [
+                "pole"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                194,
+                255
+            ],
+            "hex": "#00C2FF",
+            "desc": [
+                "land",
+                "ground",
+                "soil"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                122,
+                255
+            ],
+            "hex": "#007AFF",
+            "desc": [
+                "bannister",
+                "banister",
+                "balustrade",
+                "balusters",
+                "handrail"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                163
+            ],
+            "hex": "#00FFA3",
+            "desc": [
+                "escalator",
+                "moving",
+                "staircase",
+                "moving",
+                "stairway"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                153,
+                0
+            ],
+            "hex": "#FF9900",
+            "desc": [
+                "ottoman",
+                "pouf",
+                "pouffe",
+                "puff",
+                "hassock"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                10
+            ],
+            "hex": "#00FF0A",
+            "desc": [
+                "bottle"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                112,
+                0
+            ],
+            "hex": "#FF7000",
+            "desc": [
+                "buffet",
+                "counter",
+                "sideboard"
+            ]
+        },
+        {
+            "rgb": [
+                143,
+                255,
+                0
+            ],
+            "hex": "#8FFF00",
+            "desc": [
+                "poster",
+                "posting",
+                "placard",
+                "notice",
+                "bill",
+                "card"
+            ]
+        },
+        {
+            "rgb": [
+                82,
+                0,
+                255
+            ],
+            "hex": "#5200FF",
+            "desc": [
+                "stage"
+            ]
+        },
+        {
+            "rgb": [
+                163,
+                255,
+                0
+            ],
+            "hex": "#A3FF00",
+            "desc": [
+                "van"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                235,
+                0
+            ],
+            "hex": "#FFEB00",
+            "desc": [
+                "ship"
+            ]
+        },
+        {
+            "rgb": [
+                8,
+                184,
+                170
+            ],
+            "hex": "#08B8AA",
+            "desc": [
+                "fountain"
+            ]
+        },
+        {
+            "rgb": [
+                133,
+                0,
+                255
+            ],
+            "hex": "#8500FF",
+            "desc": [
+                "conveyer",
+                "belt",
+                "conveyor",
+                "belt",
+                "conveyer",
+                "conveyor",
+                "transporter"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                92
+            ],
+            "hex": "#00FF5C",
+            "desc": [
+                "canopy"
+            ]
+        },
+        {
+            "rgb": [
+                184,
+                0,
+                255
+            ],
+            "hex": "#B800FF",
+            "desc": [
+                "washer",
+                "automatic",
+                "washer",
+                "washing",
+                "machine"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                31
+            ],
+            "hex": "#FF001F",
+            "desc": [
+                "plaything",
+                "toy"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                184,
+                255
+            ],
+            "hex": "#00B8FF",
+            "desc": [
+                "swimming",
+                "pool",
+                "swimming",
+                "bath",
+                "natatorium"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                214,
+                255
+            ],
+            "hex": "#00D6FF",
+            "desc": [
+                "stool"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                112
+            ],
+            "hex": "#FF0070",
+            "desc": [
+                "barrel",
+                "cask"
+            ]
+        },
+        {
+            "rgb": [
+                92,
+                255,
+                0
+            ],
+            "hex": "#5CFF00",
+            "desc": [
+                "basket",
+                "handbasket"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                224,
+                255
+            ],
+            "hex": "#00E0FF",
+            "desc": [
+                "waterfall",
+                "falls"
+            ]
+        },
+        {
+            "rgb": [
+                112,
+                224,
+                255
+            ],
+            "hex": "#70E0FF",
+            "desc": [
+                "tent",
+                "collapsible",
+                "shelter"
+            ]
+        },
+        {
+            "rgb": [
+                70,
+                184,
+                160
+            ],
+            "hex": "#46B8A0",
+            "desc": [
+                "bag"
+            ]
+        },
+        {
+            "rgb": [
+                163,
+                0,
+                255
+            ],
+            "hex": "#A300FF",
+            "desc": [
+                "minibike",
+                "motorbike"
+            ]
+        },
+        {
+            "rgb": [
+                153,
+                0,
+                255
+            ],
+            "hex": "#9900FF",
+            "desc": [
+                "cradle"
+            ]
+        },
+        {
+            "rgb": [
+                71,
+                255,
+                0
+            ],
+            "hex": "#47FF00",
+            "desc": [
+                "oven"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                163
+            ],
+            "hex": "#FF00A3",
+            "desc": [
+                "ball"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                204,
+                0
+            ],
+            "hex": "#FFCC00",
+            "desc": [
+                "food",
+                "solid",
+                "food"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                143
+            ],
+            "hex": "#FF008F",
+            "desc": [
+                "step",
+                "stair"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                235
+            ],
+            "hex": "#00FFEB",
+            "desc": [
+                "tank",
+                "storage",
+                "tank"
+            ]
+        },
+        {
+            "rgb": [
+                133,
+                255,
+                0
+            ],
+            "hex": "#85FF00",
+            "desc": [
+                "trade",
+                "name",
+                "brand",
+                "name",
+                "brand",
+                "marque"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                235
+            ],
+            "hex": "#FF00EB",
+            "desc": [
+                "microwave",
+                "microwave",
+                "oven"
+            ]
+        },
+        {
+            "rgb": [
+                245,
+                0,
+                255
+            ],
+            "hex": "#F500FF",
+            "desc": [
+                "pot",
+                "flowerpot"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                0,
+                122
+            ],
+            "hex": "#FF007A",
+            "desc": [
+                "animal",
+                "animate",
+                "being",
+                "beast",
+                "brute",
+                "creature",
+                "fauna"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                245,
+                0
+            ],
+            "hex": "#FFF500",
+            "desc": [
+                "bicycle",
+                "bike",
+                "wheel",
+                "cycle"
+            ]
+        },
+        {
+            "rgb": [
+                10,
+                190,
+                212
+            ],
+            "hex": "#0ABED4",
+            "desc": [
+                "lake"
+            ]
+        },
+        {
+            "rgb": [
+                214,
+                255,
+                0
+            ],
+            "hex": "#D6FF00",
+            "desc": [
+                "dishwasher",
+                "dish",
+                "washer",
+                "dishwashing",
+                "machine"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                204,
+                255
+            ],
+            "hex": "#00CCFF",
+            "desc": [
+                "screen",
+                "silver",
+                "screen",
+                "projection",
+                "screen"
+            ]
+        },
+        {
+            "rgb": [
+                20,
+                0,
+                255
+            ],
+            "hex": "#1400FF",
+            "desc": [
+                "blanket",
+                "cover"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                255,
+                0
+            ],
+            "hex": "#FFFF00",
+            "desc": [
+                "sculpture"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                153,
+                255
+            ],
+            "hex": "#0099FF",
+            "desc": [
+                "hood",
+                "exhaust",
+                "hood"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                41,
+                255
+            ],
+            "hex": "#0029FF",
+            "desc": [
+                "sconce"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                204
+            ],
+            "hex": "#00FFCC",
+            "desc": [
+                "vase"
+            ]
+        },
+        {
+            "rgb": [
+                41,
+                0,
+                255
+            ],
+            "hex": "#2900FF",
+            "desc": [
+                "traffic",
+                "light",
+                "traffic",
+                "signal",
+                "stoplight"
+            ]
+        },
+        {
+            "rgb": [
+                41,
+                255,
+                0
+            ],
+            "hex": "#29FF00",
+            "desc": [
+                "tray"
+            ]
+        },
+        {
+            "rgb": [
+                173,
+                0,
+                255
+            ],
+            "hex": "#AD00FF",
+            "desc": [
+                "ashcan",
+                "trash",
+                "can",
+                "garbage",
+                "can",
+                "wastebin",
+                "ash",
+                "bin",
+                "ash-bin",
+                "ashbin",
+                "dustbin",
+                "trash",
+                "barrel",
+                "trash",
+                "bin"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                245,
+                255
+            ],
+            "hex": "#00F5FF",
+            "desc": [
+                "fan"
+            ]
+        },
+        {
+            "rgb": [
+                71,
+                0,
+                255
+            ],
+            "hex": "#4700FF",
+            "desc": [
+                "pier",
+                "wharf",
+                "wharfage",
+                "dock"
+            ]
+        },
+        {
+            "rgb": [
+                122,
+                0,
+                255
+            ],
+            "hex": "#7A00FF",
+            "desc": [
+                "crt",
+                "screen"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                255,
+                184
+            ],
+            "hex": "#00FFB8",
+            "desc": [
+                "plate"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                92,
+                255
+            ],
+            "hex": "#005CFF",
+            "desc": [
+                "monitor",
+                "monitoring",
+                "device"
+            ]
+        },
+        {
+            "rgb": [
+                184,
+                255,
+                0
+            ],
+            "hex": "#B8FF00",
+            "desc": [
+                "bulletin",
+                "board",
+                "notice",
+                "board"
+            ]
+        },
+        {
+            "rgb": [
+                0,
+                133,
+                255
+            ],
+            "hex": "#0085FF",
+            "desc": [
+                "shower"
+            ]
+        },
+        {
+            "rgb": [
+                255,
+                214,
+                0
+            ],
+            "hex": "#FFD600",
+            "desc": [
+                "radiator"
+            ]
+        },
+        {
+            "rgb": [
+                25,
+                194,
+                194
+            ],
+            "hex": "#19C2C2",
+            "desc": [
+                "glass",
+                "drinking",
+                "glass"
+            ]
+        },
+        {
+            "rgb": [
+                102,
+                255,
+                0
+            ],
+            "hex": "#66FF00",
+            "desc": [
+                "clock"
+            ]
+        },
+        {
+            "rgb": [
+                92,
+                0,
+                255
+            ],
+            "hex": "#5C00FF",
+            "desc": [
+                "flag"
+            ]
+        }
+    ]
+}

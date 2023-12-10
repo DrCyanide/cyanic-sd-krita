@@ -76,7 +76,6 @@ class ModelsWidget(QWidget):
         #     # The model might be deleted?
         #     self.settings_controller.set('defaults.model', server_default_model)
         # # Send the changed model to settings. It'll get saved when the generate button is clicked
-        # self.model_box.currentTextChanged.connect(lambda: self.settings_controller.set('defaults.model', self.model_box.currentText()))
         self.model_box.currentTextChanged.connect(lambda: self._update_variables('model', self.model_box.currentText()))
         self.model_box.setToolTip('SD Model')
 
