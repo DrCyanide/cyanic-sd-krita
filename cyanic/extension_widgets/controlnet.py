@@ -357,15 +357,18 @@ class ControlNetUnit(QWidget):
         self.preprocessor_select.addItems(self.preprocessor_list)
         self.model_select.addItems(self.model_list)
 
-        if len(self.preprocessor_list) > 1 and self.preprocessor_list[0].lower() == 'none':
-            self.preprocessor_select.setCurrentIndex(1)
-        else:
-            self.preprocessor_select.setCurrentIndex(0)
+        # if len(self.preprocessor_list) > 1 and self.preprocessor_list[0].lower() == 'none':
+        #     self.preprocessor_select.setCurrentIndex(1)
+        # else:
+        #     self.preprocessor_select.setCurrentIndex(0)
         
-        if len(self.model_list) > 1 and self.model_list[0].lower() == 'none':
-            self.model_select.setCurrentIndex(1)
-        else:
-            self.model_select.setCurrentIndex(0)
+        # if len(self.model_list) > 1 and self.model_list[0].lower() == 'none':
+        #     self.model_select.setCurrentIndex(1)
+        # else:
+        #     self.model_select.setCurrentIndex(0)
+
+        self.preprocessor_select.setCurrentText(self.cnapi.control_types[control_type]['default_option'])
+        self.model_select.setCurrentText(self.cnapi.control_types[control_type]['default_model'])
 
     def update_model(self, model_name:str):
         self.model = model_name

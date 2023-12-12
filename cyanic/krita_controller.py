@@ -322,6 +322,8 @@ class KritaController():
             self.create_new_doc()
         if type(uuid) is str:
             uuid = QUuid(uuid)
+        else:
+            uuid = self.get_active_layer_uuid()
         return self.doc.nodeByUniqueID(uuid)
     
     def set_layer_uuid_as_active(self, uuid):
