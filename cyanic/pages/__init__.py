@@ -5,3 +5,4 @@ from .img2img import Img2ImgPage
 from .inpaint import InpaintPage
 from .upscale import UpscalePage
 from .rembg import RemBGPage
+from .seg_map import SegmentationMapPage

@@ -32,6 +32,7 @@ class CyanicDocker(DockWidget):
             {'name': 'Inpaint', 'content': self.show_inpaint},
             {'name': 'Upscale', 'content': self.show_upscale},
             {'name': 'Remove Background', 'content': self.show_rembg},
+            # {'name': 'Segmentation Map', 'content': self.show_segmap}, # TODO
         ]
         for page in self.pages:
             self.page_combobox.addItem(page['name'])
@@ -86,6 +87,9 @@ class CyanicDocker(DockWidget):
 
     def show_rembg(self):
         self.content_area.setWidget(RemBGPage(self.settings_controller, self.api))
+
+    def show_segmap(self):
+        self.content_area.setWidget(SegmentationMapPage(self.settings_controller))
 
     def showOther(self, text):
         contentWidget = QWidget()

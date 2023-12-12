@@ -58,6 +58,8 @@ class GenerateWidget(QWidget):
         self.progress_bar.setHidden(False)
         self.update()
 
+        processing_instructions = {} # Used to store instructions that should be executed after the image is generated
+
         x = self.size_dict["x"]
         y = self.size_dict["y"]
         w = self.size_dict["w"]
@@ -76,11 +78,27 @@ class GenerateWidget(QWidget):
             "height": h,
         }
 
+        min_size = self.settings_controller.get('defaults.min_size')
+        if data['width'] < min_size or data['height'] < min_size:
+            # Need to scale the results down afterwards
+            processing_instructions['resize'] = {
+                'width': data['width'],
+                'height': data['height']
+            }
+            # Tell Stable Diffusion to generate at min size
+            if data['width'] < data['height']:
+                ratio = data['height'] / data['width']
+                data['height'] = int( ratio * min_size )
+                data['width'] = min_size
+            else:
+                ratio = data['width'] / data['height']
+                data['width'] = int( ratio * min_size )
+                data['height'] = min_size
+
         # Whether or not to save the images on the server
         if self.settings_controller.get('server.save_imgs'):
             data['save_images'] = True
 
-        processing_instructions = {}
         for widget in self.list_of_widgets:
             data.update(widget.get_generation_data())
             if 'CYANIC' in data.keys(): # Special instructions for processing results are passed through with this tag.
@@ -98,7 +116,7 @@ class GenerateWidget(QWidget):
                 self.kc.create_new_doc()
             self.kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return(x, y, w, h, processing_instructions))
             self.progress_timer = QTimer()
-            self.progress_timer.timeout.connect(lambda: self.progress_check(x,y,w,h))
+            self.progress_timer.timeout.connect(lambda: self.progress_check(x, y, w, h, processing_instructions))
             # Set the refresh rate
             if self.settings_controller.has_key('previews.refresh_seconds'):
                 self.progress_timer.start(int(1000 * self.settings_controller.get('previews.refresh_seconds')))
@@ -111,7 +129,7 @@ class GenerateWidget(QWidget):
             self.is_generating = False
             raise Exception('Cyanic SD - Error getting %s: %s' % (self.mode, e))
 
-    def progress_check(self, x, y, w, h):
+    def progress_check(self, x, y, w, h, processing_instructions={}):
         try:
             results = self.api.get_progress()
             skipped_or_interrupted = results['state'] and (results['state']['skipped'] or results['state']['interrupted'])
@@ -129,6 +147,9 @@ class GenerateWidget(QWidget):
             # Show the preview
             if self.settings_controller.has_key('previews.enabled') and self.settings_controller.get('previews.enabled'):
                 if results['current_image'] is not None and len(results['current_image']) > 0:
+                    if 'resize' in processing_instructions.keys():
+                        w = processing_instructions['resize']['width']
+                        h = processing_instructions['resize']['height']
                     self.kc.update_preview_layer(results['current_image'], x, y, w, h)
         except Exception as e:
             # Kill the progress check

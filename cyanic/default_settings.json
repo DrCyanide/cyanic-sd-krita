@@ -16,7 +16,8 @@
         "cfg_scale": 7,
         "denoise_strength": 0.7,
         "color_correction": true,
-        "match_colors": false
+        "match_colors": false,
+        "min_size": 512
     },
     "prompts": {
         "share_prompts": true,
