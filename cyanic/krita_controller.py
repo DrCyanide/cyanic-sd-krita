@@ -322,13 +322,29 @@ class KritaController():
             self.create_new_doc()
         if type(uuid) is str:
             uuid = QUuid(uuid)
+        if self.version_gte('5.2'):
+            return self.doc.nodeByUniqueID(uuid) # This is a 5.2 call, didn't exist in 5.1
         else:
-            uuid = self.get_active_layer_uuid()
-        return self.doc.nodeByUniqueID(uuid)
+            # iterate over all nodes
+            result = self.iterate_node_by_uuid(self.doc.rootNode(), uuid)
+            return result
+                
+    def iterate_node_by_uuid(self, start_node, uuid):
+        if start_node.uniqueId() == uuid:
+            return start_node
+        for child in start_node.childNodes():
+            result = self.iterate_node_by_uuid(child, uuid)
+            if result is not None:
+                return result
+
     
     def set_layer_uuid_as_active(self, uuid):
         node = self.get_layer_from_uuid(uuid)
-        self.doc.setActiveNode(node)
+        try:
+            self.doc.setActiveNode(node)
+        except:
+            # 5.1.5 was having issues, because node was type QObject and not Node
+            pass
 
     def get_selected_layer_img(self):
         self.doc = Krita.instance().activeDocument()
