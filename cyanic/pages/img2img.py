@@ -49,6 +49,9 @@ class Img2ImgPage(QWidget):
         if not self.settings_controller.get('hide_ui.extensions'):
             self.layout().addWidget(extension_collapsed)
 
+        self.interrogate_widget = InterrogateWidget(self.settings_controller, self.api, self.prompt_widget, self.img_in, "deepdanbooru", self.size_dict)
+        self.layout().addWidget(self.interrogate_widget)
+        
         self.generate_widget = GenerateWidget(self.settings_controller, self.api, [self.img_in, self.color_correction, self.denoise_widget, self.model_widget, self.prompt_widget, self.batch_widget, self.cfg_widget, self.seed_widget, self.extension_widget], 'img2img', self.size_dict)
         self.layout().addWidget(self.generate_widget)
 

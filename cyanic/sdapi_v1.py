@@ -470,6 +470,11 @@ class SDAPI():
         # No 'info' section to parse
         self.log_request_and_response(data, results)
         return results
+        
+    def interrogate(self, data):
+        results = self.post("/sdapi/v1/interrogate", data)
+        self.log_request_and_response(data, results)
+        return results
 
     # ===========================
     # Debugging fun!
