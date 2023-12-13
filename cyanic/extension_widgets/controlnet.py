@@ -5,6 +5,7 @@ from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..krita_controller import KritaController
 from ..widgets import ImageInWidget, CollapsibleWidget
+from ..widgets.mask import MaskWidget # I don't know why it needs to be special like this... 
 
 class ControlNetExtension(QWidget):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
@@ -76,6 +77,7 @@ class ControlNetUnit(QWidget):
             'end': 100,
         }
         self.size_dict = {"x":0,"y":0,"w":0,"h":0}
+        self.debug = False
 
         # The available preprocessor/models, according to what's currently selected
         self.preprocessor_list = self.cnapi.module_list
@@ -84,8 +86,17 @@ class ControlNetUnit(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
 
+        self.use_mask = QCheckBox('Use Mask')
+        self.use_mask.toggled.connect(lambda: self.update_img_in(use_mask=self.use_mask.isChecked()))
+        self.layout().addWidget(self.use_mask)
+
         self.img_in = ImageInWidget(self.settings_controller, self.api, 'input_image', self.size_dict)
         self.layout().addWidget(self.img_in)
+        self.img_in.setVisible(not self.use_mask.isChecked())
+
+        self.mask_in = MaskWidget(self.settings_controller, self.api, self.size_dict)
+        self.layout().addWidget(self.mask_in)
+        self.mask_in.setVisible(self.use_mask.isChecked())
 
         check_row = QWidget()
         check_row.setLayout(QHBoxLayout())
@@ -227,14 +238,20 @@ class ControlNetUnit(QWidget):
         if not self.settings_controller.get('hide_ui.controlnet_fine_settings'):
             self.layout().addWidget(fine_collapse)
 
-        # self.debug_text = QPlainTextEdit()
-        # self.debug_text.setPlaceholderText('Debugging text')
-        # self.layout().addWidget(self.debug_text)
+        if self.debug:
+            self.debug_text = QPlainTextEdit()
+            self.debug_text.setPlaceholderText('Debugging text')
+            self.layout().addWidget(self.debug_text)
 
     def size_change(self):
         # Used to fix sizes for CollapsibleWidgets
         if 'size_change' in dir(self.parent()):
             self.parent().size_change()
+
+    def update_img_in(self, use_mask=False):
+        # Toggle between using just self.img_in or using self.mask_in
+        self.img_in.setVisible(not use_mask)
+        self.mask_in.setVisible(use_mask)
 
     def _setup_row(self, label:str, min, max, value, variable_name:str, step=1):
         row = QWidget()
@@ -464,8 +481,22 @@ class ControlNetUnit(QWidget):
             'control_mode': self.control_mode,
             'pixel_perfect': self.pixel_perfect,
         }
-        # self.debug_text.setPlainText('%s\n%s' % (self.debug_text.toPlainText(), data))
-        data.update(self.img_in.get_generation_data()) # Combines the image data with the rest of the data 
+        
+        if self.use_mask.isChecked():
+            mask_data = self.mask_in.get_generation_data()
+            # data['input_image'] = mask_data['inpaint_img']
+            # data['mask'] = mask_data['mask_img']
+            # https://github.com/Mikubill/sd-webui-controlnet/issues/2310
+            data['enabled'] = True
+            data['image'] = {
+                'image': mask_data['inpaint_img'],
+                'mask': mask_data['mask_img']
+            }
+        else:
+            data.update(self.img_in.get_generation_data()) # Combines the image data with the rest of the data
+
+        if self.debug:
+            self.debug_text.setPlainText('%s' % (data))
         return data
 
 class ControlNetAPI():

@@ -423,7 +423,9 @@ class KritaController():
         mask_img = self.projection_to_qimage(mask_ba, x, y, width, height) # QImage
         mask_img_bw = mask_img.createAlphaMask(Qt.ImageConversionFlag.MonoOnly) # White is what the transparent was
         mask_img_bw.invertPixels() # Black is now what the transparent was
-        
+        # if mask_img_bw.isGrayscale():
+        mask_img_bw = mask_img_bw.convertToFormat(QImage.Format_RGBA8888) # ControlNet masks didn't like the monochrome
+
         mask_layer.setVisible(False)
         self.doc.refreshProjection() # Without this, the canvas doesn't refresh, and the mask is still on top
         image = self.doc.projection(x, y, width, height)

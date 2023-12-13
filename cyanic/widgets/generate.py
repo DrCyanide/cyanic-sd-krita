@@ -25,7 +25,7 @@ class GenerateWidget(QWidget):
         self.is_generating = False
         self.abort = False
         self.finished = False
-        self.debug = False
+        self.debug = True
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setMinimum(0)
@@ -197,12 +197,12 @@ class GenerateWidget(QWidget):
             else:
                 kc.results_to_layers(self.results, x, y, w, h)
 
-            if self.debug:
-                temp_results = self.results
-                if 'images' in temp_results:
-                    for i in range(len(temp_results['images'])):
-                        temp_results['images'][i] = '...'
-                self.debug_data.setPlainText('%s' % temp_results)
+            # if self.debug:
+            #     temp_results = self.results
+            #     if 'images' in temp_results:
+            #         for i in range(len(temp_results['images'])):
+            #             temp_results['images'][i] = '...'
+            #     self.debug_data.setPlainText('%s' % temp_results)
         else:
             if self.debug:
                 self.debug_data.setPlainText('%s\nThreadable Return found no results' % self.debug_data.toPlainText())
