@@ -11,4 +11,5 @@ from .color_correction import ColorCorrectionWidget
 from .batch import BatchWidget
 from .hires_fix import HiResFixWidget
 from .cfg import CFGWidget
+from .interrogate_model import InterrogateModelWidget
 from .interrogate import InterrogateWidget

@@ -3,6 +3,7 @@ from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..widgets import *
 
+
 class SimplifyPage(QWidget):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
         super().__init__()
@@ -34,6 +35,8 @@ class SimplifyPage(QWidget):
             'inpaint_auto_update': self.settings_controller.get('hide_ui.inpaint_auto_update'),
             'inpaint_below_mask': self.settings_controller.get('hide_ui.inpaint_below_mask'),
             'inpaint_hide_mask': self.settings_controller.get('hide_ui.inpaint_hide_mask'),
+            "interrogate_img2img": self.settings_controller.get("hide_ui.interrogate_img2img"),
+            "interrogate_model": self.settings_controller.get("hide_ui.interrogate_model"),
         }
         self.server_supported = {
             'controlnet': self.api.script_installed('controlnet'),
@@ -170,7 +173,6 @@ class SimplifyPage(QWidget):
         inpaint_settings.layout().addWidget(hide_mask_cb)
 
         self.layout().addWidget(inpaint_settings)
-        
 
         # Batch
         batch_settings = QGroupBox('Batch')
@@ -247,8 +249,25 @@ class SimplifyPage(QWidget):
             extension_settings.layout().addWidget(adetailer_settings)
         
         self.layout().addWidget(extension_settings)
-        
-        save_btn = QPushButton('Save')
+
+        # Interrogate
+        interrogate_settings = QGroupBox("Interrogate")
+        interrogate_settings.setLayout(QVBoxLayout())
+
+        hide_interrogate_model = self._setup_checkbox(
+            "Hide Interrogate Model", "interrogate_model"
+        )
+
+        interrogate_settings.layout().addWidget(hide_interrogate_model)
+
+        hide_interrogate = self._setup_checkbox(
+            "Hide Interrogate in Img2Img", "interrogate_img2img"
+        )
+        interrogate_settings.layout().addWidget(hide_interrogate)
+
+        self.layout().addWidget(interrogate_settings)
+
+        save_btn = QPushButton("Save")
         save_btn.clicked.connect(lambda: self.save())
         self.layout().addWidget(save_btn)
 
