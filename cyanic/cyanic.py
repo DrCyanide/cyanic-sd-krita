@@ -30,6 +30,7 @@ class CyanicDocker(DockWidget):
             {'name': 'Txt2Img', 'content': self.show_txt2img},
             {'name': 'Img2Img', 'content': self.show_img2img},
             {'name': 'Inpaint', 'content': self.show_inpaint},
+            {'name': 'Interrogate', 'content': self.show_interrogate},
             {'name': 'Upscale', 'content': self.show_upscale},
             {'name': 'Remove Background', 'content': self.show_rembg},
             # {'name': 'Segmentation Map', 'content': self.show_segmap}, # TODO
@@ -81,6 +82,9 @@ class CyanicDocker(DockWidget):
 
     def show_inpaint(self):
         self.content_area.setWidget(InpaintPage(self.settings_controller, self.api))
+
+    def show_interrogate(self):
+        self.content_area.setWidget(InterrogatePage(self.settings_controller, self.api))
 
     def show_upscale(self):
         self.content_area.setWidget(UpscalePage(self.settings_controller, self.api))

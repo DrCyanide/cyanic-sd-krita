@@ -6,3 +6,4 @@ from .inpaint import InpaintPage
 from .upscale import UpscalePage
 from .rembg import RemBGPage
 from .seg_map import SegmentationMapPage
+from .interrogate import InterrogatePage
