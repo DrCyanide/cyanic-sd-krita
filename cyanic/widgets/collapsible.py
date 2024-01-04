@@ -23,16 +23,16 @@ class CollapsibleWidget(QWidget):
         self.toggle_label.clicked.connect(self.toggle)
         self.layout().addWidget(self.toggle_label)
 
-        self.animator = QPropertyAnimation(self.child, b'maximumHeight')
-        self.animator.setStartValue(0)
-        self.animator.setEasingCurve(QEasingCurve.InOutQuad)
-        self.animator.setDuration(300)
-        self.animator.setEndValue(self.child.geometry().height() + 10)
-
-        if not self.show_child:
-            self.child.setMaximumHeight(0)
+        # self.animator = QPropertyAnimation(self.child, b'maximumHeight')
+        # self.animator.setStartValue(0)
+        # self.animator.setEasingCurve(QEasingCurve.InOutQuad)
+        # self.animator.setDuration(300)
+        # self.animator.setEndValue(self.child.geometry().height() + 10)
+        # if not self.show_child:
+        #     self.child.setMaximumHeight(0)
         
         self.layout().addWidget(child)
+        self.child.setHidden(not self.show_child)
 
         # indented = QWidget()
         # indented.setLayout(QVBoxLayout())
@@ -41,23 +41,24 @@ class CollapsibleWidget(QWidget):
 
         # self.layout().addWidget(indented)
     
-    def size_change(self):
-        # The child has expanded/contracted something, and needs this to update
-        self.animator.setEndValue(self.child.geometry().height() + 10)
-        # Toggle twice to fix the size
-        self.toggle()
-        self.toggle()
+    # def size_change(self):
+    #     # The child has expanded/contracted something, and needs this to update
+    #     self.animator.setEndValue(self.child.geometry().height() + 10)
+    #     # Toggle twice to fix the size
+    #     self.toggle()
+    #     self.toggle()
 
-        if 'size_change' in dir(self.parent()):
-            self.parent().size_change()
+    #     if 'size_change' in dir(self.parent()):
+    #         self.parent().size_change()
 
     def toggle(self):
         self.show_child = self.toggle_label.isChecked()
         self.toggle_label.setArrowType(Qt.DownArrow if self.show_child else Qt.RightArrow)
-        if self.show_child:
-            self.animator.setDirection(QAbstractAnimation.Forward)
-            self.animator.start()
-        else:
-            self.animator.setDirection(QAbstractAnimation.Backward)
-            self.animator.start()
+        # if self.show_child:
+        #     self.animator.setDirection(QAbstractAnimation.Forward)
+        #     self.animator.start()
+        # else:
+        #     self.animator.setDirection(QAbstractAnimation.Backward)
+        #     self.animator.start()
+        self.child.setHidden(not self.show_child)
         self.update()

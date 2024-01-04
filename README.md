@@ -7,6 +7,8 @@ A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
 # Updates
+**Jan 4 2024** - Fixed UI bug with collapsible categories (shouldn't cause squishing/overlapping now)
+
 **Dec 10 2023** - Min Size added (assists with smaller details)
 
 **Nov 15 2023** - CFG Scale support added. Refiner support for A1111 added.

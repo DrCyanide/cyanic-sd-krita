@@ -277,19 +277,20 @@ class SDAPI():
             return [], 'None'
 
     def script_installed(self, script_name):
-        for key in self.scripts.keys():
-            if script_name in self.scripts[key]:
-                return True
+        if self.connected and self.scripts:
+            for key in self.scripts.keys():
+                if script_name in self.scripts[key]:
+                    return True
         return False
     
     def get_style_names(self):
-        if self.connected:
+        if self.connected and self.styles:
             return list(map(lambda x: x['name'], self.styles))
         else:
             return []
     
     def get_style_prompts(self, names:list):
-        if self.connected:
+        if self.connected and self.styles:
             prompts_raw = list(map(lambda x: x['prompt'] if x['name'] in names else '', self.styles))
             prompts = ', '.join(list(filter(lambda x: len(x) > 0, prompts_raw)))
             negative_prompts_raw = list(map(lambda x: x['negative_prompt'] if x['name'] in names else '', self.styles))
@@ -299,19 +300,19 @@ class SDAPI():
             return '', ''
 
     def get_lora_names(self):
-        if self.connected:
+        if self.connected and self.loras:
             return list(map(lambda x: x['name'], self.loras))
         else:
             return []
 
     def get_embedding_names(self):
-        if self.connected:
+        if self.connected and self.embeddings:
             if 'loaded' in self.embeddings:
                 return list(self.embeddings['loaded'].keys())
         return []
 
     def get_hypernetwork_names(self):
-        if self.connected:
+        if self.connected and self.hypernetworks:
             return list(map(lambda x: x['name'], self.hypernetworks))
         else:
             return []
