@@ -153,14 +153,20 @@ class SDAPI():
 
     def get_samplers(self):
         self.samplers = self.get("/sdapi/v1/samplers")
+        if self.samplers is None:
+            self.samplers = []
         return self.samplers
     
     def get_upscalers(self):
         self.upscalers = self.get("/sdapi/v1/upscalers")
+        if self.upscalers is None:
+            self.upscalers = []
         return self.upscalers
     
     def get_models(self):
         self.models = self.get("/sdapi/v1/sd-models")
+        if self.models is None:
+            self.models = []
         return self.models
     
     def get_model_names(self):
@@ -234,32 +240,32 @@ class SDAPI():
     # ===========================
 
     def get_samplers_and_default(self):
-        if self.connected:
+        if self.connected and self.samplers:
             return list(map(lambda x: x['name'], self.samplers)), self.defaults['sampler']
         else:
             return [], 'None'
     
     def get_models_and_default(self):
-        if self.connected:
+        if self.connected and self.models:
             return list(map(lambda x: x['title'], self.models)), self.defaults['model']
         else:
             return [], 'None'
     
     def get_vaes_and_default(self):
-        if self.connected:
+        if self.connected and self.vaes:
             return list(map(lambda x: x['model_name'], self.vaes)), self.defaults['vae']
         else:
             return [], 'None'
     
     def get_upscaler_and_default(self):
-        if self.connected:
+        if self.connected and self.upscalers:
             return list(map(lambda x: x['name'], self.upscalers)), self.defaults['upscaler']
         else:
             return [], 'None'
     
     def get_refiners_and_default(self):
         # No difference in options yet between refiners and models
-        if self.connected:
+        if self.connected and self.models:
             refiner_titles = list(map(lambda x: x['title'], self.models))
             if 'None' not in refiner_titles:
                 temp = ['None']
@@ -271,7 +277,7 @@ class SDAPI():
         
     
     def get_face_restorers_and_default(self):
-        if self.connected:
+        if self.connected and self.facerestorers:
             return list(map(lambda x: x['name'], self.facerestorers)), self.defaults['face_restorer']
         else:
             return [], 'None'
