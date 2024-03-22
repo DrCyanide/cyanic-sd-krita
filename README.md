@@ -1,6 +1,7 @@
 # Cyanic SD-Krita Plugin
 
 A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
+Note: Forge is not supported, due to the removal of many of the `/sdapi/v1` API endpoints that this plugin depends on.
 
 ![Img2Img Example](readme_imgs/img2img_example.png "Img2Img Example")
 
