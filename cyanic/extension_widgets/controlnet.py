@@ -530,7 +530,7 @@ class ControlNetAPI():
         return self.api.get('/controlnet/version')
     
     def get_models(self):
-        self.models = self.api.get('/controlnet/model_list?update=true')
+        self.models = self.api.get('/controlnet/model_list?update=true')['model_list']
     
     def get_modules(self):
         results = self.api.get('/controlnet/module_list?alias_names=true')
@@ -544,7 +544,16 @@ class ControlNetAPI():
         try:
             self.control_types = self.api.get('/controlnet/control_types')['control_types']
         except:
-            return []
+            # Treat everything as if it's part of 'All'
+            control_types = {
+                "All": {
+                    "module_list": self.module_list,
+                    "model_list": self.models,
+                    "default_option": "none",
+                    "default_model": "None"
+                }
+            }
+            self.control_types = control_types
 
     def get_settings(self):
         self.settings = self.api.get('/controlnet/settings')

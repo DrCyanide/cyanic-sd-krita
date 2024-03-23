@@ -1,14 +1,14 @@
 # Cyanic SD-Krita Plugin
 
-A Krita Plugin to work with the Automatic1111 WebUI and SD.Next WebUI
-
-Note: Forge is not supported, due to the removal of many of the `/sdapi/v1` API endpoints that this plugin depends on.
+A Krita Plugin to work with the [Automatic1111 WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui), [SD.Next WebUI](https://github.com/vladmandic/automatic), and [Forge WebUI](https://github.com/lllyasviel/stable-diffusion-webui-forge)
 
 ![Img2Img Example](readme_imgs/img2img_example.png "Img2Img Example")
 
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
 # Updates
+**Mar 23 2024** - Fixed some ControlNet compatibility bugs with Forge
+
 **Jan 4 2024** - Fixed UI bug with collapsible categories (shouldn't cause squishing/overlapping now)
 
 **Dec 10 2023** - Min Size added (assists with smaller details)
