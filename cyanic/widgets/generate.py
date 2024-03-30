@@ -95,6 +95,23 @@ class GenerateWidget(QWidget):
                 data['width'] = int( ratio * min_size )
                 data['height'] = min_size
 
+        max_size = self.settings_controller.get('defaults.max_size')
+        if (data['width'] > max_size or data['height'] > max_size) and self.settings_controller.get('defaults.enable_max_size'):
+            # Need to scale the results up afterwards
+            processing_instructions['resize'] = {
+                'width': data['width'],
+                'height': data['height']
+            }
+            # Tell Stable Diffusion to generate at max size
+            if data['width'] < data['height']:
+                ratio = data['width'] / data['height']
+                data['width'] = int( ratio * max_size )
+                data['height'] = max_size
+            else:
+                ratio = data['height'] / data['width']
+                data['height'] = int( ratio * max_size )
+                data['width'] = max_size
+
         # Whether or not to save the images on the server
         if self.settings_controller.get('server.save_imgs'):
             data['save_images'] = True

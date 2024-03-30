@@ -17,7 +17,9 @@
         "denoise_strength": 0.7,
         "color_correction": true,
         "match_colors": false,
-        "min_size": 512
+        "min_size": 512,
+        "enable_max_size": false,
+        "max_size": 2048
     },
     "prompts": {
         "share_prompts": true,
