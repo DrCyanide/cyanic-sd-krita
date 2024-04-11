@@ -76,6 +76,7 @@
         "hide_mask_on_gen": true
     },
     "soft_inpaint": {
+        "enabled": false,
         "schedule_bias": 1.0,
         "preservation_strength": 0.5,
         "transition_contrast_boost": 4,

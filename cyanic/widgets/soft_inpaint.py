@@ -50,12 +50,12 @@ class SoftInpaintWidget(QWidget):
                 'max': 8.0,
             }
         }
-        self.enabled = False
+        self.enabled = self.settings_controller.get('soft_inpaint.enabled')
         self.draw_ui()
 
     def draw_ui(self):
         soft_inpainting_enabled = QCheckBox('Soft Inpainting')
-        soft_inpainting_enabled.setChecked(False)
+        soft_inpainting_enabled.setChecked(self.enabled)
         soft_inpainting_enabled.toggled.connect(lambda: self.update_enabled(soft_inpainting_enabled.isChecked()))
 
         # Build the settings
@@ -102,6 +102,7 @@ class SoftInpaintWidget(QWidget):
 
     def update_enabled(self, enable):
         self.enabled = enable
+        self.settings_controller.set('soft_inpaint.enabled', enable)
 
     def update_row(self, label, variable_name, value):
         self.variables[variable_name] = value
