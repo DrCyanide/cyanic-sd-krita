@@ -4,6 +4,7 @@ from .seed import SeedWidget
 from .models import ModelsWidget
 from .generate import GenerateWidget
 from .image_in import ImageInWidget
+from .soft_inpaint import SoftInpaintWidget
 from .denoise import DenoiseWidget
 from .extensions import ExtensionWidget
 from .mask import MaskWidget

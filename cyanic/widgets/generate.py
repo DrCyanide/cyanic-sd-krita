@@ -117,7 +117,16 @@ class GenerateWidget(QWidget):
             data['save_images'] = True
 
         for widget in self.list_of_widgets:
-            data.update(widget.get_generation_data())
+            # data.update(widget.get_generation_data()) # Have to switch off of this because multiple widgets update 'alwayson_scripts'
+            widget_data = widget.get_generation_data()
+            for w_key, w_value in widget_data.items():
+                if w_key in data:
+                    # data[w_key] has a conflict. Go through w_value.items() and add each one
+                    for nested_key, nested_value in w_value.items():
+                        data[w_key][nested_key] = nested_value
+                else:
+                    data[w_key] = w_value
+
             if 'CYANIC' in data.keys(): # Special instructions for processing results are passed through with this tag.
                 processing_instructions.update(data.pop('CYANIC'))
             # if type(widget) is PromptWidget:

@@ -7,6 +7,8 @@ A Krita Plugin to work with the [Automatic1111 WebUI](https://github.com/AUTOMAT
 **Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
 
 # Updates
+**Apr 11 2024** - Added support for Soft Inpainting
+
 **Mar 30 2024** - Added a max size option in Settings, for working with a large canvas without over taxing Stable Diffusion
 
 **Mar 23 2024** - Fixed some ControlNet compatibility bugs with Forge

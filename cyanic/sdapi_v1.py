@@ -285,7 +285,8 @@ class SDAPI():
     def script_installed(self, script_name):
         if self.connected and self.scripts:
             for key in self.scripts.keys():
-                if script_name in self.scripts[key]:
+                # Ignore case when checking if the name appears. Could potentially have issues in the future with partial matches
+                if script_name.lower() in [k.lower() for k in self.scripts[key]]:
                     return True
         return False
     

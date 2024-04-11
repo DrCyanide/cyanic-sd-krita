@@ -35,6 +35,7 @@ class SimplifyPage(QWidget):
             'inpaint_auto_update': self.settings_controller.get('hide_ui.inpaint_auto_update'),
             'inpaint_below_mask': self.settings_controller.get('hide_ui.inpaint_below_mask'),
             'inpaint_hide_mask': self.settings_controller.get('hide_ui.inpaint_hide_mask'),
+            'soft_inpaint': self.settings_controller.get('hide_ui.soft_inpaint'),
             "interrogate_img2img": self.settings_controller.get("hide_ui.interrogate_img2img"),
             "interrogate_model": self.settings_controller.get("hide_ui.interrogate_model"),
         }
@@ -151,21 +152,21 @@ class SimplifyPage(QWidget):
 
         # TODO: add Mask Blur, Mask Mode, Masked Content, Inpaint Area
 
-        # Update Mask before Generating
+            # Update Mask before Generating
         auto_update_mask_cb = QCheckBox('Update mask before generating')
         auto_update_mask_cb.setToolTip('Will remember the last layer used as a mask and use the current state of that layer whenever the "Generate" button is clicked')
         auto_update_mask_cb.setChecked(self.variables['auto_update_mask'])
         auto_update_mask_cb.stateChanged.connect(lambda: self._update_variable('auto_update_mask', auto_update_mask_cb.isChecked()))
         inpaint_settings.layout().addWidget(auto_update_mask_cb)
 
-        # Add Results below Mask
+            # Add Results below Mask
         results_below_mask_cb = QCheckBox('Results below mask')
         results_below_mask_cb.setToolTip('Will insert the results as a new layer below the mask')
         results_below_mask_cb.setChecked(self.variables['results_below_mask'])
         results_below_mask_cb.stateChanged.connect(lambda: self._update_variable('results_below_mask', results_below_mask_cb.isChecked()))
         inpaint_settings.layout().addWidget(results_below_mask_cb)
 
-        # Hide mask on generation
+            # Hide mask on generation
         hide_mask_cb = QCheckBox('Hide mask when generating')
         hide_mask_cb.setToolTip('Turns off mask visibility so that you can see the results faster')
         hide_mask_cb.setChecked(self.variables['hide_mask_on_gen'])
@@ -173,6 +174,16 @@ class SimplifyPage(QWidget):
         inpaint_settings.layout().addWidget(hide_mask_cb)
 
         self.layout().addWidget(inpaint_settings)
+
+            # Soft Inpainting
+        hide_soft_inpainting = self._setup_checkbox('Hide Soft Inpainting', 'soft_inpaint')
+        inpaint_settings.layout().addWidget(hide_soft_inpainting)
+
+        soft_inpaint_settings = QGroupBox('Soft Inpaint Settings')
+        soft_inpaint_settings.setLayout(QVBoxLayout())
+        self.soft_inpaint = SoftInpaintWidget(self.settings_controller, settings_only=True)
+        soft_inpaint_settings.layout().addWidget(self.soft_inpaint)
+        inpaint_settings.layout().addWidget(soft_inpaint_settings)
 
         # Batch
         batch_settings = QGroupBox('Batch')
@@ -312,7 +323,7 @@ class SimplifyPage(QWidget):
         self.save_hidden()
 
         # Save default settings
-        widgets = [self.model_widget, self.hires_fix_widget, self.cfg_widget, self.batch_widget, self.seed_widget, self.color_correction, self.denoise_widget]
+        widgets = [self.model_widget, self.hires_fix_widget, self.cfg_widget, self.batch_widget, self.seed_widget, self.color_correction, self.soft_inpaint, self.denoise_widget]
         for widget in widgets:
             widget.save_settings()
         
