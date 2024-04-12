@@ -507,7 +507,7 @@ class SDAPI():
             my_string = base64.b64encode(input_file.read() )
         return my_string.decode('utf-8')
     
-    def read_json_file(self, filename='test.json'):
+    def read_json_file(self, filename='log.json'):
         data = {}
         with open(filename, 'r') as input_file:
             string_format = input_file.read()

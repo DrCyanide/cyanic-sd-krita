@@ -394,6 +394,15 @@ class KritaController():
         ba = self.doc.activeNode().projectionPixelData(x, y, width, height) # QByteArray
         return self.projection_to_qimage(ba, x, y, width, height)
 
+    def convert_qimage_to_grayscale_mask(self, image, width, height):
+        for pixel_x in range(0, width):
+            for pixel_y in range(0, height):
+                pixel = image.pixel(pixel_x, pixel_y)
+                alpha = qAlpha(pixel)
+                newPixel = qRgb(alpha, alpha, alpha)
+                image.setPixel(pixel_x, pixel_y, newPixel)
+        return image
+
     def get_mask_and_image(self, mode='canvas'):
         # mode: 'canvas', 'layer', 'selection'
         # I'm trying to find the best way to write these repetitive functions.
@@ -421,10 +430,13 @@ class KritaController():
 
         mask_ba = mask_layer.projectionPixelData(x, y, width, height) # QByteArray
         mask_img = self.projection_to_qimage(mask_ba, x, y, width, height) # QImage
-        mask_img_bw = mask_img.createAlphaMask(Qt.ImageConversionFlag.MonoOnly) # White is what the transparent was
-        mask_img_bw.invertPixels() # Black is now what the transparent was
-        # if mask_img_bw.isGrayscale():
-        mask_img_bw = mask_img_bw.convertToFormat(QImage.Format_RGBA8888) # ControlNet masks didn't like the monochrome
+        # mask_img_bw = mask_img.createAlphaMask(Qt.ImageConversionFlag.MonoOnly) # White is what the transparent was
+        # mask_img_bw.invertPixels() # Black is now what the transparent was
+        # # if mask_img_bw.isGrayscale():
+        # mask_img_bw = mask_img_bw.convertToFormat(QImage.Format_RGBA8888) # ControlNet masks didn't like the monochrome
+
+        mask_img_bw = self.convert_qimage_to_grayscale_mask(mask_img, width, height)
+
 
         mask_layer.setVisible(False)
         self.doc.refreshProjection() # Without this, the canvas doesn't refresh, and the mask is still on top
