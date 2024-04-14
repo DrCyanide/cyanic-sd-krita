@@ -30,25 +30,25 @@ class ModelsWidget(QWidget):
         # Model
         models, self.variables['model'] = self.api.get_models_and_default()
         settings_model = self.settings_controller.get('defaults.model')
-        if len(settings_model) > 0 and settings_model in models:
+        if settings_model is not None and len(settings_model) > 0 and settings_model in models:
             self.variables['model'] = settings_model
 
         # VAE
         vaes, self.variables['vae'] = self.api.get_vaes_and_default()
         settings_vae = self.settings_controller.get('defaults.vae')
-        if len(settings_vae) > 0 and settings_vae in vaes:
+        if settings_vae is not None and len(settings_vae) > 0 and settings_vae in vaes:
             self.variables['vae'] = settings_vae
 
         # Refiner
         refiners, self.variables['refiner'] = self.api.get_refiners_and_default() # Refiners are treated the same as models right now, but could change in the future
         settings_refiner = self.settings_controller.get('defaults.refiner')
-        if len(settings_refiner) > 0 and settings_refiner in refiners:
+        if settings_refiner is not None and len(settings_refiner) > 0 and settings_refiner in refiners:
             self.variables['refiner'] = settings_refiner
 
         # Sampler
         samplers, self.variables['sampler'] = self.api.get_samplers_and_default()
         settings_sampler = self.settings_controller.get('defaults.sampler')
-        if len(settings_sampler) > 0 and settings_sampler in samplers:
+        if settings_sampler is not None and len(settings_sampler) > 0 and settings_sampler in samplers:
             self.variables['sampler'] = settings_sampler
 
         # Steps
