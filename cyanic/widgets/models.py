@@ -22,33 +22,38 @@ class ModelsWidget(QWidget):
             'sampler': '',
             'sampling_steps': self.settings_controller.get('defaults.sampling_steps'),
         }
+        self.models = []
+        self.vaes = []
+        self.refiners = []
+        self.samplers = []
+
         self.init_variables()
 
         self.draw_ui()
     
     def init_variables(self):
         # Model
-        models, self.variables['model'] = self.api.get_models_and_default()
+        self.models, self.variables['model'] = self.api.get_models_and_default()
         settings_model = self.settings_controller.get('defaults.model')
-        if settings_model is not None and len(settings_model) > 0 and settings_model in models:
+        if settings_model is not None and len(settings_model) > 0 and settings_model in self.models:
             self.variables['model'] = settings_model
 
         # VAE
-        vaes, self.variables['vae'] = self.api.get_vaes_and_default()
+        self.vaes, self.variables['vae'] = self.api.get_vaes_and_default()
         settings_vae = self.settings_controller.get('defaults.vae')
-        if settings_vae is not None and len(settings_vae) > 0 and settings_vae in vaes:
+        if settings_vae is not None and len(settings_vae) > 0 and settings_vae in self.vaes:
             self.variables['vae'] = settings_vae
 
         # Refiner
-        refiners, self.variables['refiner'] = self.api.get_refiners_and_default() # Refiners are treated the same as models right now, but could change in the future
+        self.refiners, self.variables['refiner'] = self.api.get_refiners_and_default() # Refiners are treated the same as models right now, but could change in the future
         settings_refiner = self.settings_controller.get('defaults.refiner')
-        if settings_refiner is not None and len(settings_refiner) > 0 and settings_refiner in refiners:
+        if settings_refiner is not None and len(settings_refiner) > 0 and settings_refiner in self.refiners:
             self.variables['refiner'] = settings_refiner
 
         # Sampler
-        samplers, self.variables['sampler'] = self.api.get_samplers_and_default()
+        self.samplers, self.variables['sampler'] = self.api.get_samplers_and_default()
         settings_sampler = self.settings_controller.get('defaults.sampler')
-        if settings_sampler is not None and len(settings_sampler) > 0 and settings_sampler in samplers:
+        if settings_sampler is not None and len(settings_sampler) > 0 and settings_sampler in self.samplers:
             self.variables['sampler'] = settings_sampler
 
         # Steps
@@ -62,20 +67,15 @@ class ModelsWidget(QWidget):
 
         # Model Select
         self.model_box = QComboBox()
-        models, server_default_model = self.api.get_models_and_default()
-        self.model_box.addItems(models)
+        # models, server_default_model = self.api.get_models_and_default()
+        self.model_box.addItems(self.models)
         # self.model_box.setCurrentText(server_default_model)
         self.model_box.setCurrentText(self.variables['model'])
         self.model_box.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         self.model_box.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
         self.model_box.setMaxVisibleItems(10) # Suppose to limit the number of visible options
-        # settings_model = self.settings_controller.get('defaults.model')
-        # if len(settings_model) > 0 and settings_model in models:
-        #     self.model_box.setCurrentText(settings_model)
-        # else:
-        #     # The model might be deleted?
-        #     self.settings_controller.set('defaults.model', server_default_model)
-        # # Send the changed model to settings. It'll get saved when the generate button is clicked
+
+        # Send the changed model to settings. It'll get saved when the generate button is clicked
         self.model_box.currentTextChanged.connect(lambda: self._update_variables('model', self.model_box.currentText()))
         self.model_box.setToolTip('SD Model')
 
@@ -84,22 +84,22 @@ class ModelsWidget(QWidget):
 
         # VAE Select
         self.vae_box = QComboBox()
-        vaes, server_default_vae = self.api.get_vaes_and_default()
-        if not 'None' in vaes:
+        # vaes, server_default_vae = self.api.get_vaes_and_default()
+        if not 'None' in self.vaes:
             new_vaes = ['None']
-            for vae in vaes:
+            for vae in self.vaes:
                 new_vaes.append(vae)
-            vaes = new_vaes
-        self.vae_box.addItems(vaes)
-        self.vae_box.setCurrentText(server_default_vae)
+            self.vaes = new_vaes
+        self.vae_box.addItems(self.vaes)
+        self.vae_box.setCurrentText(self.variables['vae'])
         self.vae_box.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         self.vae_box.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
         self.vae_box.setMaxVisibleItems(10) # Suppose to limit the number of visible options
         settings_vae = self.settings_controller.get('defaults.vae')
-        if len(settings_vae) > 0 and settings_vae in vaes:
+        if len(settings_vae) > 0 and settings_vae in self.vaes:
             self.vae_box.setCurrentText(settings_vae)
         else:
-            self.settings_controller.set('defaults.vae', server_default_vae)
+            self.settings_controller.set('defaults.vae', self.variables['vae'])
         # Send the changed model to settings. It'll get saved when the generate button is clicked
         self.vae_box.currentTextChanged.connect(lambda: self._update_variables('vae', self.vae_box.currentText()))
         self.vae_box.setToolTip('VAE')
@@ -115,8 +115,8 @@ class ModelsWidget(QWidget):
 
         # Refiner select
         self.refiner_box = QComboBox()
-        refiners, server_default_refiner = self.api.get_models_and_default()
-        self.refiner_box.addItems(refiners)
+        # refiners, server_default_refiner = self.api.get_models_and_default()
+        self.refiner_box.addItems(self.refiners)
         self.refiner_box.setCurrentText(self.variables['refiner'])
         self.refiner_box.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         self.refiner_box.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
@@ -173,17 +173,17 @@ class ModelsWidget(QWidget):
         sampler_row.layout().setContentsMargins(0,0,0,0)
 
         self.sampler_box = QComboBox()
-        samplers, server_default_sampler = self.api.get_samplers_and_default()
-        self.sampler_box.addItems(samplers)
-        self.sampler_box.setCurrentText(server_default_sampler)
+        # samplers, server_default_sampler = self.api.get_samplers_and_default()
+        self.sampler_box.addItems(self.samplers)
+        self.sampler_box.setCurrentText(self.variables['sampler'])
         self.sampler_box.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         self.sampler_box.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
         self.sampler_box.setMaxVisibleItems(10) # Suppose to limit the number of visible options
         settings_sampler = self.settings_controller.get('defaults.sampler')
-        if len(settings_sampler) > 0 and settings_sampler in samplers:
-            self.sampler_box.setCurrentIndex(samplers.index(settings_sampler))
+        if len(settings_sampler) > 0 and settings_sampler in self.samplers:
+            self.sampler_box.setCurrentIndex(self.samplers.index(settings_sampler))
         else:
-            self.settings_controller.set('defaults.sampler', server_default_sampler)
+            self.settings_controller.set('defaults.sampler', self.variables['sampler'])
         # Send the changed sampler to the settings. It'll get saved when the generate button is clicked
         self.sampler_box.currentTextChanged.connect(lambda: self._update_variables('sampler', self.sampler_box.currentText()))
         self.sampler_box.setToolTip('Sampling method')

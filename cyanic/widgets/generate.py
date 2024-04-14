@@ -120,7 +120,7 @@ class GenerateWidget(QWidget):
             # data.update(widget.get_generation_data()) # Have to switch off of this because multiple widgets update 'alwayson_scripts'
             widget_data = widget.get_generation_data()
             for w_key, w_value in widget_data.items():
-                if w_key in data:
+                if w_key in data and type(w_value) == dict:
                     # data[w_key] has a conflict. Go through w_value.items() and add each one
                     for nested_key, nested_value in w_value.items():
                         data[w_key][nested_key] = nested_value
