@@ -155,6 +155,13 @@ class GenerateWidget(QWidget):
             self.is_generating = False
             raise Exception('Cyanic SD - Error getting %s: %s' % (self.mode, e))
 
+    def update_progress_bar(self, value):
+        # Moved to a separate function to allow switching tabs to not break and stop image generation
+        try:
+            self.progress_bar.setValue(value)
+        except Exception as e:
+            pass
+
     def progress_check(self, x, y, w, h, processing_instructions={}):
         try:
             results = self.api.get_progress()
@@ -163,13 +170,13 @@ class GenerateWidget(QWidget):
             if results is None or skipped_or_interrupted or self.abort or self.finished: # The operation has stopped
                 self.abort = False
                 self.finished = False
-                self.progress_bar.setValue(1)
+                self.update_progress_bar(1)
                 self.kc.delete_preview_layer()
                 self.progress_timer.stop()
                 self.is_generating = False
                 # raise Exception('Cyanic SD - Early progress end - Abort: %s Progress: %s' % (self.abort, results['progress']))
                 return
-            self.progress_bar.setValue(int(results['progress'] * 100))
+            self.update_progress_bar(int(results['progress'] * 100))
             # Show the preview
             if self.settings_controller.has_key('previews.enabled') and self.settings_controller.get('previews.enabled'):
                 if results['current_image'] is not None and len(results['current_image']) > 0:
@@ -181,7 +188,7 @@ class GenerateWidget(QWidget):
             # Kill the progress check
             self.abort = False
             self.finished = False
-            self.progress_bar.setValue(1)
+            self.update_progress_bar(1)
             self.kc.delete_preview_layer()
             self.progress_timer.stop()
             self.is_generating = False
@@ -232,10 +239,15 @@ class GenerateWidget(QWidget):
         else:
             if self.debug:
                 self.debug_data.setPlainText('%s\nThreadable Return found no results' % self.debug_data.toPlainText())
-        self.generate_btn.setText('Generate')
-        self.progress_bar.setValue(0)
-        self.progress_bar.setHidden(True)
-        self.update()
+        try:
+            self.generate_btn.setText('Generate')
+            self.update_progress_bar(0)
+            self.progress_bar.setHidden(True)
+            self.update()
+        except Exception as e:
+            # The UI was changed to a different tab mid-generation, and these UI elements don't exist anymore
+            pass
+        
 
     def cancel(self):
         # raise Exception('Cyanic SD - Cancel!')
@@ -244,7 +256,7 @@ class GenerateWidget(QWidget):
             # self.progress_timer.stop()
             self.abort = True
             self.generate_btn.setText('Generate')
-            self.progress_bar.setValue(0)
+            self.update_progress_bar(0)
             self.progress_bar.setHidden(True)
             self.update()
         except Exception as e:
