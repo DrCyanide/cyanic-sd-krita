@@ -397,7 +397,12 @@ class ControlNetUnit(QWidget):
         
         self.preprocessor = preprocessor_name
 
-        details = self.cnapi.module_details[preprocessor_name]
+        if self.cnapi.module_details is None or preprocessor_name not in self.cnapi.module_details:
+            # Not sure if this is a Forge specific problem, or if it can happen with any version that has ControlNet installed but no modules.
+            # Regardless, assume that there's no details 
+            return
+        
+        details = self.cnapi.module_details[preprocessor_name] 
         self.model_select.setHidden(details['model_free'])
         
         self.preprocessor_settings.setHidden(len(details['sliders']) == 0) # If there's no sliders, just hide it all
