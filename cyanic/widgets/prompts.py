@@ -5,7 +5,8 @@ from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..widgets import CollapsibleWidget, CyanicWidget
 
-class PromptWidget(QWidget):
+# class PromptWidget(QWidget):
+class PromptWidget(CyanicWidget):
     NUM_LINES = 4
     def __init__(self, settings_controller:SettingsController, api:SDAPI, mode:str):
         super().__init__()

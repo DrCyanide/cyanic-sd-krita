@@ -195,27 +195,27 @@ class ControlNetUnit(QWidget):
         general_controls_row.layout().setContentsMargins(0,0,0,0)
         
         # Control Mode
-        control_mode_options = [ # Note: The index here matches what's in the ControlNet API. DO NOT CHANGE THE ORDER!
+        self.control_mode_options = [ # Note: The index here matches what's in the ControlNet API. DO NOT CHANGE THE ORDER!
             'Balanced',
-            'Prompt is more important',
+            'My prompt is more important',
             'ControlNet is more important'
         ]
         control_mode_select = QComboBox()
         control_mode_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
-        control_mode_select.addItems(control_mode_options)
+        control_mode_select.addItems(self.control_mode_options)
         control_mode_select.setCurrentIndex(self.control_mode)
         control_mode_select.currentTextChanged.connect(lambda: self.update_control_mode(control_mode_select.currentIndex()))
         general_controls_row.layout().addRow('Control Mode', control_mode_select)
 
         # Resize Mode
-        resize_mode_options = [ # Note: The index here matches what's in the ControlNet API. DO NOT CHANGE THE ORDER!
+        self.resize_mode_options = [ # Note: The index here matches what's in the ControlNet API. DO NOT CHANGE THE ORDER!
             'Just Resize',
             'Crop and Resize',
             'Resize and Fill'
         ]
         resize_mode_select = QComboBox()
         resize_mode_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
-        resize_mode_select.addItems(resize_mode_options)
+        resize_mode_select.addItems(self.resize_mode_options)
         resize_mode_select.setCurrentIndex(self.resize_mode)
         resize_mode_select.currentTextChanged.connect(lambda: self.update_resize_mode(resize_mode_select.currentIndex()))
         general_controls_row.layout().addRow('Resize Mode', resize_mode_select)
@@ -235,7 +235,7 @@ class ControlNetUnit(QWidget):
         fine_controls.layout().addWidget(end_step)
 
         fine_collapse = CollapsibleWidget('Fine Controls', fine_controls)
-        if not self.settings_controller.get('hide_ui_controlnet_fine'):
+        if not self.settings_controller.get('hide_ui_controlnet_fine_settings'):
             self.layout().addWidget(fine_collapse)
 
         if self.debug:
@@ -406,7 +406,7 @@ class ControlNetUnit(QWidget):
         self.model_select.setHidden(details['model_free'])
         
         self.preprocessor_settings.setHidden(len(details['sliders']) == 0) # If there's no sliders, just hide it all
-        if self.settings_controller.get('hide_ui_controlnet_preprocessor_settings'):
+        if self.settings_controller.get('hide_u_controlnet_preprocessor_settings'):
             self.preprocessor_settings.setHidden(True)
 
         if details is None or details['sliders'] is None or len(details['sliders']) == 0:
@@ -473,32 +473,40 @@ class ControlNetUnit(QWidget):
         data = {
             # 'input_image': None, # Handled by self.img_in 
             # 'mask': None, # "mask pixel_perfect to filter the image". Ah yes, clear as crystal...
+            'enabled': self.enabled,
             'module': self.preprocessor,
             'model': self.model,
             'weight': self.variables['weight'] / 100, # converting 100% back to 1.0
-            'resize_mode': self.resize_mode,
+            'resize_mode': self.resize_mode_options[self.resize_mode],
             'lowvram': self.low_vram,
             'processor_res': self.variables['preprocessor_resolution'],
             'threshold_a': self.variables['threshold_a'], # API only uses this if preprocessor accepts values
             'threshold_b': self.variables['threshold_b'], # API only uses this if preprocessor accepts values
             'guidance_start': self.variables['start'] / 100 if self.variables['start'] > 0 else 0.0,
             'guidance_end': self.variables['end'] / 100 if self.variables['end'] > 0 else 0.0,
-            'control_mode': self.control_mode,
+            'control_mode': self.control_mode_options[self.control_mode],
             'pixel_perfect': self.pixel_perfect,
         }
         
+        # if self.cnapi.version >= 3:
+            # data['control_mode'] = self.control_mode_options[self.control_mode]
+
         if self.use_mask.isChecked():
             mask_data = self.mask_in.get_generation_data()
             # data['input_image'] = mask_data['inpaint_img']
             # data['mask'] = mask_data['mask_img']
             # https://github.com/Mikubill/sd-webui-controlnet/issues/2310
-            data['enabled'] = True
             data['image'] = {
                 'image': mask_data['inpaint_img'],
                 'mask': mask_data['mask_img']
             }
         else:
-            data.update(self.img_in.get_generation_data()) # Combines the image data with the rest of the data
+            # data.update(self.img_in.get_generation_data()) # Combines the image data with the rest of the data
+            image_data = self.img_in.get_generation_data()
+            # data['image'] = image_data['input_image']
+            data['image'] = {
+                'image': image_data['input_image']
+            }
 
         if self.debug:
             self.debug_text.setPlainText('%s' % (data))
@@ -519,45 +527,38 @@ class ControlNetAPI():
         self.get_modules()
         self.get_control_types()
         self.get_settings()
-
+        self.version = self.get_version()
 
 
     def get_control_types_list(self):
         return self.control_types.keys()
     
     def get_preprocessors_for_control_type(self, control_type):
-        try:
-            return self.control_types[control_type]['module_list']
-        except:
-            return []
+        return self.control_types[control_type]['module_list']
     
     def get_models_for_control_type(self, control_type):
-        try:
-            return self.control_types[control_type]['model_list']
-        except:
-            return []
+        return self.control_types[control_type]['model_list']
 
     def get_version(self):
+        # Forge doesn't have this API call, but ControlNet may make breaking changes in the future, so it's important to have them.
         version = self.api.get('/controlnet/version')
-        if version:
-            return version
-        return '' # Not actually using this yet, so I don't know what a fallback would be
+        try:
+            if version:
+                return version['version']
+        except:
+            pass
+        return 3 # The latest version as of writing this - May 20, 2024
     
     def get_models(self):
-        try:
-            self.models = self.api.get('/controlnet/model_list?update=true')['model_list']
-        except:
-            self.models = []
+        self.models = self.api.get('/controlnet/model_list?update=true')['model_list']
     
     def get_modules(self):
         results = self.api.get('/controlnet/module_list?alias_names=true')
-        
         try:
             self.module_list = results['module_list']
             self.module_details = results['module_detail']
         except:
-            self.module_list = []
-            self.module_details = []
+            pass
 
     def get_control_types(self):
         try:
@@ -575,11 +576,10 @@ class ControlNetAPI():
             self.control_types = control_types
 
     def get_settings(self):
+        self.settings = self.api.get('/controlnet/settings')
         try:
-            self.settings = self.api.get('/controlnet/settings')
             self.tabs = self.settings['control_net_unit_count'] # Version 2
         except:
-            self.settings = {}
             self.tabs = 1
             # raise Exception('Cyanic SD - Error reading ControlNet settings, defaulting to 1 tab mode')
 

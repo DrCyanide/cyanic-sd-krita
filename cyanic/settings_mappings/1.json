@@ -1,5 +1,4 @@
 {
-    "cyanic_sd_settings_version": "1",
     "cyanic_sd_last_page": "pages.last",
 
     "host": "server.host",
@@ -87,9 +86,6 @@
 
     "interrogate_model": "interrogate.model",
     "interrogate_prompt_mode": "interrogate.prompt_mode",
-
-    "controlnet_unit_count": "common.extensions.controlnet.units",
-    "controlnet_units": "kra_file_overridden_settings.extensions.controlnet.units",
 
     "hide_ui_auto_save": "hide_ui.auto_save",
     "hide_ui_model": "hide_ui.model",
