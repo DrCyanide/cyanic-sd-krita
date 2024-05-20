@@ -195,27 +195,27 @@ class ControlNetUnit(QWidget):
         general_controls_row.layout().setContentsMargins(0,0,0,0)
         
         # Control Mode
-        control_mode_options = [ # Note: The index here matches what's in the ControlNet API. DO NOT CHANGE THE ORDER!
+        self.control_mode_options = [ # Note: The index here matches what's in the ControlNet API. DO NOT CHANGE THE ORDER!
             'Balanced',
-            'Prompt is more important',
+            'My prompt is more important',
             'ControlNet is more important'
         ]
         control_mode_select = QComboBox()
         control_mode_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
-        control_mode_select.addItems(control_mode_options)
+        control_mode_select.addItems(self.control_mode_options)
         control_mode_select.setCurrentIndex(self.control_mode)
         control_mode_select.currentTextChanged.connect(lambda: self.update_control_mode(control_mode_select.currentIndex()))
         general_controls_row.layout().addRow('Control Mode', control_mode_select)
 
         # Resize Mode
-        resize_mode_options = [ # Note: The index here matches what's in the ControlNet API. DO NOT CHANGE THE ORDER!
+        self.resize_mode_options = [ # Note: The index here matches what's in the ControlNet API. DO NOT CHANGE THE ORDER!
             'Just Resize',
             'Crop and Resize',
             'Resize and Fill'
         ]
         resize_mode_select = QComboBox()
         resize_mode_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
-        resize_mode_select.addItems(resize_mode_options)
+        resize_mode_select.addItems(self.resize_mode_options)
         resize_mode_select.setCurrentIndex(self.resize_mode)
         resize_mode_select.currentTextChanged.connect(lambda: self.update_resize_mode(resize_mode_select.currentIndex()))
         general_controls_row.layout().addRow('Resize Mode', resize_mode_select)
@@ -473,32 +473,40 @@ class ControlNetUnit(QWidget):
         data = {
             # 'input_image': None, # Handled by self.img_in 
             # 'mask': None, # "mask pixel_perfect to filter the image". Ah yes, clear as crystal...
+            'enabled': self.enabled,
             'module': self.preprocessor,
             'model': self.model,
             'weight': self.variables['weight'] / 100, # converting 100% back to 1.0
-            'resize_mode': self.resize_mode,
+            'resize_mode': self.resize_mode_options[self.resize_mode],
             'lowvram': self.low_vram,
             'processor_res': self.variables['preprocessor_resolution'],
             'threshold_a': self.variables['threshold_a'], # API only uses this if preprocessor accepts values
             'threshold_b': self.variables['threshold_b'], # API only uses this if preprocessor accepts values
             'guidance_start': self.variables['start'] / 100 if self.variables['start'] > 0 else 0.0,
             'guidance_end': self.variables['end'] / 100 if self.variables['end'] > 0 else 0.0,
-            'control_mode': self.control_mode,
+            'control_mode': self.control_mode_options[self.control_mode],
             'pixel_perfect': self.pixel_perfect,
         }
         
+        # if self.cnapi.version >= 3:
+            # data['control_mode'] = self.control_mode_options[self.control_mode]
+
         if self.use_mask.isChecked():
             mask_data = self.mask_in.get_generation_data()
             # data['input_image'] = mask_data['inpaint_img']
             # data['mask'] = mask_data['mask_img']
             # https://github.com/Mikubill/sd-webui-controlnet/issues/2310
-            data['enabled'] = True
             data['image'] = {
                 'image': mask_data['inpaint_img'],
                 'mask': mask_data['mask_img']
             }
         else:
-            data.update(self.img_in.get_generation_data()) # Combines the image data with the rest of the data
+            # data.update(self.img_in.get_generation_data()) # Combines the image data with the rest of the data
+            image_data = self.img_in.get_generation_data()
+            # data['image'] = image_data['input_image']
+            data['image'] = {
+                'image': image_data['input_image']
+            }
 
         if self.debug:
             self.debug_text.setPlainText('%s' % (data))
@@ -519,7 +527,7 @@ class ControlNetAPI():
         self.get_modules()
         self.get_control_types()
         self.get_settings()
-
+        self.version = self.get_version()
 
 
     def get_control_types_list(self):
@@ -532,7 +540,14 @@ class ControlNetAPI():
         return self.control_types[control_type]['model_list']
 
     def get_version(self):
-        return self.api.get('/controlnet/version')
+        # Forge doesn't have this API call, but ControlNet may make breaking changes in the future, so it's important to have them.
+        version = self.api.get('/controlnet/version')
+        try:
+            if version:
+                return version['version']
+        except:
+            pass
+        return 3 # The latest version as of writing this - May 20, 2024
     
     def get_models(self):
         self.models = self.api.get('/controlnet/model_list?update=true')['model_list']
