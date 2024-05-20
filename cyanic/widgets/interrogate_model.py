@@ -27,7 +27,7 @@ class InterrogateModelWidget(QWidget):
         self.variables = {
             "model": "",
             "prompt_mode": self.settings_controller.get(
-                "interrogate.prompt_mode"
+                "interrogate_prompt_mode"
             ),  # txt2img / img2img / inpaint / adetailer
         }
 
@@ -36,7 +36,7 @@ class InterrogateModelWidget(QWidget):
 
         # check if deepdanbooru is installed
         # TODO: add info that deepdanbooru is not installed but could be used?
-        if self.api.default_settings["deepbooru_sort_alpha"]:
+        if "deepbooru_sort_alpha" in self.api.default_settings.keys() and self.api.default_settings["deepbooru_sort_alpha"]:
             self.models.append("deepdanbooru")
 
         self.init_variables()
@@ -44,15 +44,15 @@ class InterrogateModelWidget(QWidget):
         self.draw_ui()
 
     def init_variables(self):
-        if self.settings_controller.get("interrogate.model"):
-            self.variables["model"] = self.settings_controller.get("interrogate.model")
+        if self.settings_controller.get("interrogate_model"):
+            self.variables["model"] = self.settings_controller.get("interrogate_model")
 
     def draw_ui(self):
         select_form = QWidget()
         select_form.setLayout(QFormLayout())
         select_form.layout().setContentsMargins(0, 0, 0, 0)
 
-        if not self.settings_controller.get("hide_ui.interrogate_model"):
+        if not self.settings_controller.get("hide_ui_interrogate_model"):
             self.model_box = QComboBox()
             self.model_box.addItems(self.models)
             self.model_box.setCurrentText(self.variables["model"])
@@ -100,8 +100,8 @@ class InterrogateModelWidget(QWidget):
         self.save_settings()
 
     def save_settings(self):
-        self.settings_controller.set("interrogate.model", self.variables["model"])
+        self.settings_controller.set("interrogate_model", self.variables["model"])
         self.settings_controller.set(
-            "interrogate.prompt_mode", self.variables["prompt_mode"]
+            "interrogate_prompt_mode", self.variables["prompt_mode"]
         )
         self.settings_controller.save()

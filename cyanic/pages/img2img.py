@@ -18,11 +18,11 @@ class Img2ImgPage(QWidget):
         self.layout().addWidget(self.img_in)
 
         self.color_correction = ColorCorrectionWidget(self.settings_controller, self.api)
-        if not self.settings_controller.get('hide_ui.color_correction'):
+        if not self.settings_controller.get('hide_ui_color_correction'):
             self.layout().addWidget(self.color_correction)
 
         self.denoise_widget = DenoiseWidget(self.settings_controller)
-        if not self.settings_controller.get('hide_ui.denoise_strength'):
+        if not self.settings_controller.get('hide_ui_denoise'):
             self.layout().addWidget(self.denoise_widget)
 
         self.model_widget = ModelsWidget(self.settings_controller, self.api)
@@ -32,26 +32,26 @@ class Img2ImgPage(QWidget):
         self.layout().addWidget(self.prompt_widget)
 
         self.batch_widget = BatchWidget(self.settings_controller, self.api)
-        if not self.settings_controller.get('hide_ui.batch'):
+        if not self.settings_controller.get('hide_ui_batch'):
             self.layout().addWidget(self.batch_widget)
 
         self.cfg_widget = CFGWidget(self.settings_controller, self.api)
-        if not self.settings_controller.get('hide_ui.cfg'):
+        if not self.settings_controller.get('hide_ui_cfg'):
             self.layout().addWidget(self.cfg_widget)
 
         self.seed_widget = SeedWidget(self.settings_controller)
         seed_collapsed = CollapsibleWidget('Seed Details', self.seed_widget)
-        if not self.settings_controller.get('hide_ui.seed'):
+        if not self.settings_controller.get('hide_ui_seed'):
             self.layout().addWidget(seed_collapsed)
 
         self.extension_widget = ExtensionWidget(self.settings_controller, self.api)
         extension_collapsed = CollapsibleWidget('Extensions', self.extension_widget)
-        if not self.settings_controller.get('hide_ui.extensions'):
+        if not self.settings_controller.get('hide_ui_extensions'):
             self.layout().addWidget(extension_collapsed)
 
-        if not self.settings_controller.get('hide_ui.interrogate_img2img'):
+        if not self.settings_controller.get('hide_ui_interrogate_img2img'):
             self.interrogate_model_widget = InterrogateModelWidget(self.settings_controller, self.api, self.size_dict, True)
-            if not self.settings_controller.get('hide_ui.interrogate_model'):
+            if not self.settings_controller.get('hide_ui_interrogate_model'):
                 self.layout().addWidget(self.interrogate_model_widget)
 
             self.interrogate_widget = InterrogateWidget(self.settings_controller, self.api, self.interrogate_model_widget, self.prompt_widget, self.img_in, self.size_dict)

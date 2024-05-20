@@ -11,8 +11,8 @@ class BatchWidget(QWidget):
         self.setLayout(QHBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.variables = {
-            'batch_count': self.settings_controller.get('batch.count'),
-            'batch_size': self.settings_controller.get('batch.size'),
+            'batch_count': self.settings_controller.get('batch_count'),
+            'batch_size': self.settings_controller.get('batch_size'),
         }
 
         self.draw_ui()
@@ -39,8 +39,8 @@ class BatchWidget(QWidget):
         self.variables[key] = value
 
     def save_settings(self):
-        self.settings_controller.set('batch.count', self.variables['batch_count'])
-        self.settings_controller.set('batch.size', self.variables['batch_size'])
+        self.settings_controller.set('batch_count', self.variables['batch_count'])
+        self.settings_controller.set('batch_size', self.variables['batch_size'])
         self.settings_controller.save()
 
     def get_generation_data(self):

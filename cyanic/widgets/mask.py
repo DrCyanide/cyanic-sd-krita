@@ -18,14 +18,14 @@ class MaskWidget(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.variables = {
-            'mask_blur': self.settings_controller.get('inpaint.mask_blur'),
-            'mask_mode': self.settings_controller.get('inpaint.mask_mode'),
-            'masked_content': self.settings_controller.get('inpaint.masked_content'),
-            'inpaint_area': self.settings_controller.get('inpaint.inpaint_area'),
-            'mask_padding': self.settings_controller.get('inpaint.padding'),
-            'auto_update_mask': self.settings_controller.get('inpaint.auto_update_mask'),
-            'results_below_mask': self.settings_controller.get('inpaint.results_below_mask'),
-            'hide_mask_on_gen': self.settings_controller.get('inpaint.hide_mask_on_gen'),
+            'mask_blur': self.settings_controller.get('inpaint_mask_blur'),
+            'mask_mode': self.settings_controller.get('inpaint_mask_mode'),
+            'masked_content': self.settings_controller.get('inpaint_mask_content'),
+            'inpaint_area': self.settings_controller.get('inpaint_area'),
+            'mask_padding': self.settings_controller.get('inpaint_padding'),
+            'auto_update_mask': self.settings_controller.get('inpaint_mask_auto_update'),
+            'mask_above_results': self.settings_controller.get('inpaint_mask_above_results'),
+            'hide_mask_on_gen': self.settings_controller.get('inpaint_mask_hide_while_gen'),
         }
         self.selection_mode = 'canvas'
         self.mask_uuid = None
@@ -73,27 +73,27 @@ class MaskWidget(QWidget):
         auto_update_mask_cb.setToolTip('Will remember the last layer used as a mask and use the current state of that layer whenever the "Generate" button is clicked')
         auto_update_mask_cb.setChecked(self.variables['auto_update_mask'])
         auto_update_mask_cb.stateChanged.connect(lambda: self._update_variable('auto_update_mask', auto_update_mask_cb.isChecked()))
-        if not self.settings_controller.get('hide_ui.inpaint_auto_update'):
+        if not self.settings_controller.get('hide_ui_inpaint_auto_update'):
             mask_settings.layout().addWidget(auto_update_mask_cb)
 
         # Add Results below Mask
-        results_below_mask_cb = QCheckBox('Results below mask')
-        results_below_mask_cb.setToolTip('Will insert the results as a new layer below the mask')
-        results_below_mask_cb.setChecked(self.variables['results_below_mask'])
-        results_below_mask_cb.stateChanged.connect(lambda: self._update_variable('results_below_mask', results_below_mask_cb.isChecked()))
-        if not self.settings_controller.get('hide_ui.inpaint_below_mask'):
-            mask_settings.layout().addWidget(results_below_mask_cb)
+        mask_above_results_cb = QCheckBox('Mask above results')
+        mask_above_results_cb.setToolTip('Will insert the results as a new layer below the mask')
+        mask_above_results_cb.setChecked(self.variables['mask_above_results'])
+        mask_above_results_cb.stateChanged.connect(lambda: self._update_variable('mask_above_results', mask_above_results_cb.isChecked()))
+        if not self.settings_controller.get('hide_ui_inpaint_mask_above_results'):
+            mask_settings.layout().addWidget(mask_above_results_cb)
 
         # Hide mask on generation
         hide_mask_cb = QCheckBox('Hide mask when generating')
         hide_mask_cb.setToolTip('Turns off mask visibility so that you can see the results faster')
         hide_mask_cb.setChecked(self.variables['hide_mask_on_gen'])
         hide_mask_cb.stateChanged.connect(lambda: self._update_variable('hide_mask_on_gen', hide_mask_cb.isChecked()))
-        if not self.settings_controller.get('hide_ui.inpaint_hide_mask'):
+        if not self.settings_controller.get('hide_ui_inpaint_hide_mask'):
             mask_settings.layout().addWidget(hide_mask_cb)
         
         # The `not <setting>` is a bit confusing, but it makes for an easier time understanding the final layout
-        mask_settings_shown = sum([not self.settings_controller.get('hide_ui.inpaint_auto_update'), not self.settings_controller.get('hide_ui.inpaint_below_mask'), not self.settings_controller.get('hide_ui.inpaint_hide_mask')])
+        mask_settings_shown = sum([not self.settings_controller.get('hide_ui_inpaint_auto_update'), not self.settings_controller.get('hide_ui_inpaint_mask_above_results'), not self.settings_controller.get('hide_ui_inpaint_hide_mask')])
         if mask_settings_shown == 1:
             self.layout().addWidget(mask_settings)
         elif mask_settings_shown > 1:
@@ -125,8 +125,6 @@ class MaskWidget(QWidget):
         mask_mode_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         mask_mode_select.setCurrentIndex(self.variables['mask_mode'])
         mask_mode_select.currentIndexChanged.connect(lambda: self._update_variable('mask_mode', mask_mode_select.currentIndex()))
-        # mask_mode_select.setCurrentIndex(self.settings_controller.get('inpaint.mask_mode'))
-        # mask_mode_select.currentIndexChanged.connect(lambda: self.settings_controller.set('inpaint.mask_mode', mask_mode_select.currentIndex()))
         form.layout().addRow('Mask Mode', mask_mode_select)
 
         # mask content = inpainting_fill (0 = fill, 1 = original, 2 = latent noise, 3 = latent nothing)
@@ -141,8 +139,6 @@ class MaskWidget(QWidget):
         mask_content_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         mask_content_select.setCurrentIndex(self.variables['masked_content'])
         mask_content_select.currentIndexChanged.connect(lambda: self._update_variable('masked_content', mask_content_select.currentIndex()))
-        # mask_content_select.setCurrentIndex(self.settings_controller.get('inpaint.masked_content'))
-        # mask_content_select.currentIndexChanged.connect(lambda: self.settings_controller.set('inpaint.masked_content', mask_content_select.currentIndex()))
         form.layout().addRow('Masked Content', mask_content_select)
 
         # Inpaint Area = inpaint_full_res (0 = whole picture, 1 = only masked)
@@ -155,8 +151,6 @@ class MaskWidget(QWidget):
         inpaint_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         inpaint_select.setCurrentIndex(self.variables['inpaint_area'])
         inpaint_select.currentIndexChanged.connect(lambda: self._update_variable('inpaint_area', inpaint_select.currentIndex()))
-        # inpaint_select.setCurrentIndex(self.settings_controller.get('inpaint.inpaint_area'))
-        # inpaint_select.currentIndexChanged.connect(lambda: self.settings_controller.set('inpaint.inpaint_area', inpaint_select.currentIndex()))
         form.layout().addRow('Inpaint Area', inpaint_select)
 
         # Only masked padding, pixels (inpaint_full_res_padding)
@@ -165,8 +159,6 @@ class MaskWidget(QWidget):
         padding_box.setMaximum(64)
         padding_box.setValue(self.variables['mask_padding'])
         padding_box.valueChanged.connect(lambda: self._update_variable('mask_padding', padding_box.value()))
-        # padding_box.setValue(self.settings_controller.get('inpaint.padding'))
-        # padding_box.valueChanged.connect(lambda: self.settings_controller.set('inpaint.padding', padding_box.value()))
         form.layout().addRow('Only masked padding', padding_box)
 
         # self.layout().addWidget(form)
@@ -210,14 +202,14 @@ class MaskWidget(QWidget):
             raise Exception('Cyanic SD - Error updating mask: %s' % e)
 
     def save_settings(self):
-        self.settings_controller.set('inpaint.mask_blur', self.variables['mask_blur'])
-        self.settings_controller.set('inpaint.mask_mode', self.variables['mask_mode'])
-        self.settings_controller.set('inpaint.masked_content', self.variables['masked_content'])
-        self.settings_controller.set('inpaint.inpaint_area', self.variables['inpaint_area'])
-        self.settings_controller.set('inpaint.padding', self.variables['mask_padding'])
-        self.settings_controller.set('inpaint.auto_update_mask', self.variables['auto_update_mask'])
-        self.settings_controller.set('inpaint.results_below_mask', self.variables['results_below_mask'])
-        self.settings_controller.set('inpaint.hide_mask_on_gen', self.variables['hide_mask_on_gen'])
+        self.settings_controller.set('inpaint_mask_blur', self.variables['mask_blur'])
+        self.settings_controller.set('inpaint_mask_mode', self.variables['mask_mode'])
+        self.settings_controller.set('inpaint_masked_content', self.variables['masked_content'])
+        self.settings_controller.set('inpaint_inpaint_area', self.variables['inpaint_area'])
+        self.settings_controller.set('inpaint_padding', self.variables['mask_padding'])
+        self.settings_controller.set('inpaint_mask_auto_update', self.variables['auto_update_mask'])
+        self.settings_controller.set('inpaint_mask_above_results', self.variables['mask_above_results'])
+        self.settings_controller.set('inpaint_mask_hide_while_gen', self.variables['hide_mask_on_gen'])
         self.settings_controller.save()
 
     def get_generation_data(self):
@@ -228,13 +220,6 @@ class MaskWidget(QWidget):
             'inpaint_full_res': self.variables['inpaint_area'],
             'inpaint_full_res_padding': self.variables['mask_padding'], # IDK what this actually does
         }
-        # data = {
-        #     'mask_blur': self.settings_controller.get('inpaint.mask_blur'),
-        #     'inpainting_mask_invert': self.settings_controller.get('inpaint.mask_mode'),
-        #     'inpainting_fill': self.settings_controller.get('inpaint.masked_content'),
-        #     'inpaint_full_res': self.settings_controller.get('inpaint.inpaint_area'),
-        #     'inpaint_full_res_padding': self.settings_controller.get('inpaint.padding'), # IDK what this actually does
-        # }
         self.save_settings()
 
         if self.variables['auto_update_mask'] and self.mask_uuid is not None:
@@ -262,7 +247,7 @@ class MaskWidget(QWidget):
         if self.mask is not None:
             data['mask_img'] = self.kc.qimage_to_b64_str(self.mask)
 
-        if self.variables['results_below_mask']:
+        if self.variables['mask_above_results']:
             # This data will be intercepted by the Generate widget
             data['CYANIC'] = {
                 'results_below_layer_uuid': self.mask_uuid 

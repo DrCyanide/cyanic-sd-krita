@@ -17,12 +17,12 @@ class HiResFixWidget(QWidget):
         self.layout().setContentsMargins(0,0,0,0)
         self.variables = {
             'enable_hr': False,
-            'auto_enable_hr': self.settings_controller.get('hr_fix.auto_hrfix'),
-            'auto_enable_min': self.settings_controller.get('hr_fix.auto_hrfix_min'),
-            'hr_upscaler': self.settings_controller.get('hr_fix.upscaler'),
-            'hr_steps': self.settings_controller.get('hr_fix.hrfix_steps'), # if 0, API uses same number of steps as the first pass
-            'min_size': self.settings_controller.get('hr_fix.sd_min'),
-            'denoising_strength': self.settings_controller.get('hr_fix.denoise_strength'),
+            'auto_enable_hr': self.settings_controller.get('hr_fix_auto'),
+            'auto_enable_min': self.settings_controller.get('hr_fix_auto_min'),
+            'hr_upscaler': self.settings_controller.get('hr_fix_upscaler'),
+            'hr_steps': self.settings_controller.get('hr_fix_steps'), # if 0, API uses same number of steps as the first pass
+            'min_size': self.settings_controller.get('hr_fix_sd_min'),
+            'denoising_strength': self.settings_controller.get('hr_fix_denoise'),
         }
 
         self.hires_only_upscalers = [
@@ -60,7 +60,7 @@ class HiResFixWidget(QWidget):
         min_size.setMinimum(1)
         min_size.setMaximum(99999)
         min_size.setValue(self.variables['min_size'])
-        min_size.valueChanged.connect(lambda: self._update_variables('min_size', min_size.value()))
+        min_size.valueChanged.connect(lambda: self._update_variables('hr_fix_sd_min', min_size.value()))
         min_size_layout.layout().addWidget(min_size)
 
         enable_row.layout().addWidget(min_size_layout)
@@ -93,7 +93,7 @@ class HiResFixWidget(QWidget):
         hr_min_size_layout.layout().addWidget(auto_min_size)
 
         auto_enable_row.layout().addWidget(hr_min_size_layout)
-        if self.ignore_hidden or not self.settings_controller.get('hide_ui.hires_fix_auto'):
+        if self.ignore_hidden or not self.settings_controller.get('hide_ui_hires_fix_auto'):
             self.layout().addWidget(auto_enable_row)
 
         # Upscaler + Latent
@@ -121,7 +121,7 @@ class HiResFixWidget(QWidget):
         steps.setToolTip('Hires Steps. 0 steps will match the number of steps used for the first generation.')
         upscaler_row.layout().addWidget(steps)
 
-        if self.ignore_hidden or not self.settings_controller.get('hide_ui.hires_upscaler'):
+        if self.ignore_hidden or not self.settings_controller.get('hide_ui_hires_upscaler'):
             self.layout().addWidget(upscaler_row)
 
         # Denoise Strength
@@ -150,7 +150,7 @@ class HiResFixWidget(QWidget):
         denoise.layout().addWidget(self.denoise_percent)
         denoise_settings.layout().addRow('Denoise Strength', denoise)
 
-        if self.ignore_hidden or not self.settings_controller.get('hide_ui.hires_denoise'):
+        if self.ignore_hidden or not self.settings_controller.get('hide_ui_hires_denoise'):
             self.layout().addWidget(denoise_settings)
 
     def _update_variables(self, key, value):
@@ -164,12 +164,12 @@ class HiResFixWidget(QWidget):
             self.variables['denoising_strength'] = 0.0
 
     def save_settings(self):
-        self.settings_controller.set('hr_fix.upscaler', self.variables['hr_upscaler'])
-        self.settings_controller.set('hr_fix.hrfix_steps', self.variables['hr_steps'])
-        self.settings_controller.set('hr_fix.sd_min', self.variables['min_size'])
-        self.settings_controller.set('hr_fix.auto_hrfix', self.variables['auto_enable_hr'])
-        self.settings_controller.set('hr_fix.auto_hrfix_min', self.variables['auto_enable_min'])
-        self.settings_controller.set('hr_fix.denoise_strength', self.variables['denoising_strength'])
+        self.settings_controller.set('hr_fix_upscaler', self.variables['hr_upscaler'])
+        self.settings_controller.set('hr_fix_steps', self.variables['hr_steps'])
+        self.settings_controller.set('hr_fix_sd_min', self.variables['min_size'])
+        self.settings_controller.set('hr_fix_auto', self.variables['auto_enable_hr'])
+        self.settings_controller.set('hr_fix_auto_min', self.variables['auto_enable_min'])
+        self.settings_controller.set('hr_fix_denoise', self.variables['denoising_strength'])
         self.settings_controller.save()
 
     def get_generation_data(self):

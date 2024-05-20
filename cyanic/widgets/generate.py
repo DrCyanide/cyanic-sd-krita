@@ -78,7 +78,7 @@ class GenerateWidget(QWidget):
             "height": h,
         }
 
-        min_size = self.settings_controller.get('defaults.min_size')
+        min_size = self.settings_controller.get('model_min_size')
         if data['width'] < min_size or data['height'] < min_size:
             # Need to scale the results down afterwards
             processing_instructions['resize'] = {
@@ -95,8 +95,8 @@ class GenerateWidget(QWidget):
                 data['width'] = int( ratio * min_size )
                 data['height'] = min_size
 
-        max_size = self.settings_controller.get('defaults.max_size')
-        if (data['width'] > max_size or data['height'] > max_size) and self.settings_controller.get('defaults.enable_max_size'):
+        max_size = self.settings_controller.get('model_max_size')
+        if (data['width'] > max_size or data['height'] > max_size) and self.settings_controller.get('model_max_size_enable'):
             # Need to scale the results up afterwards
             processing_instructions['resize'] = {
                 'width': data['width'],
@@ -113,7 +113,7 @@ class GenerateWidget(QWidget):
                 data['width'] = max_size
 
         # Whether or not to save the images on the server
-        if self.settings_controller.get('server.save_imgs'):
+        if self.settings_controller.get('host_save_imgs'):
             data['save_images'] = True
 
         for widget in self.list_of_widgets:
@@ -144,8 +144,8 @@ class GenerateWidget(QWidget):
             self.progress_timer = QTimer()
             self.progress_timer.timeout.connect(lambda: self.progress_check(x, y, w, h, processing_instructions))
             # Set the refresh rate
-            if self.settings_controller.has_key('previews.refresh_seconds'):
-                self.progress_timer.start(int(1000 * self.settings_controller.get('previews.refresh_seconds')))
+            if self.settings_controller.has_key('preview_refresh'):
+                self.progress_timer.start(int(1000 * self.settings_controller.get('preview_refresh')))
             else:
                 self.progress_timer.start(1000)
 
@@ -178,7 +178,7 @@ class GenerateWidget(QWidget):
                 return
             self.update_progress_bar(int(results['progress'] * 100))
             # Show the preview
-            if self.settings_controller.has_key('previews.enabled') and self.settings_controller.get('previews.enabled'):
+            if self.settings_controller.has_key('preview_shown') and self.settings_controller.get('preview_shown'):
                 if results['current_image'] is not None and len(results['current_image']) > 0:
                     if 'resize' in processing_instructions.keys():
                         w = processing_instructions['resize']['width']

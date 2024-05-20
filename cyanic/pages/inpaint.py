@@ -13,21 +13,23 @@ class InpaintPage(QWidget):
         self.kc = KritaController()
         self.size_dict = {"x":0,"y":0,"w":0,"h":0}
         self.setLayout(QVBoxLayout())
+        self.include_soft_inpaint = False
 
         self.mask_widget = MaskWidget(self.settings_controller, self.api, self.size_dict)
         self.layout().addWidget(self.mask_widget)
 
-        if self.api.script_installed('soft inpainting') and not self.settings_controller.get('hide_ui.soft_inpaint'):
+        if self.api.script_installed('soft inpainting') and not self.settings_controller.get('hide_ui_soft_inpaint'):
             # This is an alwayson script, added in A1111 v1.8
+            self.include_soft_inpaint = True
             self.soft_inpaint_widget = SoftInpaintWidget(self.settings_controller)
             self.layout().addWidget(self.soft_inpaint_widget)
 
         self.color_correction = ColorCorrectionWidget(self.settings_controller, self.api)
-        if not self.settings_controller.get('hide_ui.color_correction'):
+        if not self.settings_controller.get('hide_ui_color_correction'):
             self.layout().addWidget(self.color_correction)
 
         self.denoise_widget = DenoiseWidget(self.settings_controller)
-        if not self.settings_controller.get('hide_ui.denoise_strength'):
+        if not self.settings_controller.get('hide_ui_denoise'):
             self.layout().addWidget(self.denoise_widget)
 
         self.model_widget = ModelsWidget(self.settings_controller, self.api)
@@ -37,24 +39,28 @@ class InpaintPage(QWidget):
         self.layout().addWidget(self.prompt_widget)
 
         self.batch_widget = BatchWidget(self.settings_controller, self.api)
-        if not self.settings_controller.get('hide_ui.batch'):
+        if not self.settings_controller.get('hide_ui_batch'):
             self.layout().addWidget(self.batch_widget)
 
         self.cfg_widget = CFGWidget(self.settings_controller, self.api)
-        if not self.settings_controller.get('hide_ui.cfg'):
+        if not self.settings_controller.get('hide_ui_cfg'):
             self.layout().addWidget(self.cfg_widget)
 
         self.seed_widget = SeedWidget(self.settings_controller)
         seed_collapsed = CollapsibleWidget('Seed Details', self.seed_widget)
-        if not self.settings_controller.get('hide_ui.seed'):
+        if not self.settings_controller.get('hide_ui_seed'):
             self.layout().addWidget(seed_collapsed)
 
         self.extension_widget = ExtensionWidget(self.settings_controller, self.api)
         extension_collapsed = CollapsibleWidget('Extensions', self.extension_widget)
-        if not self.settings_controller.get('hide_ui.extensions'):
+        if not self.settings_controller.get('hide_ui_extensions'):
             self.layout().addWidget(extension_collapsed)
 
-        self.generate_widget = GenerateWidget(self.settings_controller, self.api, [self.mask_widget, self.color_correction, self.denoise_widget, self.model_widget, self.prompt_widget, self.soft_inpaint_widget, self.batch_widget, self.cfg_widget, self.seed_widget, self.extension_widget], 'inpaint', self.size_dict)
+        all_widgets = [self.mask_widget, self.color_correction, self.denoise_widget, self.model_widget, self.prompt_widget, self.batch_widget, self.cfg_widget, self.seed_widget, self.extension_widget]
+        if self.include_soft_inpaint:
+            all_widgets.append(self.soft_inpaint_widget)
+
+        self.generate_widget = GenerateWidget(self.settings_controller, self.api, all_widgets, 'inpaint', self.size_dict)
         self.layout().addWidget(self.generate_widget)
 
         self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top

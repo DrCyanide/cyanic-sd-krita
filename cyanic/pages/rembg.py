@@ -34,45 +34,45 @@ class RemBGPage(QWidget):
         # Background Removal model
         model_select = QComboBox()
         model_select.addItems(self.rembg_models)
-        model_select.setCurrentText(self.settings_controller.get('rembg.model'))
-        model_select.currentTextChanged.connect(lambda: self.settings_controller.set('rembg.model', model_select.currentText()))
+        model_select.setCurrentText(self.settings_controller.get('rembg_model'))
+        model_select.currentTextChanged.connect(lambda: self.settings_controller.set('rembg_model', model_select.currentText()))
         self.layout().addWidget(model_select)
 
         # As Mask
         as_mask_cb = QCheckBox('Results as Mask')
         as_mask_cb.setToolTip('Enable to automatically make the results a mask of the active layer')
-        as_mask_cb.setChecked(self.settings_controller.get('rembg.results_as_mask'))
+        as_mask_cb.setChecked(self.settings_controller.get('rembg_results_as_mask'))
         as_mask_cb.stateChanged.connect(lambda: self.set_as_mask(as_mask_cb.isChecked()))
         self.layout().addWidget(as_mask_cb)
 
         # Apply Mask
         self.apply_mask_cb = QCheckBox('Apply Mask')
-        self.apply_mask_cb.setChecked(self.settings_controller.get('rembg.apply_mask'))
-        self.apply_mask_cb.stateChanged.connect(lambda: self.settings_controller.set('rembg.apply_mask', self.apply_mask_cb.isChecked()))
+        self.apply_mask_cb.setChecked(self.settings_controller.get('rembg_apply_mask'))
+        self.apply_mask_cb.stateChanged.connect(lambda: self.settings_controller.set('rembg_apply_mask', self.apply_mask_cb.isChecked()))
         self.layout().addWidget(self.apply_mask_cb)
 
         # Alpha Matting
         alpha_matting_cb = QCheckBox('Alpha Matting')
         alpha_matting_cb.setToolTip('Enable for better tranparent/translucent masks')
-        alpha_matting_cb.setChecked(self.settings_controller.get('rembg.alpha_matting'))
+        alpha_matting_cb.setChecked(self.settings_controller.get('rembg_alpha_mat'))
         alpha_matting_cb.stateChanged.connect(lambda: self.set_alpha_matting(alpha_matting_cb.isChecked()))
         self.layout().addWidget(alpha_matting_cb)
 
         # Alpha Matting settings
         self.alpha_matting_settings = QGroupBox()
         self.alpha_matting_settings.setLayout(QFormLayout())
-        self.alpha_matting_settings.setVisible(self.settings_controller.get('rembg.alpha_matting'))
+        self.alpha_matting_settings.setVisible(self.settings_controller.get('rembg_alpha_mat'))
 
         #   Erode Size
-        erode_size = self.make_slider_row(0, 40, 'rembg.erode_size')
+        erode_size = self.make_slider_row(0, 40, 'rembg_erode')
         self.alpha_matting_settings.layout().addRow('Erode Size', erode_size)
 
         #   Foreground Threshold
-        foreground_threshold = self.make_slider_row(0, 255, 'rembg.foreground_threshold')
+        foreground_threshold = self.make_slider_row(0, 255, 'rembg_threshold_foreground')
         self.alpha_matting_settings.layout().addRow('Foreground Threshold', foreground_threshold)
 
         #   Background Threshold
-        background_threshold = self.make_slider_row(0, 255, 'rembg.background_threshold')
+        background_threshold = self.make_slider_row(0, 255, 'rembg_threshold_background')
         self.alpha_matting_settings.layout().addRow('Background Threshold', background_threshold)
         self.layout().addWidget(self.alpha_matting_settings)
 
@@ -126,22 +126,22 @@ class RemBGPage(QWidget):
         self.settings_controller.set(settings_key, value)
 
     def set_alpha_matting(self, value):
-        self.settings_controller.set('rembg.alpha_matting', value)
+        self.settings_controller.set('rembg_alpha_mat', value)
         # Disable/Enable the other alpha_matting settings
         self.alpha_matting_settings.setVisible(value)
 
     def set_as_mask(self, value):
-        self.settings_controller.set('rembg.results_as_mask', value)
+        self.settings_controller.set('rembg_results_as_mask', value)
         self.apply_mask_cb.setDisabled(not value)
 
     def get_generation_data(self):
         data = {
-            'model': self.settings_controller.get('rembg.model'),
-            'return_mask': self.settings_controller.get('rembg.results_as_mask'),
-            'alpha_matting': self.settings_controller.get('rembg.alpha_matting'),
-            'alpha_matting_foreground_threshold': self.settings_controller.get('rembg.foreground_threshold'),
-            'alpha_matting_background_threshold': self.settings_controller.get('rembg.background_threshold'),
-            'alpha_matting_erode_size': self.settings_controller.get('rembg.erode_size'),
+            'model': self.settings_controller.get('rembg_model'),
+            'return_mask': self.settings_controller.get('rembg_results_as_mask'),
+            'alpha_matting': self.settings_controller.get('rembg_alpha_mat'),
+            'alpha_matting_foreground_threshold': self.settings_controller.get('rembg_foreground_threshold'),
+            'alpha_matting_background_threshold': self.settings_controller.get('rembg_background_threshold'),
+            'alpha_matting_erode_size': self.settings_controller.get('rembg_erode'),
         }
         # Add the image
         data.update(self.img_in.get_generation_data())
@@ -152,8 +152,8 @@ class RemBGPage(QWidget):
         # TODO: Make this async
         results = self.api.post('/rembg', data)
         if results is not None:
-            apply_mask = self.settings_controller.get('rembg.apply_mask')
-            as_mask = self.settings_controller.get('rembg.results_as_mask')
+            apply_mask = self.settings_controller.get('rembg_apply_mask')
+            as_mask = self.settings_controller.get('rembg_results_as_mask')
             if (as_mask and not apply_mask) or not as_mask:
                 self.kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
             else:

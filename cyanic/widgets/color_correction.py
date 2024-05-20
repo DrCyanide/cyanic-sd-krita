@@ -9,11 +9,11 @@ class ColorCorrectionWidget(QWidget):
         self.settings_controller = settings_controller
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
-        self.color_correct = self.settings_controller.get('defaults.color_correction')
+        self.color_correct = self.settings_controller.get('color_correction')
 
         # Match Image Colors
         match_colors = QCheckBox('Match Image Colors')
-        match_colors.setChecked(self.settings_controller.get('defaults.match_colors'))
+        match_colors.setChecked(self.settings_controller.get('color_match'))
         match_colors.toggled.connect(lambda: self.update_match_colors(match_colors.isChecked()))
         self.layout().addWidget(match_colors)
 
@@ -21,7 +21,7 @@ class ColorCorrectionWidget(QWidget):
         self.color_correct = match
 
     def save_settings(self):
-        self.settings_controller.set('defaults.match_colors', self.color_correct)
+        self.settings_controller.set('color_match', self.color_correct)
 
     def get_generation_data(self):
         data = {

@@ -25,12 +25,12 @@ class InterrogatePage(QWidget):
         )
         self.layout().addWidget(self.img_in)
 
-        prompt_mode = self.settings_controller.get("interrogate.prompt_mode")
+        prompt_mode = self.settings_controller.get("interrogate_prompt_mode")
 
         # TODO: probably not necessary?
         if not prompt_mode:
             prompt_mode = "img2img"
-            self.settings_controller.set("interrogate.prompt_mode", prompt_mode)
+            self.settings_controller.set("interrogate_prompt_mode", prompt_mode)
 
         self.prompt_widget = PromptWidget(
             self.settings_controller,

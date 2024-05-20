@@ -10,7 +10,7 @@ import os
 
 class SDAPI():
     DEFAULT_HOST = 'http://127.0.0.1:7860'
-    def __init__(self, host=DEFAULT_HOST):
+    def __init__(self, host=DEFAULT_HOST, on_connection_change=None):
         self.host = host
         self.host_version = 'A1111' # SD.Next also supported
         self.supports_refiners = True # SD.Next with sd_backend == "original" does not support refiners
@@ -35,6 +35,7 @@ class SDAPI():
             'color_correction': True,
         }
         self.connected = False
+        self.on_connection_change = on_connection_change # A function that can be called if self.connected changes - DO NOT CALL IN A THREAD EVALUATION!!! It will crash Krita with no error message.
         self.last_url = ''
         self.init_api()
 
@@ -43,8 +44,10 @@ class SDAPI():
         self.init_api()
 
     def init_api(self):
+        old_connected = self.connected
         try:
             response = self.get_status()
+            
             if response is not None:
                 self.connected = True
             else:
@@ -52,6 +55,8 @@ class SDAPI():
                 return
         except Exception as e:
             self.connected = False
+            if old_connected:
+                self.on_connection_change()
             return # There was an issue, but the server might not be online yet.
         init_processes = [
             self.get_models,
@@ -103,7 +108,29 @@ class SDAPI():
 
     def get_progress(self):
         return self.get("/sdapi/v1/progress")
-    
+
+    def test_connection(self, host=None, switch_if_success=False):
+        # Return True if the server is up and running.
+        # Don't use the self.get() function, so it can be tested with other servers
+        if host is None:
+            host = self.host
+
+        try:
+            last_url = "{}/queue/status".format(host)
+        
+            response = urllib.request.urlopen(last_url)
+            text = response.read()
+            try:
+                queue_status = json.loads(text)
+                success = len(queue_status.keys()) > 0
+                if success and switch_if_success:
+                    self.change_host(host)
+                return success
+            except Exception as e:
+                return False
+        except Exception as e:
+            return False
+
     # ===========================
     # API calls that cache values
     # ===========================

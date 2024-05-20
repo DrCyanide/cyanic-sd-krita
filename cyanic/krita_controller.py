@@ -3,6 +3,7 @@ from PyQt5.QtGui import QImage
 from PyQt5.QtCore import QBuffer, QIODevice, QByteArray, QThread, QPointF, pyqtSignal, Qt, QTimer
 import base64
 import random
+import json
 # https://scripting.krita.org/lessons/layers
 # https://api.kde.org/krita/html/classNode.html
 

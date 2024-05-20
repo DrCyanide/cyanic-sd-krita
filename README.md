@@ -11,6 +11,9 @@ A Krita Plugin to work with the [Automatic1111 WebUI](https://github.com/AUTOMAT
 
 **Mar 30 2024** - Added a max size option in Settings, for working with a large canvas without over taxing Stable Diffusion
 
+<details>
+<summary>See older updates</summary>
+
 **Mar 23 2024** - Fixed some ControlNet compatibility bugs with Forge
 
 **Jan 4 2024** - Fixed UI bug with collapsible categories (shouldn't cause squishing/overlapping now)
@@ -36,11 +39,12 @@ A Krita Plugin to work with the [Automatic1111 WebUI](https://github.com/AUTOMAT
 **Oct 4 2023** - Inpainting added.
 
 **Oct 3 2023** - First iteration of ControlNet support added. 
+</details>
 
 
 # Install Instructions
-1. Ensure your server has API access. For A1111, this means adding `--api` to your webui-user.bat (or equivalent) `COMMANDLINE_ARGS`
-2. Open Kritam then go `Settings > Manage Resources`, then in the bottom right click the `Open Resource Folder` button
+1. Ensure your server has API access. For A1111 and Forge, this means adding `--api` to your webui-user.bat (or equivalent) `COMMANDLINE_ARGS`
+2. Open Krita then go `Settings > Manage Resources`, then in the bottom right click the `Open Resource Folder` button
 
 ![](readme_imgs/krita_settings.png)
 

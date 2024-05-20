@@ -13,7 +13,7 @@ class CFGWidget(QWidget):
         self.setLayout(QHBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.variables = {
-            'cfg': self.settings_controller.get('defaults.cfg_scale'),
+            'cfg': self.settings_controller.get('cfg'),
         }
         self.draw_ui()
 
@@ -32,7 +32,7 @@ class CFGWidget(QWidget):
         self.variables[key] = round(value, 2)
 
     def save_settings(self):
-        self.settings_controller.set('defaults.cfg_scale', self.variables['cfg'])
+        self.settings_controller.set('cfg', self.variables['cfg'])
         self.settings_controller.save()
     
     def get_generation_data(self):

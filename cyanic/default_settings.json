@@ -1,149 +1,269 @@
 {
-    "server": {
-        "host": "http://127.0.0.1:7860",
-        "save_imgs": false
-    },
-    "defaults": {
-        "sampler": "",
-        "sampling_steps": 20,
-        "model": "",
-        "vae": "",
-        "upscaler": "",
-        "refiner": "",
-        "enable_refiner": false,
-        "refiner_start": 0.8,
-        "face_restorer": "",
-        "cfg_scale": 7,
-        "denoise_strength": 0.7,
-        "color_correction": true,
-        "match_colors": false,
-        "min_size": 512,
-        "enable_max_size": false,
-        "max_size": 2048
-    },
-    "prompts": {
-        "share_prompts": true,
-        "exclude_sharing": ["adetailer", "inpaint"],
-        "save_prompts": true,
-        "shared_prompt": "",
-        "shared_negative_prompt": "",
-        "txt2img_prompt": "",
-        "txt2img_negative_prompt": "",
-        "img2img_prompt": "",
-        "img2img_negative_prompt": "",
-        "inpaint_prompt": "",
-        "inpaint_negative_prompt": "",
-        "adetailer_prompt": "",
-        "adetailer_negative_prompt": ""
-    },
-    "hr_fix": {
-        "auto_hrfix": true,
-        "auto_hrfix_min": 768,
-        "sd_min": 512,
-        "upscaler": "Latent",
-        "hrfix_steps": 0,
-        "denoise_strength": 0.7
-    },
-    "batch": {
-        "count": 1,
-        "size": 1
-    },
-    "seed": {
-        "seed": -1,
-        "subseed": -1,
-        "subseed_strength": 0.0
-    },
-    "previews": {
-        "enabled": true,
-        "refresh_seconds": 1.0
-    },
-    "extra_networks": {
-        "visible": false,
-        "show_thumbnails": true,
-        "show_descriptions": true
-    },
-    "pages": {
-        "last": ""
-    },
-    "inpaint": {
-        "mask_blur": 4,
-        "mask_mode": 0,
-        "masked_content": 1,
-        "inpaint_area": 0,
-        "padding": 32,
-        "auto_update_mask": true,
-        "results_below_mask": true,
-        "hide_mask_on_gen": true
-    },
-    "soft_inpaint": {
-        "enabled": false,
-        "schedule_bias": 1.0,
-        "preservation_strength": 0.5,
-        "transition_contrast_boost": 4,
-        "mask_influence": 0,
-        "difference_threshold": 0.5,
-        "difference_contrast": 2
-    },
-    "upscale": {
-        "tab": 0,
-        "resize": 2.0,
-        "width": 1024,
-        "height": 1024,
-        "crop_to_fit": true,
-        "resize_canvas": true
-    },
-    "hide_ui": {
-        "auto_save": true,
-        "model": false,
-        "refiner": false,
-        "vae": false,
-        "sampler": false,
-        "seed": false,
-        "batch": false,
-        "negative_prompt": false,
-        "styles": false,
-        "extra_networks": false,
-        "cfg": false,
-        "clip_skip": false,
-        "color_correction": false,
-        "denoise_strength": false,
-        "face_restore": false,
-        "tiling": false,
-        "hires_fix": false,
-        "hires_fix_auto": false,
-        "hires_upscaler": false,
-        "hires_denoise": false,
-        "extensions": false,
-        "hidden_extensions": [],
-        "controlnet_preprocessor_settings": false,
-        "controlnet_fine_settings": false,
-        "inpaint_auto_update": false,
-        "inpaint_below_mask": false,
-        "inpaint_hide_mask": false,
-        "soft_inpaint": false,
-        "interrogate_img2img": true,
-        "interrogate_model": false
-    },
-    "controlnet": {
-        "low_vram": false,
-        "pixel_perfect": false,
-        "control_mode": "Balanced",
-        "resize_mode": "Just Resize"
-    },
-    "adetailer": {
-        "model": "face_yolov8n.pt"
-    },
-    "rembg": {
-        "model": "u2net",
-        "results_as_mask": true,
-        "apply_mask": true,
-        "alpha_matting": false,
-        "erode_size": 10,
-        "foreground_threshold": 240,
-        "background_threshold": 10
-    },
-    "interrogate": {
-        "model": "clip",
-        "prompt_mode": "img2img"
+    "cyanic_sd_settings_version": "2",
+    "common": {
+        "server": {
+            "host": "http://127.0.0.1:7860",
+            "save_imgs": false
+        },
+        "previews": {
+            "enabled": true,
+            "refresh_seconds": 1.0
+        },
+        "batch": {
+            "count": 1,
+            "size": 1
+        },
+        "prompting": {
+            "saved_prompts": 10,
+            "share_prompts": true,
+            "exclude_sharing": [
+                "inpaint"
+            ],
+            "initial_prompt": "",
+            "initial_negative_prompt": ""
+        },
+        "inpaint": {
+            "mask_blur": 4,
+            "mask_mode": 0,
+            "masked_content": 1,
+            "inpaint_area": 0,
+            "padding": 32,
+            "auto_update_mask": true,
+            "mask_above_results": false,
+            "hide_mask_on_gen": true
+        },
+        "soft_inpaint": {
+            "enabled": false,
+            "schedule_bias": 1.1,
+            "preservation_strength": 0.95,
+            "transition_contrast_boost": 4.4,
+            "mask_influence": 0.02,
+            "difference_threshold": 0.4,
+            "difference_contrast": 1.9
+        },
+        "upscale": {
+            "tab": 0,
+            "resize": 2.0,
+            "width": 512,
+            "height": 512,
+            "crop_to_fit": true,
+            "resize_canvas": false
+        },
+        "cyanic_settings": {
+            "options": {
+                "new_doc_uses_last_doc_settings": true,
+                "debug_mode": false
+            },
+            "pages": {
+                "last": ""
+            },
+            "hide_ui": {
+                "auto_save": true,
+                "model": false,
+                "refiner": false,
+                "vae": false,
+                "sampler": false,
+                "seed": false,
+                "batch": false,
+                "negative_prompt": false,
+                "styles": false,
+                "extra_networks": false,
+                "cfg": false,
+                "clip_skip": true,
+                "color_correction": false,
+                "denoise_strength": false,
+                "face_restore": true,
+                "tiling": true,
+                "hires_fix": false,
+                "hires_fix_auto": false,
+                "hires_upscaler": false,
+                "hires_denoise": false,
+                "extensions": false,
+                "hidden_extensions": [],
+                "controlnet_preprocessor_settings": false,
+                "controlnet_fine_settings": false,
+                "inpaint_auto_update": true,
+                "inpaint_mask_above_results": true,
+                "inpaint_hide_mask": true,
+                "soft_inpaint": false,
+                "interrogate_img2img": true,
+                "interrogate_model": false
+            }
+        },
+        "rembg": {
+            "model": "u2net",
+            "results_as_mask": true,
+            "apply_mask": true,
+            "alpha_matting": false,
+            "erode_size": 10,
+            "foreground_threshold": 240,
+            "background_threshold": 10
+        },
+        "interrogate": {
+            "model": "deepdanbooru",
+            "prompt_mode": "img2img"
+        },
+        "extensions": {
+            "controlnet": {
+                "units": 3
+            },
+            "adetailer": {
+                "units": 2
+            }
+        }
+    }, 
+    "kra_file_overridden_settings": {
+        "general": {
+            "model": "",
+            "vae": "",
+            "sampler": "",
+            "steps": 20,
+            "upscaler": "",
+            "refiner": "",
+            "enable_refiner": false,
+            "refiner_start": 0.7,
+            "cfg_scale": 9.0,
+            "img_source": {
+                "denoise_strength": 0.8,
+                "color_correction": false,
+                "match_colors": false
+            },
+            "size": {
+                "min": 512,
+                "max": 1024,
+                "enable_max_size": true
+            },
+            "hr_fix": {
+                "auto_hrfix": false,
+                "auto_hrfix_min": 768,
+                "sd_min": 512,
+                "upscaler": "Latent",
+                "hrfix_steps": 25,
+                "denoise_strength": 0.7
+            },
+            "seed": {
+                "seed": -1,
+                "subseed": -1,
+                "subseed_strength": 0.0
+            }
+        },
+        "prompts": {
+            "shared" :{
+                "prompts": [],
+                "negative_prompts": []
+            },
+            "txt2img": {
+                "prompts": [],
+                "negative_prompts": []
+            },
+            "img2img": {
+                "prompts": [],
+                "negative_prompts": []
+            },
+            "inpaint": {
+                "prompts": [],
+                "negative_prompts": []
+            }
+        },
+        "img_references": {
+            "img2img": {
+                "img": "",
+                "coords": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 0,
+                    "h": 0
+                }
+            },
+            "inpaint": {
+                "img": "",
+                "mask": "",
+                "coords": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 0,
+                    "h": 0
+                }
+            }
+        },
+        "extensions": {
+            "controlnet": {
+                "units": [
+                    {
+                        "enabled": false,
+                        "low_vram": false,
+                        "pixel_perfect": false,
+                        "use_mask": false,
+                        "control_type": "All",
+                        "preprocessor": "None",
+                        "model": "None",
+                        "control_mode": "Balanced",
+                        "resize_mode": "Just Resize",
+                        "fine_controls": {
+    
+                        },
+                        "img_references": [
+                            {
+                                "img": "",
+                                "coords": {
+                                    "x": 0,
+                                    "y": 0,
+                                    "w": 0,
+                                    "h": 0
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "adetailer": {
+                "units": [
+                    {
+                        "model": "face_yolov8n.pt",
+                        "prompts": [],
+                        "negative_prompts": [],
+                        "detection": {
+                            "confidence": 0.3,
+                            "mask_top_k": 0,
+                            "mask_min_ratio": 0,
+                            "mask_max_ratio": 1.0
+                        },
+                        "mask_processing": {
+                            "x_offset": 0,
+                            "y_offset": 0,
+                            "mask_erosion": 4,
+                            "merge_mode": "None"
+                        },
+                        "inpainting": {
+                            "mask_blur": 4,
+                            "denoise_strength": 0.4,
+                            "only_masked": true,
+                            "padding": 32,
+                            "use_separate_dimensions": false,
+                            "width": 512,
+                            "height": 512,
+                            "use_separate_steps": false,
+                            "steps": 28,
+                            "use_separate_cfg": false,
+                            "cfg": 7.0,
+                            "use_separate_checkpoint": false,
+                            "model": "None",
+                            "use_separate_vae": false,
+                            "vae": "None",
+                            "use_separate_clip_skip": false,
+                            "clip_skip": 1,
+                            "restore_faces_after": false
+                        },
+                        "controlnet": {
+                            "model": "None",
+                            "module": "None",
+                            "weight": 1.0,
+                            "start": 0,
+                            "end": 1
+                        }
+                    }
+                ]
+            }
+        }
     }
 }

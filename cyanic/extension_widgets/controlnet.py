@@ -235,7 +235,7 @@ class ControlNetUnit(QWidget):
         fine_controls.layout().addWidget(end_step)
 
         fine_collapse = CollapsibleWidget('Fine Controls', fine_controls)
-        if not self.settings_controller.get('hide_ui.controlnet_fine_settings'):
+        if not self.settings_controller.get('hide_ui_controlnet_fine'):
             self.layout().addWidget(fine_collapse)
 
         if self.debug:
@@ -406,7 +406,7 @@ class ControlNetUnit(QWidget):
         self.model_select.setHidden(details['model_free'])
         
         self.preprocessor_settings.setHidden(len(details['sliders']) == 0) # If there's no sliders, just hide it all
-        if self.settings_controller.get('hide_ui.controlnet_preprocessor_settings'):
+        if self.settings_controller.get('hide_ui_controlnet_preprocessor_settings'):
             self.preprocessor_settings.setHidden(True)
 
         if details is None or details['sliders'] is None or len(details['sliders']) == 0:
@@ -526,24 +526,38 @@ class ControlNetAPI():
         return self.control_types.keys()
     
     def get_preprocessors_for_control_type(self, control_type):
-        return self.control_types[control_type]['module_list']
+        try:
+            return self.control_types[control_type]['module_list']
+        except:
+            return []
     
     def get_models_for_control_type(self, control_type):
-        return self.control_types[control_type]['model_list']
+        try:
+            return self.control_types[control_type]['model_list']
+        except:
+            return []
 
     def get_version(self):
-        return self.api.get('/controlnet/version')
+        version = self.api.get('/controlnet/version')
+        if version:
+            return version
+        return '' # Not actually using this yet, so I don't know what a fallback would be
     
     def get_models(self):
-        self.models = self.api.get('/controlnet/model_list?update=true')['model_list']
+        try:
+            self.models = self.api.get('/controlnet/model_list?update=true')['model_list']
+        except:
+            self.models = []
     
     def get_modules(self):
         results = self.api.get('/controlnet/module_list?alias_names=true')
+        
         try:
             self.module_list = results['module_list']
             self.module_details = results['module_detail']
         except:
-            pass
+            self.module_list = []
+            self.module_details = []
 
     def get_control_types(self):
         try:
@@ -561,10 +575,11 @@ class ControlNetAPI():
             self.control_types = control_types
 
     def get_settings(self):
-        self.settings = self.api.get('/controlnet/settings')
         try:
+            self.settings = self.api.get('/controlnet/settings')
             self.tabs = self.settings['control_net_unit_count'] # Version 2
         except:
+            self.settings = {}
             self.tabs = 1
             # raise Exception('Cyanic SD - Error reading ControlNet settings, defaulting to 1 tab mode')
 

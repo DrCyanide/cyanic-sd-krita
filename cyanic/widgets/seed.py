@@ -12,9 +12,9 @@ class SeedWidget(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.variables = {
-            'seed': self.settings_controller.get('seed.seed'),
-            'subseed': self.settings_controller.get('seed.subseed'),
-            'subseed_strength': self.settings_controller.get('seed.subseed_strength'),
+            'seed': self.settings_controller.get('seed'),
+            'subseed': self.settings_controller.get('subseed'),
+            'subseed_strength': self.settings_controller.get('subseed_strength'),
         }
         self.draw_ui()
 

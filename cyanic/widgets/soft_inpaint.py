@@ -11,12 +11,12 @@ class SoftInpaintWidget(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.variables = {
-            'schedule_bias': self.settings_controller.get('soft_inpaint.schedule_bias'), # Float, 0.1 steps, 0.0-8.0
-            'preservation_strength': self.settings_controller.get('soft_inpaint.preservation_strength'), # Float, 0.05 steps, 0.0-8.0
-            'transition_contrast_boost': self.settings_controller.get('soft_inpaint.transition_contrast_boost'), # Float, 0.5 steps, 1.0-32.0
-            'mask_influence': self.settings_controller.get('soft_inpaint.mask_influence'), # Float, 0.05 steps, 0.0-1.0
-            'difference_threshold': self.settings_controller.get('soft_inpaint.difference_threshold'), # Float, 0.25 steps, 0.0-8.0
-            'difference_contrast': self.settings_controller.get('soft_inpaint.difference_contrast'), # Float, 0.25 steps, 0.0-8.0
+            'schedule_bias': self.settings_controller.get('soft_inpaint_schedule_bias'), # Float, 0.1 steps, 0.0-8.0
+            'preservation_strength': self.settings_controller.get('soft_inpaint_preservation_strength'), # Float, 0.05 steps, 0.0-8.0
+            'transition_contrast_boost': self.settings_controller.get('soft_inpaint_transition_contrast'), # Float, 0.5 steps, 1.0-32.0
+            'mask_influence': self.settings_controller.get('soft_inpaint_mask_influence'), # Float, 0.05 steps, 0.0-1.0
+            'difference_threshold': self.settings_controller.get('soft_inpaint_difference_threshold'), # Float, 0.25 steps, 0.0-8.0
+            'difference_contrast': self.settings_controller.get('soft_inpaint_difference_contrast'), # Float, 0.25 steps, 0.0-8.0
         }
         self.variable_parameters = {
             'schedule_bias': {
@@ -50,7 +50,7 @@ class SoftInpaintWidget(QWidget):
                 'max': 8.0,
             }
         }
-        self.enabled = self.settings_controller.get('soft_inpaint.enabled')
+        self.enabled = self.settings_controller.get('soft_inpaint_enabled')
         self.draw_ui()
 
     def draw_ui(self):
@@ -102,19 +102,19 @@ class SoftInpaintWidget(QWidget):
 
     def update_enabled(self, enable):
         self.enabled = enable
-        self.settings_controller.set('soft_inpaint.enabled', enable)
+        self.settings_controller.set('soft_inpaint_enabled', enable)
 
     def update_row(self, label, variable_name, value):
         self.variables[variable_name] = value
         label.setText('%s' % value)
 
     def save_settings(self):
-        self.settings_controller.set('soft_inpaint.schedule_bias', self.variables['schedule_bias'])
-        self.settings_controller.set('soft_inpaint.preservation_strength', self.variables['preservation_strength'])
-        self.settings_controller.set('soft_inpaint.transition_contrast_boost', self.variables['transition_contrast_boost'])
-        self.settings_controller.set('soft_inpaint.mask_influence', self.variables['mask_influence'])
-        self.settings_controller.set('soft_inpaint.difference_threshold', self.variables['difference_threshold'])
-        self.settings_controller.set('soft_inpaint.difference_contrast', self.variables['difference_contrast'])
+        self.settings_controller.set('soft_inpaint_schedule_bias', self.variables['schedule_bias'])
+        self.settings_controller.set('soft_inpaint_preservation_strength', self.variables['preservation_strength'])
+        self.settings_controller.set('soft_inpaint_transition_contrast_boost', self.variables['transition_contrast_boost'])
+        self.settings_controller.set('soft_inpaint_mask_influence', self.variables['mask_influence'])
+        self.settings_controller.set('soft_inpaint_difference_threshold', self.variables['difference_threshold'])
+        self.settings_controller.set('soft_inpaint_difference_contrast', self.variables['difference_contrast'])
         self.settings_controller.save()
 
     def get_generation_data(self):

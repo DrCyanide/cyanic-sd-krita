@@ -16,11 +16,11 @@ class ModelsWidget(QWidget):
         self.variables = {
             'model': '',
             'vae': '',
-            'enable_refiner': self.settings_controller.get('defaults.enable_refiner'),
+            'enable_refiner': self.settings_controller.get('refiner_enabled'),
             'refiner': '',
-            'refiner_start': self.settings_controller.get('defaults.refiner_start'),
+            'refiner_start': self.settings_controller.get('refiner_start'),
             'sampler': '',
-            'sampling_steps': self.settings_controller.get('defaults.sampling_steps'),
+            'sampling_steps': self.settings_controller.get('steps'),
         }
         self.models = []
         self.vaes = []
@@ -34,30 +34,30 @@ class ModelsWidget(QWidget):
     def init_variables(self):
         # Model
         self.models, self.variables['model'] = self.api.get_models_and_default()
-        settings_model = self.settings_controller.get('defaults.model')
+        settings_model = self.settings_controller.get('model')
         if settings_model is not None and len(settings_model) > 0 and settings_model in self.models:
             self.variables['model'] = settings_model
 
         # VAE
         self.vaes, self.variables['vae'] = self.api.get_vaes_and_default()
-        settings_vae = self.settings_controller.get('defaults.vae')
+        settings_vae = self.settings_controller.get('vae')
         if settings_vae is not None and len(settings_vae) > 0 and settings_vae in self.vaes:
             self.variables['vae'] = settings_vae
 
         # Refiner
         self.refiners, self.variables['refiner'] = self.api.get_refiners_and_default() # Refiners are treated the same as models right now, but could change in the future
-        settings_refiner = self.settings_controller.get('defaults.refiner')
+        settings_refiner = self.settings_controller.get('refiner')
         if settings_refiner is not None and len(settings_refiner) > 0 and settings_refiner in self.refiners:
             self.variables['refiner'] = settings_refiner
 
         # Sampler
         self.samplers, self.variables['sampler'] = self.api.get_samplers_and_default()
-        settings_sampler = self.settings_controller.get('defaults.sampler')
+        settings_sampler = self.settings_controller.get('sampler')
         if settings_sampler is not None and len(settings_sampler) > 0 and settings_sampler in self.samplers:
             self.variables['sampler'] = settings_sampler
 
         # Steps
-        self.variables['sampling_steps'] = self.settings_controller.get('defaults.sampling_steps')
+        self.variables['sampling_steps'] = self.settings_controller.get('steps')
 
 
     def draw_ui(self):
@@ -79,7 +79,7 @@ class ModelsWidget(QWidget):
         self.model_box.currentTextChanged.connect(lambda: self._update_variables('model', self.model_box.currentText()))
         self.model_box.setToolTip('SD Model')
 
-        if self.ignore_hidden or not self.settings_controller.get('hide_ui.model'):
+        if self.ignore_hidden or not self.settings_controller.get('hide_ui_model'):
             select_form.layout().addRow('Model', self.model_box)
 
         # VAE Select
@@ -95,16 +95,16 @@ class ModelsWidget(QWidget):
         self.vae_box.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         self.vae_box.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
         self.vae_box.setMaxVisibleItems(10) # Suppose to limit the number of visible options
-        settings_vae = self.settings_controller.get('defaults.vae')
+        settings_vae = self.settings_controller.get('vae')
         if len(settings_vae) > 0 and settings_vae in self.vaes:
             self.vae_box.setCurrentText(settings_vae)
         else:
-            self.settings_controller.set('defaults.vae', self.variables['vae'])
+            self.settings_controller.set('vae', self.variables['vae'])
         # Send the changed model to settings. It'll get saved when the generate button is clicked
         self.vae_box.currentTextChanged.connect(lambda: self._update_variables('vae', self.vae_box.currentText()))
         self.vae_box.setToolTip('VAE')
 
-        if self.ignore_hidden or not self.settings_controller.get('hide_ui.vae'):
+        if self.ignore_hidden or not self.settings_controller.get('hide_ui_vae'):
             select_form.layout().addRow('VAE', self.vae_box)
         
         
@@ -140,7 +140,7 @@ class ModelsWidget(QWidget):
         self.refiner_start_label.setText('%s%%' % int(self.variables['refiner_start'] * 100))
         refiner_start.layout().addWidget(self.refiner_start_label)
 
-        if self.ignore_hidden or not self.settings_controller.get('hide_ui.refiner'):
+        if self.ignore_hidden or not self.settings_controller.get('hide_ui_refiner'):
             if self.api.supports_refiners:
                 select_form.layout().addRow('Enable Refiner', self.refiner_enable)
                 select_form.layout().addRow('Refiner', self.refiner_box)
@@ -155,7 +155,7 @@ class ModelsWidget(QWidget):
                 select_form.layout().addRow('Refiner', message)
         
         # Sampler and Steps
-        if self.ignore_hidden or not self.settings_controller.get('hide_ui.sampler'):
+        if self.ignore_hidden or not self.settings_controller.get('hide_ui_sampler'):
             select_form.layout().addRow('Sampler', self._sampler_settings())
 
         self.layout().addWidget(select_form)
@@ -179,11 +179,11 @@ class ModelsWidget(QWidget):
         self.sampler_box.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         self.sampler_box.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
         self.sampler_box.setMaxVisibleItems(10) # Suppose to limit the number of visible options
-        settings_sampler = self.settings_controller.get('defaults.sampler')
+        settings_sampler = self.settings_controller.get('sampler')
         if len(settings_sampler) > 0 and settings_sampler in self.samplers:
             self.sampler_box.setCurrentIndex(self.samplers.index(settings_sampler))
         else:
-            self.settings_controller.set('defaults.sampler', self.variables['sampler'])
+            self.settings_controller.set('sampler', self.variables['sampler'])
         # Send the changed sampler to the settings. It'll get saved when the generate button is clicked
         self.sampler_box.currentTextChanged.connect(lambda: self._update_variables('sampler', self.sampler_box.currentText()))
         self.sampler_box.setToolTip('Sampling method')
@@ -194,7 +194,7 @@ class ModelsWidget(QWidget):
         # self.sampling_steps.setValue(self.settings_controller.get('defaults.sampling_steps'))
         self.sampling_steps.setValue(self.variables['sampling_steps'])
         self.sampling_steps.setMaximum(100)
-        self.sampling_steps.valueChanged.connect(lambda: self._update_variables('sampling_steps', self.sampling_steps.value()))
+        self.sampling_steps.valueChanged.connect(lambda: self._update_variables('steps', self.sampling_steps.value()))
         self.sampling_steps.setToolTip('Sampling steps')
         sampler_row.layout().addWidget(self.sampling_steps)
 
@@ -204,13 +204,13 @@ class ModelsWidget(QWidget):
         self.variables[key] = value
 
     def save_settings(self):
-        self.settings_controller.set('defaults.model', self.variables['model'])
-        self.settings_controller.set('defaults.vae', self.variables['vae'])
-        self.settings_controller.set('defaults.sampler', self.variables['sampler'])
-        self.settings_controller.set('defaults.sampling_steps', self.variables['sampling_steps'])
-        self.settings_controller.set('defaults.enable_refiner', self.variables['enable_refiner'])
-        self.settings_controller.set('defaults.refiner', self.variables['refiner'])
-        self.settings_controller.set('defaults.refiner_start', self.variables['refiner_start'])
+        self.settings_controller.set('model', self.variables['model'])
+        self.settings_controller.set('vae', self.variables['vae'])
+        self.settings_controller.set('sampler', self.variables['sampler'])
+        self.settings_controller.set('steps', self.variables['sampling_steps'])
+        self.settings_controller.set('enable_refiner', self.variables['enable_refiner'])
+        self.settings_controller.set('refiner', self.variables['refiner'])
+        self.settings_controller.set('refiner_start', self.variables['refiner_start'])
         self.settings_controller.save()
     
     def get_generation_data(self):

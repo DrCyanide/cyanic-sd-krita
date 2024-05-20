@@ -15,7 +15,7 @@ class DenoiseWidget(QWidget):
         denoise_row.layout().addWidget(QLabel('Denoise Strength'))
 
         # Denoise label
-        default_noise = self.settings_controller.get('defaults.denoise_strength')
+        default_noise = self.settings_controller.get('denoise_strength')
         self.denoise_percent = QLabel('%s%%' % int(default_noise * 100))
 
         # Denoise Strength
@@ -34,7 +34,7 @@ class DenoiseWidget(QWidget):
 
     def save_settings(self):
         denoise = self.denoise_slider.value() / 100
-        self.settings_controller.set('defaults.denoise_strength', denoise)
+        self.settings_controller.set('denoise_strength', denoise)
 
     def get_generation_data(self):
         denoise = self.denoise_slider.value() / 100
