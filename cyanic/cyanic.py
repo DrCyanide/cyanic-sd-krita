@@ -96,6 +96,13 @@ class CyanicDocker(DockWidget):
         if self.api.connected:
             self.connection_panel.setHidden(True)
             self.content_area.setHidden(False)
+            # Reload the API
+            for page in self.pages:
+                try:
+                    page['page'].load_server_data()
+                except:
+                    # This page must not implement CyanicPage()
+                    pass
         else:
             self.connection_panel.setHidden(False)
             self.content_area.setHidden(True)

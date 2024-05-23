@@ -3,6 +3,7 @@ from .cyanic_widget import CyanicWidget
 # Widgets that don't implement CyanicWidget (manage layout or Cyanic SD settings)
 from .collapsible import CollapsibleWidget
 from .sd_connection import SDConnectionWidget
+from .labeled_slider import LabeledSlider
 
 # Widgets that SHOULD implement CyanicWidget (provide image generation settings)
 from .prompts import PromptWidget

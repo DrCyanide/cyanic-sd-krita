@@ -1,3 +1,5 @@
+from .cyanic_page import CyanicPage
+
 from .settings import SettingsPage
 from .simplify import SimplifyPage
 from .txt2img import Txt2ImgPage

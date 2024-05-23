@@ -128,8 +128,11 @@ class SettingsController():
         return split_key[1], my_dict[split_key[0]]
 
 
-    def get(self, key):
-        return self._get(self.key_mapping[key])
+    def get(self, key, default=None):
+        try:
+            return self._get(self.key_mapping[key])
+        except:
+            return default
 
     def _get(self, key, my_dict=None):
         # Recursive way to iterate through the key

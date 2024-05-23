@@ -4,11 +4,13 @@ from PyQt5.QtCore import Qt
 from ..widgets import CollapsibleWidget
 from ..krita_controller import KritaController
 from ..settings_controller import SettingsController
+from ..sdapi_v1 import SDAPI
 
 class SeedWidget(QWidget):
-    def __init__(self, settings_controller:SettingsController):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI=None):
         super().__init__()
         self.settings_controller = settings_controller
+        self.api = api # Not used here
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.variables = {

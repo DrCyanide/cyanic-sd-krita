@@ -280,7 +280,10 @@ class SDAPI():
     
     def get_vaes_and_default(self):
         if self.connected and self.vaes:
-            return list(map(lambda x: x['model_name'], self.vaes)), self.defaults['vae']
+            vaes = list(map(lambda x: x['model_name'], self.vaes))
+            if not 'None' in vaes:
+                vaes.insert(0, 'None')
+            return vaes, self.defaults['vae']
         else:
             return [], 'None'
     

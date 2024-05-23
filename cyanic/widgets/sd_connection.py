@@ -19,6 +19,7 @@ class SDConnectionWidget(QWidget):
     def draw_ui(self):
         self.host_addr = QLineEdit(self.settings_controller.get('host'))
         self.host_addr.setPlaceholderText(self.api.DEFAULT_HOST)
+        self.host_addr.returnPressed.connect(self.handle_connect_btn_click)
         self.layout().addRow('Host', self.host_addr)
 
         self.connect_btn = QPushButton('Connect')
