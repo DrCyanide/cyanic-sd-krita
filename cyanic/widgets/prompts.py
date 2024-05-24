@@ -177,6 +177,7 @@ class PromptWidget(CyanicWidget):
 
     def get_generation_data(self):
         self.save_settings()
+        self.update_history_label()
         data = {
             'prompt': self.prompt_text_edit.toPlainText(),
             'negative_prompt': self.negative_prompt_text_edit.toPlainText(),
