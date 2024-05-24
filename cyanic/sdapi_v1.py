@@ -233,32 +233,53 @@ class SDAPI():
 
     def get_facerestorers(self):
         self.facerestorers = self.get("/sdapi/v1/face-restorers")
-        return self.facerestorers
+        if self.facerestorers:
+            return self.facerestorers
+        else:
+            return []
 
     def get_styles(self):
         self.styles = self.get("/sdapi/v1/prompt-styles")
-        return self.styles
+        if self.styles:
+            return self.styles
+        else:
+            return []
     
     def get_vaes(self):
         self.vaes = self.get("/sdapi/v1/sd-vae")
-        return self.vaes
+        if self.vaes:
+            return self.vaes
+        else:
+            return []
     
     def get_scripts(self):
         self.scripts = self.get("/sdapi/v1/scripts")
-        return self.scripts
+        if self.scripts:
+            return self.scripts
+        else:
+            return {'txt2img': [], 'img2img': []}
     
     def get_loras(self):
         # Doesn't return user notes, but returns all sort of other junk
         self.loras = self.get("/sdapi/v1/loras")
-        return self.loras
+        if self.loras:
+            return self.loras
+        else:
+            return []
     
     def get_embeddings(self):
         self.embeddings = self.get("/sdapi/v1/embeddings")
-        return self.embeddings
+        if self.embeddings:
+            return self.embeddings
+        else:
+            return []
     
     def get_hypernetworks(self):
         self.hypernetworks = self.get("/sdapi/v1/hypernetworks")
-        return self.hypernetworks
+        if self.hypernetworks:
+            return self.hypernetworks
+        else:
+            return []
     
     # TODO: /sdapi/v1/lycos exists in SD.Next
     
