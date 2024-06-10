@@ -54,7 +54,10 @@ class InpaintPage(QWidget):
         if not self.settings_controller.get('hide_ui.extensions'):
             self.layout().addWidget(extension_collapsed)
 
-        self.generate_widget = GenerateWidget(self.settings_controller, self.api, [self.mask_widget, self.color_correction, self.denoise_widget, self.model_widget, self.prompt_widget, self.soft_inpaint_widget, self.batch_widget, self.cfg_widget, self.seed_widget, self.extension_widget], 'inpaint', self.size_dict)
+        all_widgets = [self.mask_widget, self.color_correction, self.denoise_widget, self.model_widget, self.prompt_widget, self.batch_widget, self.cfg_widget, self.seed_widget, self.extension_widget]
+        if self.api.script_installed('soft inpainting') and not self.settings_controller.get('hide_ui.soft_inpaint'):
+            all_widgets.append(self.soft_inpaint_widget)
+        self.generate_widget = GenerateWidget(self.settings_controller, self.api, all_widgets, 'inpaint', self.size_dict)
         self.layout().addWidget(self.generate_widget)
 
         self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top
