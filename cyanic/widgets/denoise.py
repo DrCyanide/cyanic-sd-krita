@@ -1,46 +1,35 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from ..settings_controller import SettingsController
+from ..widgets import CyanicWidget, LabeledSlider
 
-class DenoiseWidget(QWidget):
+class DenoiseWidget(CyanicWidget):
     def __init__(self, settings_controller:SettingsController, include_start=False, include_end=False):
-        super().__init__()
-        self.settings_controller = settings_controller
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0,0,0,0)
+        super().__init__(settings_controller, None, QHBoxLayout)
+        self.variables = {
+            'denoising_strength': 0.7,
+        }
+        self.init_ui()
+        self.set_widget_values()
 
-        denoise_row = QWidget()
-        denoise_row.setLayout(QHBoxLayout())
-        denoise_row.layout().setContentsMargins(0,0,0,0)
-        denoise_row.layout().addWidget(QLabel('Denoise Strength'))
+    def init_ui(self):
+        self.layout().addWidget(QLabel('Denoising Strength'))
+        self.slider = LabeledSlider(0, 100, self.variables['denoising_strength'], as_percent=True)
+        self.layout().addWidget(self.slider)
 
-        # Denoise label
-        default_noise = self.settings_controller.get('denoise_strength')
-        self.denoise_percent = QLabel('%s%%' % int(default_noise * 100))
+    def set_widget_values(self):
+        self.slider.set_value(self.variables['denoising_strength'])
 
-        # Denoise Strength
-        self.denoise_slider = QSlider(Qt.Horizontal)
-        self.denoise_slider.setTickInterval(10)
-        self.denoise_slider.setTickPosition(QSlider.TicksAbove)
-        self.denoise_slider.setMinimum(0)
-        self.denoise_slider.setMaximum(100)
-        self.denoise_slider.setValue(int(default_noise * 100))
-        self.denoise_slider.valueChanged.connect(lambda: self.denoise_percent.setText('%s%%' % self.denoise_slider.value()))
-
-        denoise_row.layout().addWidget(self.denoise_slider)
-
-        denoise_row.layout().addWidget(self.denoise_percent)
-        self.layout().addWidget(denoise_row)
+    def update_variables(self):
+        self.variables['denoising_strength'] = self.slider.value()
 
     def save_settings(self):
-        denoise = self.denoise_slider.value() / 100
-        self.settings_controller.set('denoise_strength', denoise)
+        self.update_variables()
+        super().save_settings()
 
     def get_generation_data(self):
-        denoise = self.denoise_slider.value() / 100
-        data = {
-            'denoising_strength': denoise
-        }
+        self.update_variables()
+        data = self.variables
         self.save_settings()
         self.settings_controller.save()
         return data

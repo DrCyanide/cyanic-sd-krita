@@ -13,8 +13,6 @@ class CyanicPage(QWidget):
         self.setLayout(QVBoxLayout())
         # self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top
 
-        self.init_ui()
-
     def init_ui(self):
         # Initialize cyanic_widgets
         raise NotImplementedError('init_ui() not implemented for this page')
@@ -26,7 +24,6 @@ class CyanicPage(QWidget):
     def load_all_settings(self):
         for widget in self.cyanic_widgets:
             widget.load_all_settings()
-        self.handle_hidden()
 
     def load_server_data(self):
         for widget in self.cyanic_widgets:

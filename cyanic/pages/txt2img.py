@@ -9,6 +9,7 @@ from . import CyanicPage
 class Txt2ImgPage(CyanicPage):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
         super().__init__(settings_controller, api)
+        self.init_ui()
 
     def init_ui(self):
         self.model_widget = ModelsWidget(self.settings_controller, self.api)

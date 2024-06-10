@@ -2,24 +2,22 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QDoubleValidator
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
-from ..krita_controller import KritaController
+from . import CyanicPage
 
-class SettingsPage(QWidget):
+class SettingsPage(CyanicPage):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
-        super().__init__()
-        self.settings_controller = settings_controller
-        self.kc = KritaController()
-        self.api = api
+        super().__init__(settings_controller, api)
         self.connected = False
+        self.init_ui()
 
-        self.setLayout(QVBoxLayout())
+    def init_ui(self):
+        # TODO: Rewrite this in a way that actually follows the CyanicPage format. I'm focusing on rewriting the other pages
         self._server_settings_group()
         # self._generation_group()
         self._size_group()
         self._previews_group()
         self._prompt_group()
         self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top
-
 
     def _server_settings_group(self):
         host_form = QGroupBox('Server Settings')
@@ -91,30 +89,30 @@ class SettingsPage(QWidget):
         self.add_tooltip(prompt_form, 'Share prompt/negative prompt text between Txt2Img, Img2Img, etc.')
 
         # Excluded from sharing
-        exclude_form = QWidget()
-        exclude_form.setLayout(QVBoxLayout())
-        exclude_txt2img = QCheckBox('Txt2Img')
-        exclude_txt2img.setChecked('txt2img' in self.settings_controller.get('prompt_share_excludes'))
-        exclude_txt2img.toggled.connect(lambda: self._toggle_and_save('prompt_share_excludes', 'txt2img'))
-        exclude_form.layout().addWidget(exclude_txt2img)
+        include_form = QWidget()
+        include_form.setLayout(QVBoxLayout())
+        include_txt2img = QCheckBox('Txt2Img')
+        include_txt2img.setChecked('txt2img' in self.settings_controller.get('prompt_share_includes'))
+        include_txt2img.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'txt2img'))
+        include_form.layout().addWidget(include_txt2img)
 
-        exclude_img2img = QCheckBox('Img2Img')
-        exclude_img2img.setChecked('img2img' in self.settings_controller.get('prompt_share_excludes'))
-        exclude_img2img.toggled.connect(lambda: self._toggle_and_save('prompt_share_excludes', 'img2img'))
-        exclude_form.layout().addWidget(exclude_img2img)
+        include_img2img = QCheckBox('Img2Img')
+        include_img2img.setChecked('img2img' in self.settings_controller.get('prompt_share_includes'))
+        include_img2img.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'img2img'))
+        include_form.layout().addWidget(include_img2img)
 
-        exclude_inpaint = QCheckBox('Inpaint')
-        exclude_inpaint.setChecked('inpaint' in self.settings_controller.get('prompt_share_excludes'))
-        exclude_inpaint.toggled.connect(lambda: self._toggle_and_save('prompt_share_excludes', 'inpaint'))
-        exclude_form.layout().addWidget(exclude_inpaint)
+        include_inpaint = QCheckBox('Inpaint')
+        include_inpaint.setChecked('inpaint' in self.settings_controller.get('prompt_share_includes'))
+        include_inpaint.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'inpaint'))
+        include_form.layout().addWidget(include_inpaint)
 
         if self.api.script_installed('adetailer'):
-            exclude_adetailer = QCheckBox('ADetailer')
-            exclude_adetailer.setChecked('adetailer' in self.settings_controller.get('prompt_share_excludes'))
-            exclude_adetailer.toggled.connect(lambda: self._toggle_and_save('prompt_share_excludes', 'adetailer'))
-            exclude_form.layout().addWidget(exclude_adetailer)
+            include_adetailer = QCheckBox('ADetailer')
+            include_adetailer.setChecked('adetailer' in self.settings_controller.get('prompt_share_includes'))
+            include_adetailer.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'adetailer'))
+            include_form.layout().addWidget(include_adetailer)
         
-        prompt_form.layout().addRow('Exclude from sharing', exclude_form)
+        prompt_form.layout().addRow('Included in prompt sharing', include_form)
         self.add_tooltip(prompt_form, 'Changes to the checked prompts/negative prompts won\'t override the unchecked')
 
         # TODO: Replace with the amount of prompts to save, and include the options.

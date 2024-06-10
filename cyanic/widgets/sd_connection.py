@@ -13,10 +13,10 @@ class SDConnectionWidget(QWidget):
         self.kc = KritaController()
 
         self.setLayout(QFormLayout())
-        self.draw_ui()
+        self.init_ui()
     
 
-    def draw_ui(self):
+    def init_ui(self):
         self.host_addr = QLineEdit(self.settings_controller.get('host'))
         self.host_addr.setPlaceholderText(self.api.DEFAULT_HOST)
         self.host_addr.returnPressed.connect(self.handle_connect_btn_click)

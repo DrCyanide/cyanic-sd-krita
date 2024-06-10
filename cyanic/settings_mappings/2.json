@@ -19,7 +19,7 @@
     "hr_fix_sd_min": "kra_file_overridden_settings.general.hr_fix.sd_min",
     "hr_fix_upscaler": "kra_file_overridden_settings.general.hr_fix.upscaler",
     "hr_fix_steps": "kra_file_overridden_settings.general.hr_fix.hrfix_steps",
-    "hr_fix_denoise": "kra_file_overridden_settings.general.hr_fix.denoise_strength",
+    "hr_fix_denoise": "kra_file_overridden_settings.general.hr_fix.denoising_strength",
 
     "model": "kra_file_overridden_settings.general.model",
     "model_max_size_enable": "kra_file_overridden_settings.general.size.enable_max_size",
@@ -35,13 +35,13 @@
     "refiner_enabled": "kra_file_overridden_settings.general.enable_refiner",
     "refiner_start": "kra_file_overridden_settings.general.refiner_start",
 
-    "denoise_strength": "kra_file_overridden_settings.general.img_source.denoise_strength",
+    "denoising_strength": "kra_file_overridden_settings.general.img_source.denoising_strength",
     "color_correction": "kra_file_overridden_settings.general.img_source.color_correction",
     "color_match": "kra_file_overridden_settings.general.img_source.match_colors",
 
     "prompt_history_max": "common.prompting.saved_prompts",
     "prompt_share": "common.prompting.share_prompts",
-    "prompt_share_excludes": "common.prompting.exclude_sharing",
+    "prompt_share_includes": "common.prompting.include_sharing",
     "prompt_initial": "common.prompting.initial_prompt",
     "prompt_negative_initial": "common.prompting.initial_negative_prompt",
 
@@ -101,7 +101,7 @@
     "adetailer_unit_count": "common.extensions.adetailer.units",
     "adetailer_units": "kra_file_overridden_settings.extensions.adetailer.units",
 
-    "new_doc_copies_settings": "common.cyanic_settings.options.new_doc_uses_last_doc_settings",
+    "new_doc_prompt_mode": "common.cyanic_settings.options.new_doc_prompt_mode",
     "debug_mode_enabled": "common.cyanic_settings.options.debug_mode",
 
     "hide_ui_auto_save": "common.cyanic_settings.hide_ui.auto_save",
@@ -117,7 +117,7 @@
     "hide_ui_cfg": "common.cyanic_settings.hide_ui.cfg",
     "hide_ui_clip_skip": "common.cyanic_settings.hide_ui.clip_skip",
     "hide_ui_color_correction": "common.cyanic_settings.hide_ui.color_correction",
-    "hide_ui_denoise": "common.cyanic_settings.hide_ui.denoise_strength",
+    "hide_ui_denoise": "common.cyanic_settings.hide_ui.denoising_strength",
     "hide_ui_face_restore": "common.cyanic_settings.hide_ui.face_restore",
     "hide_ui_tiling": "common.cyanic_settings.hide_ui.tiling",
     "hide_ui_hires_fix": "common.cyanic_settings.hide_ui.hires_fix",

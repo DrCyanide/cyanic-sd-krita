@@ -1,32 +1,34 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from ..sdapi_v1 import SDAPI
-from ..krita_controller import KritaController
 from ..settings_controller import SettingsController
+from ..widgets import CyanicWidget
 
-class CFGWidget(QWidget):
+class CFGWidget(CyanicWidget):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
-        super().__init__()
-        self.settings_controller = settings_controller
-        self.kc = KritaController()
-        self.api = api
-        self.setLayout(QHBoxLayout())
-        self.layout().setContentsMargins(0,0,0,0)
+        super().__init__(settings_controller, api, QHBoxLayout)
         self.variables = {
-            'cfg': self.settings_controller.get('cfg'),
+            'cfg': 7
         }
-        self.draw_ui()
+        self.init_ui()
+        self.set_widget_values()
 
-    def draw_ui(self):
+    def load_server_data(self):
+        pass
+
+    def set_widget_values(self):
+        self.cfg_entry.setValue(self.variables['cfg'])
+
+    def init_ui(self):
         self.layout().addWidget(QLabel('CFG Scale'))
 
-        cfg_entry = QDoubleSpinBox()
-        cfg_entry.setMinimum(0.0)
-        cfg_entry.setMaximum(30.0)
-        cfg_entry.setValue(self.variables['cfg'])
-        cfg_entry.setSingleStep(0.1)
-        cfg_entry.valueChanged.connect(lambda: self._update_variable('cfg', cfg_entry.value()))
-        self.layout().addWidget(cfg_entry)
+        self.cfg_entry = QDoubleSpinBox()
+        self.cfg_entry.setMinimum(0.0)
+        self.cfg_entry.setMaximum(30.0)
+        # self.cfg_entry.setValue(self.variables['cfg'])
+        self.cfg_entry.setSingleStep(0.1)
+        self.cfg_entry.valueChanged.connect(lambda: self._update_variable('cfg', self.cfg_entry.value()))
+        self.layout().addWidget(self.cfg_entry)
 
     def _update_variable(self, key, value):
         self.variables[key] = round(value, 2)

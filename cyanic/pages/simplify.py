@@ -2,11 +2,12 @@ from PyQt5.QtWidgets import *
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..widgets import *
+from . import CyanicPage
 
 
-class SimplifyPage(QWidget):
+class SimplifyPage(CyanicPage):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
-        super().__init__()
+        super().__init__(settings_controller, api)
         self.settings_controller = settings_controller
         self.api = api
         self.setLayout(QVBoxLayout())
@@ -50,9 +51,9 @@ class SimplifyPage(QWidget):
             'mask_hide_while_gen': self.settings_controller.get('inpaint_mask_hide_while_gen'),
         }
 
-        self.draw_ui()
+        self.init_ui()
 
-    def draw_ui(self):
+    def init_ui(self):
         instructions = QLabel("Reducing the clutter in the UI by hiding settings. Hidden settings will still be applied during generation. If you adjust a default setting remember to click the 'Save' button at the bottom of the page.")
         instructions.setWordWrap(True)
         self.layout().addWidget(instructions)
@@ -181,7 +182,7 @@ class SimplifyPage(QWidget):
 
         soft_inpaint_settings = QGroupBox('Soft Inpaint Settings')
         soft_inpaint_settings.setLayout(QVBoxLayout())
-        self.soft_inpaint = SoftInpaintWidget(self.settings_controller, settings_only=True)
+        self.soft_inpaint = SoftInpaintWidget(self.settings_controller, self.api, settings_only=True)
         soft_inpaint_settings.layout().addWidget(self.soft_inpaint)
         inpaint_settings.layout().addWidget(soft_inpaint_settings)
 

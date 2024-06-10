@@ -111,6 +111,8 @@ class CyanicDocker(DockWidget):
     def change_page(self):
         for page in self.pages:
             if page['name'] == self.page_combobox.currentText():
+                page['page'].save_settings()
+                self.settings_controller.save_kra_settings()
                 self.settings_controller.set('cyanic_sd_last_page', page['name'])
                 self.settings_controller.save()
                 # page['content']()
@@ -122,7 +124,11 @@ class CyanicDocker(DockWidget):
     # This needs to be present in any class that implements DockWidget, even if it's not used
     def canvasChanged(self, canvas):
         # Can be used to detect active document change, which can update settings
-        pass
+        self.settings_controller.load_kra_settings()
+        for page in self.pages:
+            page['page'].load_settings()
+        self.settings_dialog.load_settings()
+
 
 # This is what tells Krita to add the docker in the first place.
 Krita.instance().addDockWidgetFactory(
@@ -132,122 +138,3 @@ Krita.instance().addDockWidgetFactory(
         CyanicDocker
     )
 )
-
-# This was handy for debugging. Leaving it here for now.
-#
-# from krita import *
-# from PyQt5.QtCore import QThread, pyqtSignal, QObject
-# import urllib.request
-
-# class GenericWorker(QObject):
-#     finished = pyqtSignal()
-#     def __init__(self, task):
-#         super().__init__()
-#         self.task = task
-
-#     def run(self):
-#         try:
-#             self.task()
-#         except Exception as e:
-#             pass
-#         self.finished.emit()
-
-
-# class MyFakeAPI():
-#     def __init__(self, on_connection_change):
-#         self.connected = False
-#         self.on_connection_change = on_connection_change
-
-#     def test_connection(self):
-#         target_url = "http://127.0.0.1:7865"
-#         try:
-#             response = urllib.request.urlopen(target_url)
-#             text = response.read()
-#             self.connected = True
-#         except:
-#             self.connected = False
-#         # self.on_connection_change()
-
-
-# class TestDocker(DockWidget):
-#     def __init__(self):
-#         super().__init__()
-#         self.connected = False
-#         self.test_count = 0
-#         self.api = MyFakeAPI(self.on_api_change)
-
-#         self.setWindowTitle("Cyanic SD")
-#         self.main_widget = QWidget(self)
-#         self.main_widget.setLayout(QVBoxLayout())
-#         self.setWidget(self.main_widget)        
-
-#         self.btn_panel = QWidget()
-#         self.btn_panel.setLayout(QVBoxLayout())
-#         self.btn = QPushButton('Push to Test')
-#         self.btn.clicked.connect(lambda: self.test_connection())
-#         self.btn_panel.layout().addWidget(self.btn)
-#         self.btn_label = QLabel('No connection')
-#         self.btn_panel.layout().addWidget(self.btn_label)
-#         self.main_widget.layout().addWidget(self.btn_panel)
-
-#         self.test_panel= QWidget()
-#         self.test_panel.setLayout(QVBoxLayout())
-#         self.test_text = QLabel('This is a test: %s' % self.test_count)
-#         self.test_panel.layout().addWidget(self.test_text)
-#         self.main_widget.layout().addWidget(self.test_panel)
-
-#         self.on_api_change()
-
-#     # This needs to be present in any class that implements DockWidget, might be relevant later
-#     def canvasChanged(self, canvas):
-#         pass
-
-#     def test_connection(self):
-#         self.btn.setText('Testing...')
-#         self.btn.setDisabled(True)
-#         self.btn_label.setText('Attempting connection...')
-#         # Start thread
-#         # NOTE: Krita crashes if self.thread/self.worker are local variables (just thread/worker)
-#         self.thread = QThread()
-#         self.worker = GenericWorker(self.thread_run)
-#         self.worker.moveToThread(self.thread)
-#         self.worker.finished.connect(self.thread_return)
-#         self.worker.finished.connect(self.thread.quit)
-#         self.thread.started.connect(self.worker.run)
-#         self.thread.start()
-
-#     def thread_run(self):
-#         self.api.test_connection()
-
-#     def thread_return(self):
-#         self.btn.setText('Push to Test')
-#         self.btn.setDisabled(False)
-
-#         if self.api.connected:
-#             self.btn_label.setText('Connected!')
-#         else:
-#             self.btn_label.setText('Connection failed')
-#         self.on_api_change()
-
-#     def on_api_change(self):
-#         self.test_count += 1
-#         self.test_text.setText('This is a test: %s' % self.test_count)
-#         try:
-#             if self.api.connected:
-#                 self.btn_panel.setHidden(True)
-#                 self.test_panel.setHidden(False) # breaks it
-#             else:
-#                 self.btn_panel.setHidden(False)
-#                 self.test_panel.setHidden(True)
-#         except Exception as e:
-#             raise Exception('Error trying to API change - %s' % e)
-
-
-
-# # Krita.instance().addDockWidgetFactory(
-# #     DockWidgetFactory(
-# #         "cyanicSD",
-# #         DockWidgetFactoryBase.DockTornOff,
-# #         TestDocker
-# #     )
-# # )

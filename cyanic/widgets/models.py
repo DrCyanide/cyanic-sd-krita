@@ -24,8 +24,52 @@ class ModelsWidget(CyanicWidget):
             'samplers': [],
         }
         self.init_ui()
-        self.load_server_data()
-        self.load_settings()
+        self.set_widget_values()
+
+    def set_widget_values(self):
+        # Model
+        self.model_box.clear()
+        try:
+            self.model_box.addItems(self.server_const['models'])
+            self.model_box.setCurrentText(self.variables['model'])
+        except:
+            self.model_box.setCurrentIndex(0)
+
+        # VAE
+        self.vae_box.clear()
+        try:
+            self.vae_box.addItems(self.server_const['vaes'])
+            self.vae_box.setCurrentText(self.variables['vae'])
+        except:
+            self.vae_box.setCurrentIndex(0)
+
+        # Sampler
+        self.sampler_box.clear()
+        try:
+            self.sampler_box.addItems(self.server_const['samplers'])
+            self.sampler_box.setCurrentText(self.variables['sampler'])
+        except:
+            self.sampler_box.setCurrentIndex(0)
+
+        # Steps
+        self.steps_spin.setValue(self.variables['steps'])
+
+        # Refiner
+        self.refiner_box.clear()
+        try:
+            self.refiner_box.addItems(self.server_const['refiners'])
+            self.refiner_box.setCurrentText(self.variables['refiner'])
+        except:
+            self.refiner_box.setCurrentIndex(0)
+
+        # Refiner start
+        self.refiner_start_slider.set_value(self.variables['refiner_start'])
+
+        # Refiner enabled
+        self.refiner_enable.setChecked(self.variables['refiner_enabled'])
+
+        self.handle_hidden()
+
 
     def init_ui(self):
         VISIBLE_ITEMS = 10
@@ -120,18 +164,14 @@ class ModelsWidget(CyanicWidget):
         self.server_const['models'], self.variables['model'] = self.api.get_models_and_default()
         self.server_const['vaes'], self.variables['vae'] = self.api.get_vaes_and_default()
         self.server_const['refiners'], self.variables['refiner'] = self.api.get_refiners_and_default()
-        self.refresh_ui()
+        # self.refresh_ui()
+        self.set_widget_values()
 
     def load_settings(self):
         # Refresh UI elements that depend on settings saved to file (prompt history, selected images, selected models, etc)
-        self.variables['model'] = self.settings_controller.get('model')
-        self.variables['vae'] = self.settings_controller.get('vae')
-        self.variables['sampler'] = self.settings_controller.get('sampler')
-        self.variables['steps'] = self.settings_controller.get('steps')
-        self.variables['refiner'] = self.settings_controller.get('refiner')
-        self.variables['refiner_enabled'] = self.settings_controller.get('refiner_enabled')
-        self.variables['refiner_start'] = self.settings_controller.get('refiner_start')
-        self.refresh_ui()
+        super().load_settings()
+        # self.refresh_ui()
+        self.set_widget_values()
 
     def save_settings(self):
         # Write widget settings to settings_controller
@@ -158,51 +198,3 @@ class ModelsWidget(CyanicWidget):
             data.pop('refiner')
             data.pop('refiner_start')
         return data
-
-    # -----------------------
-    # Widget specific methods
-    # -----------------------
-
-    def refresh_ui(self):
-        # Model
-        self.model_box.clear()
-        try:
-            self.model_box.addItems(self.server_const['models'])
-            self.model_box.setCurrentText(self.variables['model'])
-        except:
-            self.model_box.setCurrentIndex(0)
-
-        # VAE
-        self.vae_box.clear()
-        try:
-            self.vae_box.addItems(self.server_const['vaes'])
-            self.vae_box.setCurrentText(self.variables['vae'])
-        except:
-            self.vae_box.setCurrentIndex(0)
-
-        # Sampler
-        self.sampler_box.clear()
-        try:
-            self.sampler_box.addItems(self.server_const['samplers'])
-            self.sampler_box.setCurrentText(self.variables['sampler'])
-        except:
-            self.sampler_box.setCurrentIndex(0)
-
-        # Steps
-        self.steps_spin.setValue(self.variables['steps'])
-
-        # Refiner
-        self.refiner_box.clear()
-        try:
-            self.refiner_box.addItems(self.server_const['refiners'])
-            self.refiner_box.setCurrentText(self.variables['refiner'])
-        except:
-            self.refiner_box.setCurrentIndex(0)
-
-        # Refiner start
-        self.refiner_start_slider.set_value(self.variables['refiner_start'])
-
-        # Refiner enabled
-        self.refiner_enable.setChecked(self.variables['refiner_enabled'])
-
-        self.handle_hidden()

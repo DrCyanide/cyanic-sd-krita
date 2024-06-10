@@ -2,31 +2,38 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from ..settings_controller import SettingsController
+from ..sdapi_v1 import SDAPI
+from ..widgets import CyanicWidget
 
-class ColorCorrectionWidget(QWidget):
-    def __init__(self, settings_controller:SettingsController, include_start=False, include_end=False):
-        super().__init__()
-        self.settings_controller = settings_controller
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0,0,0,0)
-        self.color_correct = self.settings_controller.get('color_correction')
+class ColorCorrectionWidget(CyanicWidget):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, include_start=False, include_end=False):
+        super().__init__(settings_controller, api)
+        self.variables = {
+            'color_correction': False,
+        }
+        self.init_ui()
+        self.set_widget_values()
+
+    def init_ui(self):
+        # self.color_correct = self.settings_controller.get('color_correction')
 
         # Match Image Colors
-        match_colors = QCheckBox('Match Image Colors')
-        match_colors.setChecked(self.settings_controller.get('color_match'))
-        match_colors.toggled.connect(lambda: self.update_match_colors(match_colors.isChecked()))
-        self.layout().addWidget(match_colors)
+        self.match_colors = QCheckBox('Match Image Colors')
+        # self.match_colors.setChecked(self.settings_controller.get('color_match'))
+        self.match_colors.toggled.connect(lambda: self._update_variable('color_correction', self.match_colors.isChecked()))
+        self.layout().addWidget(self.match_colors)
 
-    def update_match_colors(self, match):
-        self.color_correct = match
+    def set_widget_values(self):
+        self.match_colors.setChecked(self.settings_controller.get('color_match'))
 
-    def save_settings(self):
-        self.settings_controller.set('color_match', self.color_correct)
+    # def save_settings(self):
+        # self.settings_controller.set('color_match', self.color_correct) # Was this a typo?
 
     def get_generation_data(self):
-        data = {
-            'color_correction': self.color_correct,
-        }
+        # data = {
+        #     'color_correction': self.color_correct,
+        # }
+        data = self.variables
         self.save_settings()
         self.settings_controller.save()
         return data

@@ -113,6 +113,27 @@ class SettingsController():
         str_settings = json.dumps(self.tmp_settings['kra_file_overridden_settings'])
         doc.setAnnotation(self.kra_unique_key, 'Cyanic SD plugin settings', QByteArray(str_settings.encode()))
 
+    def clear_file_prompt_history(self):
+        # tmp_settings should have the most recent file's history.
+        doc = Krita.instance().activeDocument()
+        if doc is None:
+            return
+        
+        history_arrays = [
+            'prompts_txt_shared',
+            'prompts_txt_shared_negative',
+            'prompts_txt_txt2img',
+            'prompts_txt_txt2img_negative',
+            'prompts_txt_img2img',
+            'prompts_txt_img2img_negative',
+            'prompts_txt_inpaint',
+            'prompts_txt_inpaint_negative',
+        ]
+        for key in history_arrays:
+            self.set(key, [])
+            
+        self.save_kra_settings()
+
     def save(self):
         self.settings = self.tmp_settings
         self.save_user_settings()

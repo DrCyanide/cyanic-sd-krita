@@ -1,26 +1,30 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIntValidator
 from PyQt5.QtCore import Qt
-from ..widgets import CollapsibleWidget
+from ..widgets import CollapsibleWidget, CyanicWidget
 from ..krita_controller import KritaController
 from ..settings_controller import SettingsController
 from ..sdapi_v1 import SDAPI
 
-class SeedWidget(QWidget):
+class SeedWidget(CyanicWidget):
     def __init__(self, settings_controller:SettingsController, api:SDAPI=None):
-        super().__init__()
-        self.settings_controller = settings_controller
-        self.api = api # Not used here
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0,0,0,0)
+        super().__init__(settings_controller, api)
         self.variables = {
-            'seed': self.settings_controller.get('seed'),
-            'subseed': self.settings_controller.get('subseed'),
-            'subseed_strength': self.settings_controller.get('subseed_strength'),
+            'seed': -1,
+            'subseed': -1,
+            'subseed_strength': 0.0,
         }
-        self.draw_ui()
+        self.init_ui()
+        self.set_widget_values()
 
-    def draw_ui(self):
+    def set_widget_values(self):
+        if self.variables['seed'] != -1:
+            self.seed_edit.setText(self.variables['seed'])
+        if self.variables['subseed'] != -1:
+            self.seed_edit.setText(self.variables['subseed'])
+        self.subseed_strength_slider.setValue(int(self.variables['subseed_strength'] * 100))
+
+    def init_ui(self):
         # Seed
         row_1 = QWidget()
         row_1.setLayout(QHBoxLayout())
@@ -30,8 +34,8 @@ class SeedWidget(QWidget):
         self.seed_edit = QLineEdit()
         self.seed_edit.setPlaceholderText('Random')
         self.seed_edit.setValidator(QIntValidator())
-        if self.variables['seed'] != -1:
-            self.seed_edit.setText(self.variables['seed'])
+        # if self.variables['seed'] != -1:
+        #     self.seed_edit.setText(self.variables['seed'])
         self.seed_edit.textChanged.connect(lambda: self._update_variable('seed', self.seed_edit.text()))
         row_1.layout().addWidget(self.seed_edit)
 
@@ -57,8 +61,8 @@ class SeedWidget(QWidget):
         self.subseed_edit = QLineEdit()
         self.subseed_edit.setPlaceholderText('Random')
         self.subseed_edit.setValidator(QIntValidator())
-        if self.variables['subseed'] != -1:
-            self.seed_edit.setText(self.variables['subseed'])
+        # if self.variables['subseed'] != -1:
+        #     self.seed_edit.setText(self.variables['subseed'])
         self.subseed_edit.textChanged.connect(lambda: self._update_variable('subseed', self.subseed_edit.text()))
         row_2.layout().addWidget(self.subseed_edit)
 
@@ -68,8 +72,7 @@ class SeedWidget(QWidget):
         self.subseed_strength_slider.setTickPosition(QSlider.TicksAbove)
         self.subseed_strength_slider.setMinimum(0)
         self.subseed_strength_slider.setMaximum(100)
-        self.subseed_strength_slider.setValue(int(self.variables['subseed_strength'] * 100))
-
+        # self.subseed_strength_slider.setValue(int(self.variables['subseed_strength'] * 100))
 
         row_2.layout().addWidget(self.subseed_strength_slider)
         self.percentage = QLabel()
@@ -83,7 +86,7 @@ class SeedWidget(QWidget):
     def get_seed_from_active_layer(self):
         kc = KritaController()
         name = kc.get_active_layer_name()
-        seed = ''
+        seed = '-1'
         if 'seed' in name.lower():
             seed = name.lower().replace('seed: ', '').strip()
         self.seed_edit.setText(seed)
@@ -99,19 +102,9 @@ class SeedWidget(QWidget):
 
     def save_settings(self):
         for key in self.variables.keys():
-            self.settings_controller.set('seed.%s' % key, self.variables[key])
+            self.settings_controller.set(key, self.variables[key])
 
     def get_generation_data(self):
-        # data = {}
-        # if len(self.seed_edit.text()) > 0:
-        #     data['seed'] = self.seed_edit.text()
-        # else:
-        #     data['seed'] = -1
-        # if len(self.subseed_edit.text()) > 0:
-        #     data['subseed'] = self.subseed_edit.text()
-        # else:
-        #     data['subseed'] = -1
-        # data['subseed_strength'] = self.subseed_strength_slider.value() / 100
         data = {
             'seed': self.variables['seed'],
             'subseed': self.variables['subseed'],

@@ -548,6 +548,14 @@ class SDAPI():
             }
             output_file.write(json.dumps(log))
 
+    def read_log(self, filename='log.json', in_plugin_dir=True):
+        plugin_dir = os.path.dirname(os.path.realpath(__file__))
+        path = os.path.join(plugin_dir, filename)
+        if not in_plugin_dir:
+            path = filename
+        
+        return self.read_json_file(path)
+
     def write_img_to_file(self, base64_str, filename='saved.png'):
         with open(filename, 'wb') as output_file:
             output_file.write(base64.b64decode(base64_str))

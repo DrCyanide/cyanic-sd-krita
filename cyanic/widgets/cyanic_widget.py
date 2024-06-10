@@ -36,14 +36,25 @@ class CyanicWidget(QWidget):
 
     def load_settings(self):
         # Refresh UI elements that depend on settings saved to file (prompt history, selected images, selected models, etc)
-        raise NotImplementedError('load_settings() not implemented for this widget')
+        # raise NotImplementedError('load_settings() not implemented for this widget')
+        for key in self.variables:
+            self.variables[key] = self.settings_controller.get(key)
+        self.set_widget_values()
+
+    def set_widget_values(self):
+        # Set the QWidgets values after load_server_data() or load_settings()
+        raise NotImplementedError('set_widget_values() not implemented for this widget')
 
     def save_settings(self):
         # Write widget settings to settings_controller
-        raise NotImplementedError('save_settings() not implemented for this widget')
+        # raise NotImplementedError('save_settings() not implemented for this widget')
+        for key in self.variables:
+            self.settings_controller.set(key, self.variables[key])
 
     def get_generation_data(self):
         # Return a formatted dict with data used to generate images.
         raise NotImplementedError('get_generation_data() not implemented for this widget')
     
-    
+    def _update_variable(self, key, value):
+        # A convenience function for updating self.variables
+        self.variables[key] = value

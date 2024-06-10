@@ -35,7 +35,7 @@
     "refiner_enabled": "defaults.enable_refiner",
     "refiner_start": "defaults.refiner_start",
 
-    "denoise_strength": "defaults.denoise_strength",
+    "denoising_strength": "defaults.denoise_strength",
     "color_correction": "defaults.color_correction",
     "color_match": "defaults.match_colors",
 

@@ -7,13 +7,14 @@ from ..widgets import CollapsibleWidget, CyanicWidget
 
 class PromptWidget(CyanicWidget):
     NUM_LINES = 4
-    def __init__(self, settings_controller:SettingsController, api:SDAPI, mode:str):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, mode:str, prompts_only=False):
         super().__init__(settings_controller, api)
+        self.prompts_only = prompts_only
         self.mode = mode.lower() # txt2img / img2img / inpaint / adetailer1 / adetailer2
         self.variables = {
             'prompt_history_max': 15, # Default value that can be overwritten by settings
             'prompt_share': False,
-            'prompt_share_excludes': [],
+            'prompt_share_includes': [],
             'prompts_txt_shared': [],
             'prompts_txt_shared_negative': [],
             'prompts_txt_%s' % self.mode : [],
@@ -35,8 +36,11 @@ class PromptWidget(CyanicWidget):
         self.active_prompt_negative_variable = 'prompts_txt_%s_negative' % self.mode 
         self.prompt_history_index = 0
         self.init_ui()
-        self.load_server_data()
-        self.load_settings()
+        self.set_widget_values()
+
+    def set_widget_values(self):
+        # Unsure what to do on this one
+        pass
 
     def init_ui(self):
         # Prompt History
@@ -123,8 +127,9 @@ class PromptWidget(CyanicWidget):
     def handle_hidden(self):
         # Hide widgets that settings specify shouldn't show up. Must be called in init_ui() and on load_settings()
         self.negative_prompt_text_edit.setHidden(self.settings_controller.get('hide_ui_negative_prompt'))
-        self.style_collapse.setHidden(self.settings_controller.get('hide_ui_styles'))
-        self.extra_network_collapse.setHidden(self.settings_controller.get('hide_ui_extra_networks'))
+        self.style_collapse.setHidden(self.prompts_only or self.settings_controller.get('hide_ui_styles'))
+        self.extra_network_collapse.setHidden(self.prompts_only or self.settings_controller.get('hide_ui_extra_networks'))
+        self.prompt_history_row.setHidden(self.prompts_only)
 
     def load_server_data(self):
         self.server_const['styles'] = self.api.get_styles()
@@ -136,13 +141,14 @@ class PromptWidget(CyanicWidget):
     def load_settings(self):
         self.variables['prompt_history_max'] = self.settings_controller.get('prompt_history_max', self.variables['prompt_history_max'])
         self.variables['prompt_share'] = self.settings_controller.get('prompt_share', self.variables['prompt_share'])
-        self.variables['prompt_share_excludes'] = self.settings_controller.get('prompt_share_excludes', [])
+        self.variables['prompt_share_includes'] = self.settings_controller.get('prompt_share_includes', [])
         self.variables['prompts_txt_shared'] = self.settings_controller.get('prompts_txt_shared', [])
         self.variables['prompts_txt_shared_negative'] = self.settings_controller.get('prompts_txt_shared_negative', [])
         self.variables['prompts_txt_%s' % self.mode] = self.settings_controller.get('prompts_txt_%s' % self.mode, [])
         self.variables['prompts_txt_%s_negative' % self.mode] = self.settings_controller.get('prompts_txt_%s_negative' % self.mode, [])
         # Reset the prompt_history_index
         self.prompt_history_index = 0
+
         self.load_prompt_edits()
         self.handle_hidden()
 
@@ -173,7 +179,18 @@ class PromptWidget(CyanicWidget):
         # Move the prompt_history_index back to the start
         self.prompt_history_index = 0
 
+        self.variables[self.active_prompt_variable] = active_prompt_history
+        self.variables['%s_negative' % self.active_prompt_variable] = active_negative_prompt_history
+
+        if self.variables['prompt_share'] and self.variables['prompt_share_includes'].index(self.mode) > -1:
+            self.variables['prompts_txt_shared'] = active_prompt_history
+            self.variables['prompts_txt_shared_negative'] = active_negative_prompt_history
+
         # TODO: Save selected styles
+
+        for key, value in self.variables.items():
+            self.settings_controller.set(key, value)
+
 
     def get_generation_data(self):
         self.save_settings()

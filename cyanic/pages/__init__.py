@@ -1,6 +1,7 @@
 from .cyanic_page import CyanicPage
 
 from .settings import SettingsPage
+from .prompt_settings import PromptSettingsPage
 from .simplify import SimplifyPage
 from .txt2img import Txt2ImgPage
 from .img2img import Img2ImgPage

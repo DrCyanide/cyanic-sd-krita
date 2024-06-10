@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import *
-from ..pages import SettingsPage, SimplifyPage
+from ..pages import SettingsPage, SimplifyPage, PromptSettingsPage
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 
@@ -12,14 +12,25 @@ class SettingsDialog(QDialog):
         self.setLayout(QVBoxLayout())
 
         self.tabs = QTabWidget()
-        self.setting_page = SettingsPage(self.settings_controller, self.api)
+        self.settings_page = SettingsPage(self.settings_controller, self.api)
+        self.prompt_settings_page = PromptSettingsPage(self.settings_controller, self.api)
         self.simplify_page = SimplifyPage(self.settings_controller, self.api)
+        # Default Settings?
 
-        self.draw_ui()
+        self.pages = [
+            self.settings_page,
+            self.prompt_settings_page,
+            self.simplify_page,
+        ]
 
-    def draw_ui(self):
+        self.init_ui()
+
+    def init_ui(self):
         self.layout().addWidget(self.tabs)
-        self.tabs.addTab(self.setting_page, 'Server')
+        self.tabs.addTab(self.settings_page, 'Server')
+
+        # Set prompt history length + initial prompt + clean prompts on new docs
+        self.tabs.addTab(self.prompt_settings_page, 'Prompts')
 
         # Simplify is way too long to not have a scroll area
         scroll = QScrollArea()
@@ -27,6 +38,20 @@ class SettingsDialog(QDialog):
         scroll.setWidgetResizable(True)
         self.tabs.addTab(scroll, 'Simplify')
 
-        # Set prompt history length + initial prompt + clean prompts on new docs
+    def load_all_settings(self):
+        for page in self.pages:
+            page.load_all_settings()
+
+    def load_server_data(self):
+        for page in self.pages:
+            page.load_server_data()
+
+    def load_settings(self):
+        for page in self.pages:
+            page.load_settings()
+
+    def closeEvent(self, event):
+        for page in self.pages:
+            page.save_settings()
 
         

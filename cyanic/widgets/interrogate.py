@@ -4,12 +4,10 @@ import json
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..krita_controller import KritaController
-from ..widgets import PromptWidget
-from ..widgets import ImageInWidget
-from ..widgets import InterrogateModelWidget
+from ..widgets import CyanicWidget, PromptWidget, ImageInWidget, InterrogateModelWidget
 
-
-class InterrogateWidget(QWidget):
+# Interrogate was originally designed by tectin0 - https://github.com/DrCyanide/cyanic-sd-krita/pull/29
+class InterrogateWidget(CyanicWidget):
     def __init__(
         self,
         settings_controller: SettingsController,
@@ -19,19 +17,16 @@ class InterrogateWidget(QWidget):
         image_in: ImageInWidget,
         size_dict={"x": 0, "y": 0, "w": 0, "h": 0},
     ):
-        super().__init__()
-        self.settings_controller = settings_controller
-        self.api = api
+        super().__init__(settings_controller, api)
         self.interrogate_model_widget = interrogate_model_widget
         self.prompt_widget = prompt_widget
         self.image_in = image_in
         self.size_dict = size_dict
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
-        self.kc = KritaController()
         self.results = None
         self.debug = False
+        self.init_ui()
 
+    def init_ui(self):
         self.interrogate_btn = QPushButton()
         self.interrogate_btn.setText("Interrogate")
         self.interrogate_btn.clicked.connect(self.handle_interrogate_btn_click)
@@ -44,11 +39,15 @@ class InterrogateWidget(QWidget):
             )
             self.layout().addWidget(self.debug_data)
 
+    def set_widget_values(self):
+        pass
+
     def handle_interrogate_btn_click(self):
         self.interrogate()
         self.update()
 
     def interrogate(self):
+        kc = KritaController()
         # TODO: Give some sort of indicator if the backend is loading a new model/VAE, because that makes everything take longer.
         self.update()
 
@@ -58,11 +57,11 @@ class InterrogateWidget(QWidget):
         h = self.size_dict["h"]
         if w == 0 or h == 0:
             # Size dict was not updated, try to use the selection size
-            x, y, w, h = self.kc.get_selection_bounds()
+            x, y, w, h = kc.get_selection_bounds()
             if w == 0 or h == 0:
                 # Nothing was selected, use the canvas size
                 x, y = 0, 0
-                w, h = self.kc.get_canvas_size()
+                w, h = kc.get_canvas_size()
 
         image = self.image_in.get_generation_data()[self.image_in.key]
 
@@ -81,9 +80,9 @@ class InterrogateWidget(QWidget):
         processing_instructions = {}
 
         try:
-            self.kc.refresh_doc()
-            if self.kc.doc is None:
-                self.kc.create_new_doc()
+            kc.refresh_doc()
+            if kc.doc is None:
+                kc.create_new_doc()
 
             self.results = self.api.interrogate(data)
 
@@ -121,3 +120,6 @@ class InterrogateWidget(QWidget):
                     "%s\nThreadable Return found no results"
                     % self.debug_data.toPlainText()
                 )
+
+    def get_generation_data(self):
+        return {}

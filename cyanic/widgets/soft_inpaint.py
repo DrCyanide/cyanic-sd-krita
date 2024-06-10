@@ -1,15 +1,13 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
+from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
-from . import CollapsibleWidget
+from . import CollapsibleWidget, CyanicWidget
 
-class SoftInpaintWidget(QWidget):
-    def __init__(self, settings_controller:SettingsController, settings_only=False):
-        super().__init__()
-        self.settings_controller = settings_controller
+class SoftInpaintWidget(CyanicWidget):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, settings_only=False):
+        super().__init__(settings_controller, api)
         self.settings_only = settings_only
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0,0,0,0)
         self.variables = {
             'schedule_bias': self.settings_controller.get('soft_inpaint_schedule_bias'), # Float, 0.1 steps, 0.0-8.0
             'preservation_strength': self.settings_controller.get('soft_inpaint_preservation_strength'), # Float, 0.05 steps, 0.0-8.0
@@ -50,10 +48,31 @@ class SoftInpaintWidget(QWidget):
                 'max': 8.0,
             }
         }
-        self.enabled = self.settings_controller.get('soft_inpaint_enabled')
-        self.draw_ui()
+        self.enabled = False
+        self.installed = False
+        self.init_ui()
+        self.set_widget_values()
+    
+    def set_widget_values(self):
+        # TODO: Rewrite this component so the widgets can be set
+        pass
 
-    def draw_ui(self):
+    def load_server_data(self):
+        self.installed = self.api.script_installed('soft inpainting') 
+
+    def load_settings(self):
+        # Didn't feel like changing all the variable names to match the config names when updating from Alpha to Beta
+        self.variables = {
+            'schedule_bias': self.settings_controller.get('soft_inpaint_schedule_bias'), # Float, 0.1 steps, 0.0-8.0
+            'preservation_strength': self.settings_controller.get('soft_inpaint_preservation_strength'), # Float, 0.05 steps, 0.0-8.0
+            'transition_contrast_boost': self.settings_controller.get('soft_inpaint_transition_contrast'), # Float, 0.5 steps, 1.0-32.0
+            'mask_influence': self.settings_controller.get('soft_inpaint_mask_influence'), # Float, 0.05 steps, 0.0-1.0
+            'difference_threshold': self.settings_controller.get('soft_inpaint_difference_threshold'), # Float, 0.25 steps, 0.0-8.0
+            'difference_contrast': self.settings_controller.get('soft_inpaint_difference_contrast'), # Float, 0.25 steps, 0.0-8.0
+        }
+        self.enabled = self.settings_controller.get('soft_inpaint_enabled')
+
+    def init_ui(self):
         soft_inpainting_enabled = QCheckBox('Soft Inpainting')
         soft_inpainting_enabled.setChecked(self.enabled)
         soft_inpainting_enabled.toggled.connect(lambda: self.update_enabled(soft_inpainting_enabled.isChecked()))
@@ -118,7 +137,7 @@ class SoftInpaintWidget(QWidget):
         self.settings_controller.save()
 
     def get_generation_data(self):
-        if not self.enabled:
+        if not self.enabled or not self.installed:
             return {}
         data = {
             "alwayson_scripts": {

@@ -5,84 +5,114 @@ import json
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..krita_controller import KritaController
-from ..widgets import PromptWidget, SeedWidget, CollapsibleWidget, ModelsWidget, GenerateWidget, ImageInWidget, DenoiseWidget, ExtensionWidget, MaskWidget, ColorCorrectionWidget
+from . import CyanicPage
 
-class UpscalePage(QWidget):
+class UpscalePage(CyanicPage):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
-        super().__init__()
-        self.settings_controller = settings_controller
-        self.api = api
-        self.kc = KritaController()
-        self.setLayout(QVBoxLayout())
+        super().__init__(settings_controller, api)
+        self.variables = {
+            'upscaler': '',
+            'upscale_tab': 0, # 0 = "Upscale By", 1 = "Upscale to"
+            'upscale_resize': 2.0,
+            'upscale_width': 1024,
+            'upscale_height': 1024,
+            'upscale_crop_to_fit': True,
+            'upscale_resize_canvas': False,
+        }
+
         self.max_scale = 10
         self.generating = False
+        self.upscalers = []
+        self.default_upscaler = ''
 
+        self.init_ui()
+
+    def load_settings(self):
+        for key in self.variables:
+            self.variables[key] = self.settings_controller.get(key)
+        
+        self.resize_entry.setValue(self.variables['upscale_resize'])
+        self.width_entry.setValue(self.variables['upscale_width'])
+        self.height_entry.setValue(self.variables['upscale_height'])
+        self.crop_to_fit_cb.setChecked(self.variables['upscale_crop_to_fit'])
+        self.scale_tabs.setCurrentIndex(self.variables['upscale_tab'])
+        self.resize_canvas_cb.setChecked(self.variables['upscale_resize_canvas'])
+        self.upscaler_select.setCurrentText(self.variables['upscaler'])
+
+    def load_server_data(self):
+        self.upscalers, self.default_upscaler = self.api.get_upscaler_and_default()
+        self.upscaler_select.clear()
+        self.upscaler_select.addItems(self.upscalers)
+        if len(self.default_upscaler) > 0:
+            self.upscaler_select.setCurrentText(self.default_upscaler)
+        if len(self.variables['upscaler']) > 0:
+            self.upscaler_select.setCurrentText(self.variables['upscaler'])
+
+    def init_ui(self):
         self.scale_tabs = QTabWidget()
 
         # Scale By
         scale_by_form = QWidget()
         scale_by_form.setLayout(QFormLayout())
         # resize amount
-        resize_entry = QDoubleSpinBox()
-        resize_entry.setMinimum(0.0)
-        resize_entry.setMaximum(self.max_scale)
-        resize_entry.setValue(self.settings_controller.get('upscale_resize'))
-        resize_entry.valueChanged.connect(lambda: self.settings_controller.set('upscale_resize', resize_entry.value()))
-        scale_by_form.layout().addRow('Resize', resize_entry)
+        self.resize_entry = QDoubleSpinBox()
+        self.resize_entry.setMinimum(0.0)
+        self.resize_entry.setMaximum(self.max_scale)
+        self.resize_entry.setValue(self.variables['upscale_resize'])
+        self.resize_entry.valueChanged.connect(lambda: self.update_variable('upscale_resize', self.resize_entry.value()))
+        scale_by_form.layout().addRow('Resize', self.resize_entry)
 
         # Scale To
         scale_to_form = QWidget()
         scale_to_form.setLayout(QFormLayout())
         # Width
-        width_entry = QSpinBox()
-        width_entry.setMinimum(0)
-        width_entry.setMaximum(512 * self.max_scale)
-        width_entry.setValue(self.settings_controller.get('upscale_width'))
-        width_entry.valueChanged.connect(lambda: self.settings_controller.set('upscale_width', width_entry.value()))
-        scale_to_form.layout().addRow('Width', width_entry)
+        self.width_entry = QSpinBox()
+        self.width_entry.setMinimum(0)
+        self.width_entry.setMaximum(512 * self.max_scale)
+        self.width_entry.setValue(self.variables['upscale_width'])
+        self.width_entry.valueChanged.connect(lambda: self.update_variable('upscale_width', self.width_entry.value()))
+        scale_to_form.layout().addRow('Width', self.width_entry)
         # Height
-        height_entry = QSpinBox()
-        height_entry.setMinimum(0)
-        height_entry.setMaximum(512 * self.max_scale)
-        height_entry.setValue(self.settings_controller.get('upscale_height'))
-        height_entry.valueChanged.connect(lambda: self.settings_controller.set('upscale_height', height_entry.value()))
-        scale_to_form.layout().addRow('Height', height_entry)
+        self.height_entry = QSpinBox()
+        self.height_entry.setMinimum(0)
+        self.height_entry.setMaximum(512 * self.max_scale)
+        self.height_entry.setValue(self.variables['upscale_height'])
+        self.height_entry.valueChanged.connect(lambda: self.update_variable('upscale_height', self.height_entry.value()))
+        scale_to_form.layout().addRow('Height', self.height_entry)
         # Flip?
 
         # crop to fit
-        crop_to_fit_cb = QCheckBox()
-        crop_to_fit_cb.setChecked(self.settings_controller.get('upscale_crop_to_fit'))
-        crop_to_fit_cb.toggled.connect(lambda: self.settings_controller.set('upscale_crop_to_fit', crop_to_fit_cb.isChecked()))
-        scale_to_form.layout().addRow('Crop to fit', crop_to_fit_cb)
+        self.crop_to_fit_cb = QCheckBox()
+        self.crop_to_fit_cb.setChecked(self.variables['upscale_crop_to_fit'])
+        self.crop_to_fit_cb.toggled.connect(lambda: self.update_variable('upscale_crop_to_fit', self.crop_to_fit_cb.isChecked()))
+        scale_to_form.layout().addRow('Crop to fit', self.crop_to_fit_cb)
 
         self.scale_tabs.addTab(scale_by_form, 'Scale by')
         self.scale_tabs.addTab(scale_to_form, 'Scale to')
-        self.scale_tabs.setCurrentIndex(self.settings_controller.get('upscale_tab'))
+        self.scale_tabs.setCurrentIndex(self.variables['upscale_tab'])
 
         self.layout().addWidget(self.scale_tabs)
 
         # Resize Canvas checkbox
-        resize_canvas_cb = QCheckBox('Resize Canvas')
-        resize_canvas_cb.setChecked(self.settings_controller.get('upscale_resize_canvas'))
-        resize_canvas_cb.setToolTip('Check to resize the canvas to match the upscaled dimensions')
-        resize_canvas_cb.toggled.connect(lambda: self.settings_controller.set('upscale_resize_canvas', resize_canvas_cb.isChecked()))
-        self.layout().addWidget(resize_canvas_cb)
+        self.resize_canvas_cb = QCheckBox('Resize Canvas')
+        self.resize_canvas_cb.setChecked(self.variables['upscale_resize_canvas'])
+        self.resize_canvas_cb.setToolTip('Check to resize the canvas to match the upscaled dimensions')
+        self.resize_canvas_cb.toggled.connect(lambda: self.update_variable('upscale_resize_canvas', self.resize_canvas_cb.isChecked()))
+        self.layout().addWidget(self.resize_canvas_cb)
 
         # Select Upscaler
         upscaler_form = QWidget()
         upscaler_form.setLayout(QFormLayout())
         upscaler_form.layout().setContentsMargins(0,0,0,0)
-        upscalers, default_upscaler = self.api.get_upscaler_and_default()
-        upscaler_select = QComboBox()
-        upscaler_select.addItems(upscalers)
-        if len(default_upscaler) > 0:
-            upscaler_select.setCurrentText(default_upscaler)
-        settings_upscaler = self.settings_controller.get('upscaler')
-        if len(settings_upscaler) > 0:
-            upscaler_select.setCurrentText(settings_upscaler)
-        upscaler_select.currentIndexChanged.connect(lambda: self.settings_controller.set('upscaler', upscaler_select.currentText()))
+        self.upscaler_select = QComboBox()
+        self.upscaler_select.addItems(self.upscalers)
+        if len(self.default_upscaler) > 0:
+            self.upscaler_select.setCurrentText(self.default_upscaler)
+        if len(self.variables['upscaler']) > 0:
+            self.upscaler_select.setCurrentText(self.variables['upscaler'])
+        self.upscaler_select.currentIndexChanged.connect(lambda: self.update_variable('upscaler', self.upscaler_select.currentText()))
 
-        upscaler_form.layout().addRow('Upscaler', upscaler_select)
+        upscaler_form.layout().addRow('Upscaler', self.upscaler_select)
         self.layout().addWidget(upscaler_form)
 
         # Upscaler 2 + visiblity?
@@ -99,6 +129,9 @@ class UpscalePage(QWidget):
 
         self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top
 
+    def update_variable(self, key, value):
+        self.variables[key] = value
+
     def update(self):
         super().update()
 
@@ -107,6 +140,7 @@ class UpscalePage(QWidget):
             self.upscale_btn.setText('Upscale')
 
     def upscale(self):
+        kc = KritaController()
         tab = self.scale_tabs.currentIndex()
         self.settings_controller.set('upscale_tab', tab)
         self.settings_controller.save()
@@ -118,11 +152,11 @@ class UpscalePage(QWidget):
             'upscaling_resize_h': self.settings_controller.get('upscale_height'),
             'upscaling_crop': self.settings_controller.get('upscale_crop_to_fit'),
             'upscaler_1': self.settings_controller.get('upscaler'),
-            'image': self.kc.qimage_to_b64_str(self.kc.get_canvas_img()),
+            'image': kc.qimage_to_b64_str(kc.get_canvas_img()),
         }
         # self.debug_text.setPlainText(json.dumps(data))
         # self.debug_text.setPlainText('%s' % type(data))
-        # self.kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return())
+        # kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return())
         self.results = self.api.extra(data)
         self.threadable_return()
 
@@ -135,7 +169,8 @@ class UpscalePage(QWidget):
         self.update()
 
     def threadable_return(self):
-        x, y, canvas_w, canvas_h = self.kc.get_canvas_bounds()
+        kc = KritaController()
+        x, y, canvas_w, canvas_h = kc.get_canvas_bounds()
         if self.settings_controller.get('upscale_tab') == 0:
             # Upscale was a %
             scale = self.settings_controller.get('upscale_resize')
@@ -147,10 +182,10 @@ class UpscalePage(QWidget):
             canvas_h = self.settings_controller.get('upscale_height')
 
         if self.settings_controller.get('upscale_resize_canvas'):
-            self.kc.resize_canvas(canvas_w, canvas_h)
+            kc.resize_canvas(canvas_w, canvas_h)
 
         # self.debug_text.setPlainText('%s, %s - %sx%s' % (x, y, canvas_w, canvas_h))
-        self.kc.results_to_layers(self.results, x, y, canvas_w, canvas_h, layer_name='Upscaled')
+        kc.results_to_layers(self.results, x, y, canvas_w, canvas_h, layer_name='Upscaled')
 
         self.upscale_btn.setText('Upscale')
         self.upscale_btn.setDisabled(False)

@@ -3,6 +3,7 @@ from PyQt5 import QtCore, QtGui
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..krita_controller import KritaController
+from . import CyanicPage
 from ..widgets import (
     InterrogateWidget,
     InterrogateModelWidget,
@@ -10,38 +11,37 @@ from ..widgets import (
     PromptWidget,
 )
 
-
-class InterrogatePage(QWidget):
+# Interrogate was originally designed by tectin0 - https://github.com/DrCyanide/cyanic-sd-krita/pull/29
+class InterrogatePage(CyanicPage):
     def __init__(self, settings_controller: SettingsController, api: SDAPI):
-        super().__init__()
-        self.settings_controller = settings_controller
-        self.api = api
-        self.kc = KritaController()
+        super().__init__(settings_controller, api)
         self.size_dict = {"x": 0, "y": 0, "w": 0, "h": 0}
-        self.setLayout(QVBoxLayout())
+        self.prompt_mode = "img2img" # Probably not necessary
+        self.init_ui()
+  
+    def load_settings(self):
+        self.prompt_mode = self.settings_controller.get("interrogate_prompt_mode")
+        super().load_settings()
 
+    def init_ui(self):
         self.img_in = ImageInWidget(
             self.settings_controller, self.api, "img2img_img", self.size_dict
         )
+        self.cyanic_widgets.append(self.img_in)
         self.layout().addWidget(self.img_in)
-
-        prompt_mode = self.settings_controller.get("interrogate_prompt_mode")
-
-        # TODO: probably not necessary?
-        if not prompt_mode:
-            prompt_mode = "img2img"
-            self.settings_controller.set("interrogate_prompt_mode", prompt_mode)
 
         self.prompt_widget = PromptWidget(
             self.settings_controller,
             self.api,
-            prompt_mode,
+            self.prompt_mode,
         )
+        self.cyanic_widgets.append(self.prompt_widget)
         self.layout().addWidget(self.prompt_widget)
 
         self.interrogate_model_widget = InterrogateModelWidget(
             self.settings_controller, self.api, self.size_dict
         )
+        self.cyanic_widgets.append(self.interrogate_model_widget)
         self.layout().addWidget(self.interrogate_model_widget)
 
         self.interrogate_widget = InterrogateWidget(

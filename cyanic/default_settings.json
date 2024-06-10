@@ -16,8 +16,9 @@
         "prompting": {
             "saved_prompts": 10,
             "share_prompts": true,
-            "exclude_sharing": [
-                "inpaint"
+            "include_sharing": [
+                "txt2img",
+                "img2img"
             ],
             "initial_prompt": "",
             "initial_negative_prompt": ""
@@ -44,14 +45,14 @@
         "upscale": {
             "tab": 0,
             "resize": 2.0,
-            "width": 512,
-            "height": 512,
+            "width": 1024,
+            "height": 1024,
             "crop_to_fit": true,
             "resize_canvas": false
         },
         "cyanic_settings": {
             "options": {
-                "new_doc_uses_last_doc_settings": true,
+                "new_doc_prompt_mode": "empty",
                 "debug_mode": false
             },
             "pages": {
@@ -71,7 +72,7 @@
                 "cfg": false,
                 "clip_skip": true,
                 "color_correction": false,
-                "denoise_strength": false,
+                "denoising_strength": false,
                 "face_restore": true,
                 "tiling": true,
                 "hires_fix": false,
@@ -124,7 +125,7 @@
             "refiner_start": 0.7,
             "cfg_scale": 9.0,
             "img_source": {
-                "denoise_strength": 0.8,
+                "denoising_strength": 0.8,
                 "color_correction": false,
                 "match_colors": false
             },
@@ -139,7 +140,7 @@
                 "sd_min": 512,
                 "upscaler": "Latent",
                 "hrfix_steps": 25,
-                "denoise_strength": 0.7
+                "denoising_strength": 0.7
             },
             "seed": {
                 "seed": -1,

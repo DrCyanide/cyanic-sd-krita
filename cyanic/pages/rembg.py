@@ -4,17 +4,23 @@ from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..krita_controller import KritaController
 from ..widgets import ImageInWidget
-import json
+from . import CyanicPage
 
-class RemBGPage(QWidget):
+class RemBGPage(CyanicPage):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
-        super().__init__()
-        self.settings_controller = settings_controller
-        self.api = api
-        self.kc = KritaController()
-        self.setLayout(QVBoxLayout())
+        super().__init__(settings_controller, api)
         self.debug = False
         self.size_dict = {"x":0,"y":0,"w":0,"h":0}
+
+        self.variables = {
+            'rembg_model': '',
+            'rembg_results_as_mask': True,
+            'rembg_apply_mask': True,
+            'rembg_alpha_mat': False,
+            'rembg_erode': 10,
+            'rembg_threshold_foreground': 240,
+            'rembg_threshold_background': 10,
+        }
 
         # NOTE: There's no API call to get these models, nor is there one to see if RemBG is installed.
         self.rembg_models = [ 
@@ -27,41 +33,55 @@ class RemBGPage(QWidget):
             'isnet-anime',
         ]
 
+        self.init_ui()
+
+    def load_settings(self):
+        for key in self.variables:
+            self.variables[key] = self.settings_controller.get(key)
+
+        self.model_select.setCurrentText(self.variables['rembg_model'])
+        self.as_mask_cb.setChecked(self.variables['rembg_results_as_mask'])
+        self.apply_mask_cb.setChecked(self.variables['rembg_apply_mask'])
+        self.alpha_matting_cb.setChecked(self.variables['rembg_alpha_mat'])
+        self.alpha_matting_settings.setVisible(self.variables['rembg_alpha_mat'])
+
+    def init_ui(self):
         # Image select
         self.img_in = ImageInWidget(self.settings_controller, self.api, 'input_image', self.size_dict)
+        self.cyanic_widgets.append(self.img_in)
         self.layout().addWidget(self.img_in)
 
         # Background Removal model
-        model_select = QComboBox()
-        model_select.addItems(self.rembg_models)
-        model_select.setCurrentText(self.settings_controller.get('rembg_model'))
-        model_select.currentTextChanged.connect(lambda: self.settings_controller.set('rembg_model', model_select.currentText()))
-        self.layout().addWidget(model_select)
+        self.model_select = QComboBox()
+        self.model_select.addItems(self.rembg_models)
+        self.model_select.setCurrentText(self.variables['rembg_model'])
+        self.model_select.currentTextChanged.connect(lambda: self.update_variable('rembg_model', self.model_select.currentText()))
+        self.layout().addWidget(self.model_select)
 
         # As Mask
-        as_mask_cb = QCheckBox('Results as Mask')
-        as_mask_cb.setToolTip('Enable to automatically make the results a mask of the active layer')
-        as_mask_cb.setChecked(self.settings_controller.get('rembg_results_as_mask'))
-        as_mask_cb.stateChanged.connect(lambda: self.set_as_mask(as_mask_cb.isChecked()))
-        self.layout().addWidget(as_mask_cb)
+        self.as_mask_cb = QCheckBox('Results as Mask')
+        self.as_mask_cb.setToolTip('Enable to automatically make the results a mask of the active layer')
+        self.as_mask_cb.setChecked(self.variables['rembg_results_as_mask'])
+        self.as_mask_cb.stateChanged.connect(lambda: self.set_as_mask(self.as_mask_cb.isChecked()))
+        self.layout().addWidget(self.as_mask_cb)
 
         # Apply Mask
         self.apply_mask_cb = QCheckBox('Apply Mask')
-        self.apply_mask_cb.setChecked(self.settings_controller.get('rembg_apply_mask'))
-        self.apply_mask_cb.stateChanged.connect(lambda: self.settings_controller.set('rembg_apply_mask', self.apply_mask_cb.isChecked()))
+        self.apply_mask_cb.setChecked(self.variables['rembg_apply_mask'])
+        self.apply_mask_cb.stateChanged.connect(lambda: self.update_variable('rembg_apply_mask', self.apply_mask_cb.isChecked()))
         self.layout().addWidget(self.apply_mask_cb)
 
         # Alpha Matting
-        alpha_matting_cb = QCheckBox('Alpha Matting')
-        alpha_matting_cb.setToolTip('Enable for better tranparent/translucent masks')
-        alpha_matting_cb.setChecked(self.settings_controller.get('rembg_alpha_mat'))
-        alpha_matting_cb.stateChanged.connect(lambda: self.set_alpha_matting(alpha_matting_cb.isChecked()))
-        self.layout().addWidget(alpha_matting_cb)
+        self.alpha_matting_cb = QCheckBox('Alpha Matting')
+        self.alpha_matting_cb.setToolTip('Enable for better tranparent/translucent masks')
+        self.alpha_matting_cb.setChecked(self.variables['rembg_alpha_mat'])
+        self.alpha_matting_cb.stateChanged.connect(lambda: self.set_alpha_matting(self.alpha_matting_cb.isChecked()))
+        self.layout().addWidget(self.alpha_matting_cb)
 
         # Alpha Matting settings
         self.alpha_matting_settings = QGroupBox()
         self.alpha_matting_settings.setLayout(QFormLayout())
-        self.alpha_matting_settings.setVisible(self.settings_controller.get('rembg_alpha_mat'))
+        self.alpha_matting_settings.setVisible(self.variables['rembg_alpha_mat'])
 
         #   Erode Size
         erode_size = self.make_slider_row(0, 40, 'rembg_erode')
@@ -125,14 +145,25 @@ class RemBGPage(QWidget):
             box.setValue(value)
         self.settings_controller.set(settings_key, value)
 
+    def update_variable(self, key, value):
+        self.variables[key] = value
+
     def set_alpha_matting(self, value):
-        self.settings_controller.set('rembg_alpha_mat', value)
+        # self.settings_controller.set('rembg_alpha_mat', value)
+        self.variables['rembg_alpha_mat'] = value
         # Disable/Enable the other alpha_matting settings
         self.alpha_matting_settings.setVisible(value)
 
     def set_as_mask(self, value):
-        self.settings_controller.set('rembg_results_as_mask', value)
+        # self.settings_controller.set('rembg_results_as_mask', value)
+        self.variables['rembg_results_as_mask'] = value
         self.apply_mask_cb.setDisabled(not value)
+
+
+    def save_settings(self):
+        for key in self.variables.keys():
+            self.settings_controller.set(key, self.variables[key])
+
 
     def get_generation_data(self):
         data = {
@@ -148,6 +179,7 @@ class RemBGPage(QWidget):
         return data
     
     def run_rembg(self):
+        kc = KritaController()
         data = self.get_generation_data()
         # TODO: Make this async
         results = self.api.post('/rembg', data)
@@ -155,6 +187,6 @@ class RemBGPage(QWidget):
             apply_mask = self.settings_controller.get('rembg_apply_mask')
             as_mask = self.settings_controller.get('rembg_results_as_mask')
             if (as_mask and not apply_mask) or not as_mask:
-                self.kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
+                kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
             else:
-                self.kc.result_to_transparency_mask(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
+                kc.result_to_transparency_mask(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
