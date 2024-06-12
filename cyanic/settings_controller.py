@@ -12,11 +12,20 @@ class SettingsController():
         self.key_mapping = {} # Convert keys the widgets use (controller notation) into paths in the JSON uses (model notation)
         self.loaded_key_mappings = False
 
+        self.active_doc = Krita.instance().activeDocument()
+
         self.kra_unique_key = 'cyanic_sd_settings'
         self.plugin_dir = os.path.dirname(os.path.realpath(__file__))
         self.user_settings_file = os.path.join(self.plugin_dir, 'user_settings.json')
         self.default_settings_file = os.path.join(self.plugin_dir, 'default_settings.json')
-        self.load()
+        try:
+            self.load()
+        except Exception as e:
+            raise Exception('Cyanic SD - Exception with Settings Controller - %s' % e)
+
+
+    def update_active_doc(self):
+        self.active_doc = Krita.instance().activeDocument()
 
     def merge_dicts(self, original_dict, updated_dict):
         for key in original_dict.keys():
@@ -61,7 +70,10 @@ class SettingsController():
                         self.tmp_settings[key] = self._get(old_key_mapping[key], user_settings)
 
                 # Rename the old settings as a backup.
-                os.rename(self.user_settings_file, os.path.join(self.plugin_dir, 'user_settings_backup_%s.json' % old_version))
+                backup_file = os.path.join(self.plugin_dir, 'user_settings_backup_%s.json' % old_version)
+                if os.path.exists(backup_file):
+                    os.remove(backup_file)
+                os.rename(self.user_settings_file, backup_file)
                 self.save_user_settings() # Effectively overwrites the user_settings
             else:
                 # Proceed to merge the user_settings with the default
@@ -86,15 +98,36 @@ class SettingsController():
 
     def load_kra_settings(self):
         # Write to tmp_settings, because this will change as the user switches back and forth between documents.
-        doc = Krita.instance().activeDocument()
-        if doc is None:
+        if self.active_doc is None:
             # Krita can load without an open doc
             return
-        
-        str_settings = doc.annotation(self.kra_unique_key)
+
+        data = self.active_doc.annotation(self.kra_unique_key)
+        str_settings = bytes(data).decode()
         if len(str_settings) > 0:
             self.tmp_settings['kra_file_overridden_settings'] = json.loads(str_settings) # No need to merge_dicts(), because that would introduce artifacts from other .kra files
-        # Else... load from defaults? user_settings?
+        else:
+            # Set the default prompts for this file
+            prompt_keys = ['prompts_txt_shared', 'prompts_txt_txt2img', 'prompts_txt_img2img', 'prompts_txt_inpaint']
+            prompt_negative_keys = ['prompts_txt_shared_negative', 'prompts_txt_txt2img_negative', 'prompts_txt_img2img_negative', 'prompts_txt_inpaint_negative']
+            
+            mode = self.get('new_doc_prompt_mode')
+            if mode == 'last':
+                pass # No need to change anything - whatever was in tmp_settings stays 
+            elif mode == 'initial':
+                # Overwrite the prompts with the initial
+                prompt = self.get('prompt_initial')
+                prompt_negative = self.get('prompt_negative_initial')
+
+                for key in prompt_keys:
+                    self.set(key, [prompt])
+                for key in prompt_negative_keys:
+                    self.set(key, [prompt_negative])
+            else: # elif mode == 'empty':
+                for key in prompt_keys:
+                    self.set(key, [''])
+                for key in prompt_negative_keys:
+                    self.set(key, [''])
 
     def save_user_settings(self):
         # write tmp_settings to user_setting
@@ -107,16 +140,14 @@ class SettingsController():
     def save_kra_settings(self):
         # Write tmp_settings to KRA
         # doc.setAnnotation('my_unique_key', 'description', QByteArray('my data'.encode())
-        doc = Krita.instance().activeDocument()
-        if doc is None:
+        if self.active_doc is None:
             return
         str_settings = json.dumps(self.tmp_settings['kra_file_overridden_settings'])
-        doc.setAnnotation(self.kra_unique_key, 'Cyanic SD plugin settings', QByteArray(str_settings.encode()))
+        self.active_doc.setAnnotation(self.kra_unique_key, 'Cyanic SD plugin settings', QByteArray(str_settings.encode()))
 
     def clear_file_prompt_history(self):
         # tmp_settings should have the most recent file's history.
-        doc = Krita.instance().activeDocument()
-        if doc is None:
+        if self.active_doc is None:
             return
         
         history_arrays = [
@@ -170,7 +201,10 @@ class SettingsController():
             
             
     def set(self, key, value):
-        self._set(self.key_mapping[key], value)
+        if key in self.key_mapping:
+            self._set(self.key_mapping[key], value)
+        # Else, trying to set a key that doesn't exist.
+        # Some widgets can trigger this behavior on accident due to reuse in new settings, so it's ignored rather than raising an error
 
     def _set(self, key, value, my_dict=None):
         # Recursive way to iterate through the key and set the value

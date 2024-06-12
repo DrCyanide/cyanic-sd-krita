@@ -12,7 +12,8 @@ class Img2ImgPage(CyanicPage):
         self.init_ui()
 
     def init_ui(self):
-        self.img_in = ImageInWidget(self.settings_controller, self.api, 'img2img_img', self.size_dict)
+        # self.img_in = ImageInWidget(self.settings_controller, self.api, 'img2img_img', self.size_dict)
+        self.img_in = ImageInWidget(self.settings_controller, self.api, 'img2img', self.size_dict)
         self.cyanic_widgets.append(self.img_in)
         self.layout().addWidget(self.img_in)
 

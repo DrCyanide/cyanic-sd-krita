@@ -7,6 +7,90 @@ from ..krita_controller import KritaController
 from ..widgets import ImageInWidget, CollapsibleWidget
 from ..widgets.mask import MaskWidget # I don't know why it needs to be special like this... 
 
+class ControlNetAPI():
+    def __init__(self, api:SDAPI):
+        self.api = api
+        self.kc = KritaController()
+        self.models = []
+        self.module_list = [] # Preprocessors
+        self.module_details = {}
+        self.control_types = {}
+        self.settings = {}
+        self.tabs = 0
+
+        self.get_models()
+        self.get_modules()
+        self.get_control_types()
+        self.get_settings()
+        self.version = self.get_version()
+
+
+    def get_control_types_list(self):
+        return self.control_types.keys()
+    
+    def get_preprocessors_for_control_type(self, control_type):
+        return self.control_types[control_type]['module_list']
+    
+    def get_models_for_control_type(self, control_type):
+        return self.control_types[control_type]['model_list']
+
+    def get_version(self):
+        # Forge doesn't have this API call, but ControlNet may make breaking changes in the future, so it's important to have them.
+        version = self.api.get('/controlnet/version')
+        try:
+            if version:
+                return version['version']
+        except:
+            pass
+        return 3 # The latest version as of writing this - May 20, 2024
+    
+    def get_models(self):
+        self.models = self.api.get('/controlnet/model_list?update=true')['model_list']
+    
+    def get_modules(self):
+        results = self.api.get('/controlnet/module_list?alias_names=true')
+        try:
+            self.module_list = results['module_list']
+            self.module_details = results['module_detail']
+        except:
+            pass
+
+    def get_control_types(self):
+        try:
+            self.control_types = self.api.get('/controlnet/control_types')['control_types']
+        except:
+            # Treat everything as if it's part of 'All'
+            control_types = {
+                "All": {
+                    "module_list": self.module_list,
+                    "model_list": self.models,
+                    "default_option": "none",
+                    "default_model": "None"
+                }
+            }
+            self.control_types = control_types
+
+    def get_settings(self):
+        self.settings = self.api.get('/controlnet/settings')
+        try:
+            self.tabs = self.settings['control_net_unit_count'] # Version 2
+        except:
+            self.tabs = 1
+            # raise Exception('Cyanic SD - Error reading ControlNet settings, defaulting to 1 tab mode')
+
+    def preview(self, image:str, module:str, processor_res, threshold_a, threshold_b):
+        # Module == preprocessor
+        data = {
+            'controlnet_module': module,
+            'controlnet_input_images': [image],
+            'controlnet_processor_res': processor_res,
+            'controlnet_threshold_a': threshold_a,
+            'controlnet_threshold_b': threshold_b,
+        }
+        results = self.api.post('/controlnet/detect', data)
+        return results
+
+
 class ControlNetExtension(QWidget):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
         super().__init__()
@@ -29,7 +113,7 @@ class ControlNetExtension(QWidget):
 
         tab_widget = QTabWidget()
         for i in range(0, self.cnapi.tabs):
-            self.units.append(ControlNetUnit(self.settings_controller, self.api, self.cnapi))
+            self.units.append(ControlNetUnit(self.settings_controller, self.api, self.cnapi, unit=i))
             tab_widget.addTab(self.units[i], 'Unit %s' % i)
         
         self.layout().addWidget(tab_widget)
@@ -52,11 +136,12 @@ class ControlNetExtension(QWidget):
         return data
 
 class ControlNetUnit(QWidget):
-    def __init__(self, settings_controller:SettingsController, api:SDAPI, cnapi):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, cnapi:ControlNetAPI, unit=1):
         super().__init__()
         self.settings_controller = settings_controller
         self.api = api
         self.cnapi = cnapi
+        self.unit = unit
         self.enabled = False
         self.low_vram = False
         self.pixel_perfect = False
@@ -90,7 +175,8 @@ class ControlNetUnit(QWidget):
         self.use_mask.toggled.connect(lambda: self.update_img_in(use_mask=self.use_mask.isChecked()))
         self.layout().addWidget(self.use_mask)
 
-        self.img_in = ImageInWidget(self.settings_controller, self.api, 'input_image', self.size_dict)
+        # self.img_in = ImageInWidget(self.settings_controller, self.api, 'input_image', self.size_dict)
+        self.img_in = ImageInWidget(self.settings_controller, self.api, 'controlnet_%s' % self.unit, self.size_dict)
         self.layout().addWidget(self.img_in)
         self.img_in.setVisible(not self.use_mask.isChecked())
 
@@ -458,7 +544,8 @@ class ControlNetUnit(QWidget):
     
     def gen_preview(self):
         image_data = self.img_in.get_generation_data()
-        results = self.cnapi.preview(image_data['input_image'], self.preprocessor, self.variables['preprocessor_resolution'], self.variables['threshold_a'], self.variables['threshold_b'])
+        # results = self.cnapi.preview(image_data['input_image'], self.preprocessor, self.variables['preprocessor_resolution'], self.variables['threshold_a'], self.variables['threshold_b'])
+        results = self.cnapi.preview(image_data['controlnet_%s' % self.unit], self.preprocessor, self.variables['preprocessor_resolution'], self.variables['threshold_a'], self.variables['threshold_b'])
         if results is not None:
             kc = KritaController()
             kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'], 'ControlNet Preview')
@@ -511,86 +598,3 @@ class ControlNetUnit(QWidget):
         if self.debug:
             self.debug_text.setPlainText('%s' % (data))
         return data
-
-class ControlNetAPI():
-    def __init__(self, api:SDAPI):
-        self.api = api
-        self.kc = KritaController()
-        self.models = []
-        self.module_list = [] # Preprocessors
-        self.module_details = {}
-        self.control_types = {}
-        self.settings = {}
-        self.tabs = 0
-
-        self.get_models()
-        self.get_modules()
-        self.get_control_types()
-        self.get_settings()
-        self.version = self.get_version()
-
-
-    def get_control_types_list(self):
-        return self.control_types.keys()
-    
-    def get_preprocessors_for_control_type(self, control_type):
-        return self.control_types[control_type]['module_list']
-    
-    def get_models_for_control_type(self, control_type):
-        return self.control_types[control_type]['model_list']
-
-    def get_version(self):
-        # Forge doesn't have this API call, but ControlNet may make breaking changes in the future, so it's important to have them.
-        version = self.api.get('/controlnet/version')
-        try:
-            if version:
-                return version['version']
-        except:
-            pass
-        return 3 # The latest version as of writing this - May 20, 2024
-    
-    def get_models(self):
-        self.models = self.api.get('/controlnet/model_list?update=true')['model_list']
-    
-    def get_modules(self):
-        results = self.api.get('/controlnet/module_list?alias_names=true')
-        try:
-            self.module_list = results['module_list']
-            self.module_details = results['module_detail']
-        except:
-            pass
-
-    def get_control_types(self):
-        try:
-            self.control_types = self.api.get('/controlnet/control_types')['control_types']
-        except:
-            # Treat everything as if it's part of 'All'
-            control_types = {
-                "All": {
-                    "module_list": self.module_list,
-                    "model_list": self.models,
-                    "default_option": "none",
-                    "default_model": "None"
-                }
-            }
-            self.control_types = control_types
-
-    def get_settings(self):
-        self.settings = self.api.get('/controlnet/settings')
-        try:
-            self.tabs = self.settings['control_net_unit_count'] # Version 2
-        except:
-            self.tabs = 1
-            # raise Exception('Cyanic SD - Error reading ControlNet settings, defaulting to 1 tab mode')
-
-    def preview(self, image:str, module:str, processor_res, threshold_a, threshold_b):
-        # Module == preprocessor
-        data = {
-            'controlnet_module': module,
-            'controlnet_input_images': [image],
-            'controlnet_processor_res': processor_res,
-            'controlnet_threshold_a': threshold_a,
-            'controlnet_threshold_b': threshold_b,
-        }
-        results = self.api.post('/controlnet/detect', data)
-        return results

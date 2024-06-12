@@ -57,6 +57,10 @@ class SDConnectionWidget(QWidget):
         if self.api.connected:
             self.connect_label.setText('SD connected')
             # Has to be called from here. SDAPI should finish updating itself before threadable_return() is called
+            self.save_host()
             self.api.on_connection_change() 
         else:
             self.connect_label.setText('No SD connection')
+
+    def save_host(self):
+        self.settings_controller.set('host', self.host_addr.text())

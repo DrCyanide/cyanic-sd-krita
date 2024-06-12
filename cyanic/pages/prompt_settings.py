@@ -15,6 +15,7 @@ class PromptSettingsPage(CyanicPage):
             'prompt_share': True,
             'prompt_share_includes': [],
         }
+        self.shared_prompt_btns = []
         self.log = {}
         self.init_ui()
 
@@ -28,6 +29,18 @@ class PromptSettingsPage(CyanicPage):
 
     def save_settings(self):
         # No widgets, so just do it manually
+        data = self.prompt_widget.get_generation_data()
+        self.variables['prompt_initial'] = data['prompt']
+        self.variables['prompt_negative_initial'] = data['negative_prompt']
+
+        shared = []
+        for btn in self.shared_prompt_btns:
+            label = btn.text().lower()
+            if btn.isChecked():
+                shared.append(label)
+
+        self.variables['prompt_share_includes'] = shared
+
         for key in self.variables.keys():
             self.settings_controller.set(key, self.variables[key])
 
@@ -90,16 +103,19 @@ class PromptSettingsPage(CyanicPage):
         self.include_txt2img = QCheckBox('Txt2Img')
         self.include_txt2img.setChecked('txt2img' in self.variables['prompt_share_includes'])
         self.include_txt2img.toggled.connect(lambda: self.update_share_includes('txt2img', self.include_txt2img.isChecked()))
+        self.shared_prompt_btns.append(self.include_txt2img)
         self.share_inclusions.layout().addWidget(self.include_txt2img)
 
         self.include_img2img = QCheckBox('Img2Img')
         self.include_img2img.setChecked('img2img' in self.variables['prompt_share_includes'])
         self.include_img2img.toggled.connect(lambda: self.update_share_includes('img2img', self.include_img2img.isChecked()))
+        self.shared_prompt_btns.append(self.include_img2img)
         self.share_inclusions.layout().addWidget(self.include_img2img)
 
         self.include_inpaint = QCheckBox('Inpaint')
         self.include_inpaint.setChecked('inpaint' in self.variables['prompt_share_includes'])
         self.include_inpaint.toggled.connect(lambda: self.update_share_includes('inpaint', self.include_inpaint.isChecked()))
+        self.shared_prompt_btns.append(self.include_inpaint)
         self.share_inclusions.layout().addWidget(self.include_inpaint)
 
         self.layout().addWidget(self.share_inclusions)
@@ -119,10 +135,15 @@ class PromptSettingsPage(CyanicPage):
             self.radio_btn_empty.click()
 
     def set_widget_values(self):
-        self.include_txt2img.setChecked('txt2img' in self.variables['prompt_share_includes'])
-        self.include_img2img.setChecked('img2img' in self.variables['prompt_share_includes'])
-        self.include_inpaint.setChecked('inpaint' in self.variables['prompt_share_includes'])
-        
+        # self.include_txt2img.setChecked('txt2img' in self.variables['prompt_share_includes'])
+        # self.include_img2img.setChecked('img2img' in self.variables['prompt_share_includes'])
+        # self.include_inpaint.setChecked('inpaint' in self.variables['prompt_share_includes'])
+        for btn in self.shared_prompt_btns:
+            label = btn.text().lower()
+            btn.setChecked(label in self.variables['prompt_share_includes'])
+
+        self.prompt_widget.set_prompt(self.variables['prompt_initial'], self.variables['prompt_negative_initial'])
+
     def clicked_radio_btn(self, btn_clicked):
         if btn_clicked == self.radio_btn_empty:
             self.variables['new_doc_prompt_mode'] = 'empty'
@@ -139,10 +160,12 @@ class PromptSettingsPage(CyanicPage):
         # TODO: Trigger a reload of everything's settings
 
     def update_share_includes(self, mode:str, active:bool):
-        if active and not self.variables['prompt_share_includes'].index(mode) > -1:
+        # if active and not self.variables['prompt_share_includes'].index(mode) > -1:
+        if active and mode not in self.variables['prompt_share_includes']:
             self.variables['prompt_share_includes'].append(mode)
         
-        if not active and self.variables['prompt_share_includes'].index(mode) > -1:
+        # if not active and self.variables['prompt_share_includes'].index(mode) > -1:
+        if not active and mode in self.variables['prompt_share_includes']:
             self.variables['prompt_share_includes'].remove(mode)
             
     def updated_max_history(self):

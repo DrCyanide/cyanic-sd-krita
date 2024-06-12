@@ -168,8 +168,9 @@ class PromptWidget(CyanicWidget):
                 break
         
         # Insert at the beginning
-        active_prompt_history.insert(0, prompt)
-        active_negative_prompt_history.insert(0, negative_prompt)
+        if len(prompt) > 0 or len(negative_prompt) > 0:
+            active_prompt_history.insert(0, prompt)
+            active_negative_prompt_history.insert(0, negative_prompt)
         
         if len(active_prompt_history) > self.variables['prompt_history_max']:
             # Too many items, trim the history down
@@ -296,3 +297,7 @@ class PromptWidget(CyanicWidget):
         extra_network_type = self.extra_network_types[self.extra_network_box.currentText()].split('_names')[0]
         existing_prompt = self.prompt_text_edit.toPlainText()
         self.prompt_text_edit.setPlainText('%s <%s:%s:1.0>' % (existing_prompt, extra_network_type, extra_network_name))
+
+    def set_prompt(self, prompt='', negative_prompt=''):
+        self.prompt_text_edit.setPlainText(prompt)
+        self.negative_prompt_text_edit.setPlainText(negative_prompt)

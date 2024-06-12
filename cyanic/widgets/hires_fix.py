@@ -35,14 +35,13 @@ class HiResFixWidget(CyanicWidget):
         self.set_widget_values()
 
     def load_settings(self):
-        self.variables = {
-            'auto_enable_hr': self.settings_controller.get('hr_fix_auto'),
-            'auto_enable_min': self.settings_controller.get('hr_fix_auto_min'),
-            'hr_upscaler': self.settings_controller.get('hr_fix_upscaler'),
-            'hr_steps': self.settings_controller.get('hr_fix_steps'), # if 0, API uses same number of steps as the first pass
-            'min_size': self.settings_controller.get('hr_fix_sd_min'),
-            'denoising_strength': self.settings_controller.get('hr_fix_denoise'),
-        }
+        self.variables['auto_enable_hr'] = self.settings_controller.get('hr_fix_auto')
+        self.variables['auto_enable_min'] = self.settings_controller.get('hr_fix_auto_min')
+        self.variables['hr_upscaler'] = self.settings_controller.get('hr_fix_upscaler')
+        self.variables['hr_steps'] = self.settings_controller.get('hr_fix_steps') # if 0, API uses same number of steps as the first pass
+        self.variables['min_size'] = self.settings_controller.get('hr_fix_sd_min')
+        self.variables['denoising_strength'] = self.settings_controller.get('hr_fix_denoise')
+        
 
     def load_server_data(self):
         pass

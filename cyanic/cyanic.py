@@ -9,11 +9,26 @@ from .krita_controller import KritaController
 
 DEFAULT_HOST = "http://127.0.0.1:7860"
 
+class TestDocker(DockWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('Cyanic Test')
+        self.main_widget = QWidget(self)
+        self.main_widget.setLayout(QVBoxLayout())
+        self.main_widget.layout().addWidget(QLabel('Test Success'))
+        self.setWidget(self.main_widget)   
+
+    def canvasChanged(self, canvas):
+        pass
+
+
 class CyanicDocker(DockWidget):
     def __init__(self):
         super().__init__()
         self.settings_controller = SettingsController()
-        self.api = SDAPI(self.settings_controller.get('host') if self.settings_controller.has_key('host') else DEFAULT_HOST, self.on_api_change)
+        host = self.settings_controller.get('host') if self.settings_controller.has_key('host') else DEFAULT_HOST
+        # host = DEFAULT_HOST
+        self.api = SDAPI(host, self.on_api_change)
 
         self.setWindowTitle("Cyanic SD")
         self.main_widget = QWidget(self)
@@ -124,11 +139,24 @@ class CyanicDocker(DockWidget):
     # This needs to be present in any class that implements DockWidget, even if it's not used
     def canvasChanged(self, canvas):
         # Can be used to detect active document change, which can update settings
+        doc = Krita.instance().activeDocument()
+        if doc is None or doc.width() <= 0:
+            return # The document doesn't exist yet.
+        
+        # canvasChanged is triggered twice when creating files (creates as a pop-out window, then docks it), and once when switching to different files
+        # raise Exception('Prompt: %s' % self.txt2img.prompt_widget.prompt_text_edit.toPlainText())
+
+        # Save the settings to the existing Krita doc
+        for page in self.pages:
+            page['page'].save_settings()
+
+        # Load the new doc's settings
+        self.settings_controller.update_active_doc()
+
         self.settings_controller.load_kra_settings()
         for page in self.pages:
             page['page'].load_settings()
         self.settings_dialog.load_settings()
-
 
 # This is what tells Krita to add the docker in the first place.
 Krita.instance().addDockWidgetFactory(
@@ -138,3 +166,11 @@ Krita.instance().addDockWidgetFactory(
         CyanicDocker
     )
 )
+
+# Krita.instance().addDockWidgetFactory(
+#     DockWidgetFactory(
+#         "cyanicSD",
+#         DockWidgetFactoryBase.DockTornOff,
+#         TestDocker
+#     )
+# )
