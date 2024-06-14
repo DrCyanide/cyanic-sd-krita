@@ -4,7 +4,7 @@ from enum import Enum
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..krita_controller import KritaController
-from ..widgets import ImageInWidget, CollapsibleWidget
+from ..widgets import ImageInWidget, CollapsibleWidget, CyanicWidget
 from ..widgets.mask import MaskWidget # I don't know why it needs to be special like this... 
 
 class ControlNetAPI():
@@ -18,12 +18,15 @@ class ControlNetAPI():
         self.settings = {}
         self.tabs = 0
 
+        self.load_server_data()
+        self.version = self.get_version()
+
+
+    def load_server_data(self):
         self.get_models()
         self.get_modules()
         self.get_control_types()
         self.get_settings()
-        self.version = self.get_version()
-
 
     def get_control_types_list(self):
         return self.control_types.keys()
@@ -91,26 +94,25 @@ class ControlNetAPI():
         return results
 
 
-class ControlNetExtension(QWidget):
+# class ControlNetExtension(QWidget):
+class ControlNetExtension(CyanicWidget):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
-        super().__init__()
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0,0,0,0)
-        self.settings_controller = settings_controller
-        self.api = api
-
-        # Double check that the server supports ControlNet before trying to init the ControlNetAPI
-        server_supported = self.api.script_installed('controlnet')
-        if not server_supported:
-            error = QLabel('Host "%s" does not have ControlNet installed' % self.api.host)
-            website = QLabel('Get it from https://github.com/lllyasviel/ControlNet')
-            self.layout().addWidget(error)
-            self.layout().addWidget(website)
-            return
-
+        super().__init__(settings_controller, api)
         self.cnapi = ControlNetAPI(self.api)
         self.units = []
 
+        # Double check that the server supports ControlNet before trying to init the ControlNetAPI
+        # server_supported = self.api.script_installed('controlnet')
+        # if not server_supported:
+        #     error = QLabel('Host "%s" does not have ControlNet installed' % self.api.host)
+        #     website = QLabel('Get it from https://github.com/lllyasviel/ControlNet')
+        #     self.layout().addWidget(error)
+        #     self.layout().addWidget(website)
+        #     return
+
+        self.init_ui()
+
+    def init_ui(self):
         tab_widget = QTabWidget()
         for i in range(0, self.cnapi.tabs):
             self.units.append(ControlNetUnit(self.settings_controller, self.api, self.cnapi, unit=i))
@@ -122,6 +124,11 @@ class ControlNetExtension(QWidget):
         # Used to fix sizes for CollapsibleWidgets
         if 'size_change' in dir(self.parent()):
             self.parent().size_change()
+
+    def load_server_data(self):
+        # Trigger update in the API
+        self.cnapi.load_server_data()
+        # TODO: Update the units
 
     def get_generation_data(self):
         enabled_controlnet_args = [unit.get_generation_data() for unit in self.units if unit.enabled]

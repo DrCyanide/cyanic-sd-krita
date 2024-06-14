@@ -20,6 +20,10 @@ class DenoiseWidget(CyanicWidget):
     def set_widget_values(self):
         self.slider.set_value(self.variables['denoising_strength'])
 
+    def load_server_data(self):
+        # Get the server's default denoise?
+        pass
+
     def update_variables(self):
         self.variables['denoising_strength'] = self.slider.value()
 
@@ -31,5 +35,5 @@ class DenoiseWidget(CyanicWidget):
         self.update_variables()
         data = self.variables
         self.save_settings()
-        self.settings_controller.save()
+        # self.settings_controller.save()
         return data

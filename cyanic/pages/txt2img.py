@@ -10,6 +10,8 @@ class Txt2ImgPage(CyanicPage):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
         super().__init__(settings_controller, api)
         self.init_ui()
+        self.load_all_settings()
+        self.handle_hidden()
 
     def init_ui(self):
         self.model_widget = ModelsWidget(self.settings_controller, self.api)
@@ -47,7 +49,6 @@ class Txt2ImgPage(CyanicPage):
         self.layout().addWidget(self.generate_widget)
 
         self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top
-        self.handle_hidden()
 
     def handle_hidden(self):
         self.batch_widget.setHidden(self.settings_controller.get('hide_ui_batch'))

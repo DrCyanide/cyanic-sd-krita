@@ -143,7 +143,7 @@ class UpscalePage(CyanicPage):
         kc = KritaController()
         tab = self.scale_tabs.currentIndex()
         self.settings_controller.set('upscale_tab', tab)
-        self.settings_controller.save()
+        # self.settings_controller.save()
         
         data = {
             'resize_mode': tab, # 0 = "Upscale By", 1 = "Upscale to"

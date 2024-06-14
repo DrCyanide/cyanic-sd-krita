@@ -11,6 +11,8 @@ class InpaintPage(CyanicPage):
         self.size_dict = {"x":0,"y":0,"w":0,"h":0}
         self.soft_inpaint_installed = False
         self.init_ui()
+        self.load_all_settings()
+        self.handle_hidden()
 
     def init_ui(self):
         self.mask_widget = MaskWidget(self.settings_controller, self.api, self.size_dict)

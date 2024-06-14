@@ -29,11 +29,14 @@ class ColorCorrectionWidget(CyanicWidget):
     # def save_settings(self):
         # self.settings_controller.set('color_match', self.color_correct) # Was this a typo?
 
+    def load_server_data(self):
+        pass
+
     def get_generation_data(self):
         # data = {
         #     'color_correction': self.color_correct,
         # }
         data = self.variables
         self.save_settings()
-        self.settings_controller.save()
+        # self.settings_controller.save()
         return data

@@ -30,6 +30,7 @@ class ImageInWidget(CyanicWidget):
         self.init_ui()
         self.set_widget_values()
 
+    # Replaces the old self.image?
     @property
     def image(self):
         return self.variables[self.img_ref_key]
@@ -41,6 +42,9 @@ class ImageInWidget(CyanicWidget):
 
     def load_settings(self):
         super().load_settings()
+
+    def load_server_data(self):
+        pass
 
     def set_widget_values(self):
         if self.variables[self.img_ref_key] is None:
@@ -139,6 +143,8 @@ class ImageInWidget(CyanicWidget):
         self.preview_list.clear()
         name = ''
         if self.image is not None:
+            if type(self.image) == str:
+                self.image = QImage(self.image)
             icon = QIcon(QPixmap.fromImage(self.image))
             self.preview_list.addItem(QListWidgetItem(icon, name))
 

@@ -46,7 +46,7 @@ class BatchWidget(CyanicWidget):
     def save_settings(self):
         self.settings_controller.set('batch_count', self.variables['batch_count'])
         self.settings_controller.set('batch_size', self.variables['batch_size'])
-        self.settings_controller.save()
+        # self.settings_controller.save()
 
     def get_generation_data(self):
         data = {

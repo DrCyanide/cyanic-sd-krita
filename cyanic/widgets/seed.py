@@ -24,6 +24,9 @@ class SeedWidget(CyanicWidget):
             self.seed_edit.setText(self.variables['subseed'])
         self.subseed_strength_slider.setValue(int(self.variables['subseed_strength'] * 100))
 
+    def load_server_data(self):
+        pass
+
     def init_ui(self):
         # Seed
         row_1 = QWidget()

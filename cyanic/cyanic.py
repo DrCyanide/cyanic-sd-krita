@@ -9,26 +9,14 @@ from .krita_controller import KritaController
 
 DEFAULT_HOST = "http://127.0.0.1:7860"
 
-class TestDocker(DockWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle('Cyanic Test')
-        self.main_widget = QWidget(self)
-        self.main_widget.setLayout(QVBoxLayout())
-        self.main_widget.layout().addWidget(QLabel('Test Success'))
-        self.setWidget(self.main_widget)   
-
-    def canvasChanged(self, canvas):
-        pass
-
 
 class CyanicDocker(DockWidget):
     def __init__(self):
         super().__init__()
         self.settings_controller = SettingsController()
         host = self.settings_controller.get('host') if self.settings_controller.has_key('host') else DEFAULT_HOST
-        # host = DEFAULT_HOST
         self.api = SDAPI(host, self.on_api_change)
+        self.last_page = ''
 
         self.setWindowTitle("Cyanic SD")
         self.main_widget = QWidget(self)
@@ -111,12 +99,14 @@ class CyanicDocker(DockWidget):
         if self.api.connected:
             self.connection_panel.setHidden(True)
             self.content_area.setHidden(False)
+
             # Reload the API
+            self.settings_dialog.load_all_settings()
             for page in self.pages:
                 try:
                     page['page'].load_server_data()
                 except:
-                    # This page must not implement CyanicPage()
+                    # This page must not implement CyanicPage
                     pass
         else:
             self.connection_panel.setHidden(False)
@@ -124,16 +114,23 @@ class CyanicDocker(DockWidget):
 
     # Update the content widget based on the selected page
     def change_page(self):
+        last_entry = [x for x in self.pages if x['name'] == self.last_page]
+        if len(last_entry) > 0:
+            last_entry[0]['page'].save_settings()
+            self.settings_controller.save_kra_settings()
+            self.settings_controller.save()
+
+        current_page = self.page_combobox.currentText()
+
         for page in self.pages:
-            if page['name'] == self.page_combobox.currentText():
-                page['page'].save_settings()
-                self.settings_controller.save_kra_settings()
-                self.settings_controller.set('cyanic_sd_last_page', page['name'])
-                self.settings_controller.save()
-                # page['content']()
+            if page['name'] == current_page:
                 page['page'].setHidden(False)
+                page['page'].load_all_settings()
             else:
                 page['page'].setHidden(True)
+
+        self.last_page = current_page
+        self.settings_controller.set('cyanic_sd_last_page', self.last_page)
         self.update()
     
     def on_dialog_close(self):
@@ -171,11 +168,3 @@ Krita.instance().addDockWidgetFactory(
         CyanicDocker
     )
 )
-
-# Krita.instance().addDockWidgetFactory(
-#     DockWidgetFactory(
-#         "cyanicSD",
-#         DockWidgetFactoryBase.DockTornOff,
-#         TestDocker
-#     )
-# )

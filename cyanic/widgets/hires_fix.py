@@ -198,7 +198,7 @@ class HiResFixWidget(CyanicWidget):
         self.settings_controller.set('hr_fix_auto', self.variables['auto_enable_hr'])
         self.settings_controller.set('hr_fix_auto_min', self.variables['auto_enable_min'])
         self.settings_controller.set('hr_fix_denoise', self.variables['denoising_strength'])
-        self.settings_controller.save()
+        # self.settings_controller.save()
 
     def get_generation_data(self):
         self.save_settings()

@@ -44,6 +44,9 @@ class MaskWidget(CyanicWidget):
         self.mask_above_results_cb.setHidden(self.settings_controller.get('hide_ui_inpaint_mask_above_results'))
         self.hide_mask_cb.setHidden(self.settings_controller.get('hide_ui_inpaint_hide_mask'))
 
+    def load_server_data(self):
+        pass
+
     def init_ui(self):
         # Making the combined Mask + Image box uses a lot of the same code that ImageInWidget uses.
         self.preview_list = QListWidget()

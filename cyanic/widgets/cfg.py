@@ -36,7 +36,7 @@ class CFGWidget(CyanicWidget):
 
     def save_settings(self):
         self.settings_controller.set('cfg', self.variables['cfg'])
-        self.settings_controller.save()
+        # self.settings_controller.save()
     
     def get_generation_data(self):
         data = {

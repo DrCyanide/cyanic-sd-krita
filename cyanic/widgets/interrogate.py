@@ -42,6 +42,9 @@ class InterrogateWidget(CyanicWidget):
     def set_widget_values(self):
         pass
 
+    def load_server_data(self):
+        pass
+
     def handle_interrogate_btn_click(self):
         self.interrogate()
         self.update()

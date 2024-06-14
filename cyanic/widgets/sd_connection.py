@@ -14,6 +14,7 @@ class SDConnectionWidget(QWidget):
 
         self.setLayout(QFormLayout())
         self.init_ui()
+        self.set_widget_values()
     
 
     def init_ui(self):
@@ -31,6 +32,12 @@ class SDConnectionWidget(QWidget):
             self.connect_label.setText('SD connected')
         self.layout().addWidget(self.connect_label) 
 
+
+    def set_widget_values(self):
+        self.host_addr.setText(self.settings_controller.get('host'))
+
+    def load_settings(self):
+        self.set_widget_values()
 
     def handle_connect_btn_click(self):
         self.test_connection()
