@@ -116,6 +116,7 @@ class MaskWidget(CyanicWidget):
 
         # mask blur
         self.blur_box = QSpinBox()
+        self.blur_box.wheelEvent = lambda event : None
         self.blur_box.setMinimum(0)
         self.blur_box.setMaximum(64)
         # self.blur_box.setValue(self.variables['inpaint_mask_blur'])
@@ -128,6 +129,7 @@ class MaskWidget(CyanicWidget):
             'Inpaint not masked',
         ]
         self.mask_mode_select = QComboBox()
+        self.mask_mode_select.wheelEvent = lambda event : None
         self.mask_mode_select.addItems(mask_mode_options)
         self.mask_mode_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         # self.mask_mode_select.setCurrentIndex(self.variables['inpaint_mask_mode'])
@@ -142,6 +144,7 @@ class MaskWidget(CyanicWidget):
             'Latent Nothing',
         ]
         self.mask_content_select = QComboBox()
+        self.mask_content_select.wheelEvent = lambda event : None
         self.mask_content_select.addItems(mask_content_options)
         self.mask_content_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         # self.mask_content_select.setCurrentIndex(self.variables['inpaint_mask_content'])
@@ -154,6 +157,7 @@ class MaskWidget(CyanicWidget):
             'Only Masked',
         ]
         self.inpaint_select = QComboBox()
+        self.inpaint_select.wheelEvent = lambda event : None
         self.inpaint_select.addItems(inpaint_area_options)
         self.inpaint_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         # self.inpaint_select.setCurrentIndex(self.variables['inpaint_area'])
@@ -162,6 +166,7 @@ class MaskWidget(CyanicWidget):
 
         # Only masked padding, pixels (inpaint_full_res_padding)
         self.padding_box = QSpinBox()
+        self.padding_box.wheelEvent = lambda event : None
         self.padding_box.setMinimum(0)
         self.padding_box.setMaximum(64)
         # self.padding_box.setValue(self.variables['inpaint_padding'])

@@ -15,7 +15,7 @@ class LabeledSlider (QWidget):
 
         self.slider = QSlider(Qt.Horizontal)
         self.slider.wheelEvent = lambda event : None
-        self.slider.setTickInterval(10)
+        # self.slider.setTickInterval(10)
         self.slider.setTickPosition(QSlider.TicksAbove)
         if self.step_size == 1:
             self.slider.setMinimum(min)
@@ -26,6 +26,8 @@ class LabeledSlider (QWidget):
                 self.multiplier = 100
             self.slider.setMinimum(int(min * self.multiplier))
             self.slider.setMaximum(int(max * self.multiplier))
+        value_range = int((max - min) * self.multiplier)
+        self.slider.setTickInterval(int(value_range / 10))
         self.slider.valueChanged.connect(self.on_value_change)
 
         self.layout().addWidget(self.slider)
