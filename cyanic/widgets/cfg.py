@@ -23,6 +23,7 @@ class CFGWidget(CyanicWidget):
         self.layout().addWidget(QLabel('CFG Scale'))
 
         self.cfg_entry = QDoubleSpinBox()
+        self.cfg_entry.wheelEvent = lambda event : None
         self.cfg_entry.setMinimum(0.0)
         self.cfg_entry.setMaximum(30.0)
         # self.cfg_entry.setValue(self.variables['cfg'])

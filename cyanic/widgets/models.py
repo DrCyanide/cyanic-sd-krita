@@ -164,13 +164,11 @@ class ModelsWidget(CyanicWidget):
         self.server_const['models'], self.variables['model'] = self.api.get_models_and_default()
         self.server_const['vaes'], self.variables['vae'] = self.api.get_vaes_and_default()
         self.server_const['refiners'], self.variables['refiner'] = self.api.get_refiners_and_default()
-        # self.refresh_ui()
         self.set_widget_values()
 
     def load_settings(self):
         # Refresh UI elements that depend on settings saved to file (prompt history, selected images, selected models, etc)
         super().load_settings()
-        # self.refresh_ui()
         self.set_widget_values()
 
     def save_settings(self):
@@ -185,7 +183,9 @@ class ModelsWidget(CyanicWidget):
 
         for key in self.variables.keys():
             self.settings_controller.set(key, self.variables[key])
-        self.settings_controller.save()
+        
+        
+        # self.settings_controller.save()
 
     def get_generation_data(self):
         # Return a formatted dict with data used to generate images.

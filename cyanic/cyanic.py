@@ -39,7 +39,7 @@ class CyanicDocker(DockWidget):
         self.header_bar.setLayout(QGridLayout())
         self.header_bar.layout().setContentsMargins(0,0,0,0)
 
-        self.settings_dialog = SettingsDialog(self.settings_controller, self.api)
+        self.settings_dialog = SettingsDialog(self.settings_controller, self.api, on_close=self.on_dialog_close)
         self.show_settings_btn = QPushButton()
         self.show_settings_btn.setIcon( Krita.instance().icon('properties') )
         self.show_settings_btn.setToolTip('Open Cyanic SD Settings')
@@ -135,6 +135,11 @@ class CyanicDocker(DockWidget):
             else:
                 page['page'].setHidden(True)
         self.update()
+    
+    def on_dialog_close(self):
+        # Reload settings, since they could be changed in the dialog
+        for page in self.pages:
+            page['page'].load_settings()
 
     # This needs to be present in any class that implements DockWidget, even if it's not used
     def canvasChanged(self, canvas):

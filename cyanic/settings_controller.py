@@ -132,8 +132,11 @@ class SettingsController():
     def save_user_settings(self):
         # write tmp_settings to user_setting
         try:
+            str_data = json.dumps(self.tmp_settings, indent=4)
+            if "&txt2img" in str_data:
+                raise Exception('Cyanic SD - Corrupted user_settings: %s' % self.tmp_settings['common']['prompting']['include_sharing'])
             with open(self.user_settings_file, 'w') as f:
-                f.write(json.dumps(self.tmp_settings, indent=4))
+                f.write(str_data)
         except Exception as e:
             raise Exception('Cyanic SD - Error saving user settings: %s' % e)
         

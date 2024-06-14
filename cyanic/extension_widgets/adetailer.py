@@ -41,6 +41,7 @@ class ADetailerExtension(QWidget):
             'mediapipe_face_mesh_eyes_only',
         ]
         self.model_select = QComboBox()
+        self.model_select.wheelEvent = lambda event : None
         self.model_select.addItems(models)
         self.model_select.setCurrentText(models[0])
         self.model_select.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
@@ -53,7 +54,8 @@ class ADetailerExtension(QWidget):
         self.prompt_widget = PromptWidget(self.settings_controller, self.api, 'adetailer')
         self.layout().addWidget(self.prompt_widget)
 
-        # ... a ton of settings I honestly never used.
+        # ... a ton of settings I never use...
+        # A few more need to be added
         # Although there is a use steps option that might make it work as a post-processing...
 
     def set_enabled(self, value):

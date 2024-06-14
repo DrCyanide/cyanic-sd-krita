@@ -75,6 +75,7 @@ class HiResFixWidget(CyanicWidget):
         min_size_layout.setToolTip('The smallest size for a side of the first pass of the image. For SD 1.5, 512 recommended. For SDXL, 1025 recommended.')
 
         self.min_size = QSpinBox()
+        self.min_size.wheelEvent = lambda event : None
         self.min_size.setMinimum(1)
         self.min_size.setMaximum(99999)
         # self.min_size.setValue(self.variables['min_size'])
@@ -104,6 +105,7 @@ class HiResFixWidget(CyanicWidget):
         hr_min_size_layout.setToolTip('The smallest size for a side of the first pass of the image. Recommend about 1.5x larger than SD Min Size.')
 
         self.auto_min_size = QSpinBox()
+        self.auto_min_size.wheelEvent = lambda event : None
         self.auto_min_size.setMinimum(1)
         self.auto_min_size.setMaximum(99999)
         # self.auto_min_size.setValue(self.variables['auto_enable_min'])
@@ -123,6 +125,7 @@ class HiResFixWidget(CyanicWidget):
         upscalers = self.hires_only_upscalers
         upscalers.extend(self.api.get_upscaler_names())
         self.upscaler_select = QComboBox()
+        self.upscaler_select.wheelEvent = lambda event : None
         self.upscaler_select.addItems(upscalers)
         self.upscaler_select.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
         self.upscaler_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
@@ -133,6 +136,7 @@ class HiResFixWidget(CyanicWidget):
 
         # Steps
         self.steps = QSpinBox()
+        self.steps.wheelEvent = lambda event : None
         # self.steps.setValue(self.variables['hr_steps'])
         self.steps.valueChanged.connect(lambda: self._update_variable('hr_steps', self.steps.value()))
         self.steps.setToolTip('Hires Steps. 0 steps will match the number of steps used for the first generation.')

@@ -68,6 +68,7 @@ class SeedWidget(CyanicWidget):
 
         # Variation Strength
         self.subseed_strength_slider = QSlider(Qt.Horizontal)
+        self.subseed_strength_slider.wheelEvent = lambda event : None
         self.subseed_strength_slider.setTickInterval(10)
         self.subseed_strength_slider.setTickPosition(QSlider.TicksAbove)
         self.subseed_strength_slider.setMinimum(0)

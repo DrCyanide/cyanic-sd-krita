@@ -22,12 +22,14 @@ class BatchWidget(CyanicWidget):
 
     def init_ui(self):
         self.count_spin = QSpinBox()
+        self.count_spin.wheelEvent = lambda event : None
         self.count_spin.setMinimum(1)
         self.count_spin.setMaximum(16)
         self.count_spin.setValue(self.variables['batch_count'])
         self.count_spin.valueChanged.connect(lambda: self._update_variable('batch_count', self.count_spin.value()))
 
         self.size_spin = QSpinBox()
+        self.size_spin.wheelEvent = lambda event : None
         self.size_spin.setMinimum(1)
         self.size_spin.setMaximum(8)
         self.size_spin.setValue(self.variables['batch_size'])

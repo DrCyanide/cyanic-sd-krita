@@ -20,6 +20,11 @@ class PromptWidget(CyanicWidget):
             'prompts_txt_%s' % self.mode : [],
             'prompts_txt_%s_negative' % self.mode : [],
         }
+        self.read_only_variables = [
+            'prompt_history_max',
+            'prompt_share',
+            'prompt_share_includes'
+        ]
         self.server_const = {
             'styles': [],
             'lora_names': [],
@@ -37,6 +42,7 @@ class PromptWidget(CyanicWidget):
         self.prompt_history_index = 0
         self.init_ui()
         self.set_widget_values()
+        self.handle_hidden()
 
     def set_widget_values(self):
         # Unsure what to do on this one
@@ -129,7 +135,7 @@ class PromptWidget(CyanicWidget):
         self.negative_prompt_text_edit.setHidden(self.settings_controller.get('hide_ui_negative_prompt'))
         self.style_collapse.setHidden(self.prompts_only or self.settings_controller.get('hide_ui_styles'))
         self.extra_network_collapse.setHidden(self.prompts_only or self.settings_controller.get('hide_ui_extra_networks'))
-        self.prompt_history_row.setHidden(self.prompts_only)
+        self.prompt_history_row.setHidden(self.prompts_only or self.variables['prompt_history_max'] <= 0)
 
     def load_server_data(self):
         self.server_const['styles'] = self.api.get_styles()
@@ -183,14 +189,14 @@ class PromptWidget(CyanicWidget):
         self.variables[self.active_prompt_variable] = active_prompt_history
         self.variables['%s_negative' % self.active_prompt_variable] = active_negative_prompt_history
 
-        if self.variables['prompt_share'] and self.variables['prompt_share_includes'].index(self.mode) > -1:
+        if self.variables['prompt_share'] and self.mode in self.variables['prompt_share_includes']:
             self.variables['prompts_txt_shared'] = active_prompt_history
             self.variables['prompts_txt_shared_negative'] = active_negative_prompt_history
 
         # TODO: Save selected styles
-
         for key, value in self.variables.items():
-            self.settings_controller.set(key, value)
+            if key not in self.read_only_variables:
+                self.settings_controller.set(key, value)
 
 
     def get_generation_data(self):

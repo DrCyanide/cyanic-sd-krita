@@ -4,10 +4,11 @@ from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 
 class SettingsDialog(QDialog):
-    def __init__(self, settings_controller:SettingsController, api:SDAPI):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, on_close=None):
         super().__init__()
         self.settings_controller = settings_controller
         self.api = api
+        self.on_close = on_close
 
         self.setLayout(QVBoxLayout())
 
@@ -53,5 +54,7 @@ class SettingsDialog(QDialog):
     def closeEvent(self, event):
         for page in self.pages:
             page.save_settings()
+        if self.on_close is not None:
+            self.on_close()
 
         

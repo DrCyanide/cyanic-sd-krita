@@ -207,6 +207,7 @@ class ControlNetUnit(QWidget):
         control_type_row.setLayout(QFormLayout())
         control_type_row.layout().setContentsMargins(0,0,0,0)
         control_type_select = QComboBox()
+        control_type_select.wheelEvent = lambda event : None
         control_type_select.addItems(self.cnapi.get_control_types_list())
         control_type_select.setCurrentText('All')
         control_type_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
@@ -217,6 +218,7 @@ class ControlNetUnit(QWidget):
 
         # Preprocessor select
         self.preprocessor_select = QComboBox()
+        self.preprocessor_select.wheelEvent = lambda event : None
         self.preprocessor_select.addItems(self.preprocessor_list)
         self.preprocessor_select.setCurrentIndex(0)
         self.preprocessor_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
@@ -228,6 +230,7 @@ class ControlNetUnit(QWidget):
 
         # Model select
         self.model_select = QComboBox()
+        self.model_select.wheelEvent = lambda event : None
         self.model_select.addItems(self.model_list)
         self.model_select.setCurrentIndex(0)
         self.model_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
@@ -287,6 +290,7 @@ class ControlNetUnit(QWidget):
             'ControlNet is more important'
         ]
         control_mode_select = QComboBox()
+        control_mode_select.wheelEvent = lambda event : None
         control_mode_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         control_mode_select.addItems(self.control_mode_options)
         control_mode_select.setCurrentIndex(self.control_mode)
@@ -300,6 +304,7 @@ class ControlNetUnit(QWidget):
             'Resize and Fill'
         ]
         resize_mode_select = QComboBox()
+        resize_mode_select.wheelEvent = lambda event : None
         resize_mode_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         resize_mode_select.addItems(self.resize_mode_options)
         resize_mode_select.setCurrentIndex(self.resize_mode)
@@ -347,7 +352,9 @@ class ControlNetUnit(QWidget):
         row.layout().addWidget(QLabel(label))
 
         slider = QSlider(Qt.Horizontal)
+        slider.wheelEvent = lambda event : None
         box = QSpinBox()
+        box.wheelEvent = lambda event : None
         # Slider can't handle floats, so somethings might need to be adjusted
         if type(step) is float or type(max) is float or type(min) is float:
             slider.setMinimum(int(min * 100))
