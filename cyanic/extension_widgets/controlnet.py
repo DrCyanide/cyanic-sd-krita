@@ -183,7 +183,7 @@ class ControlNetUnit(QWidget):
         self.layout().addWidget(self.use_mask)
 
         # self.img_in = ImageInWidget(self.settings_controller, self.api, 'input_image', self.size_dict)
-        self.img_in = ImageInWidget(self.settings_controller, self.api, 'controlnet_%s' % self.unit, self.size_dict)
+        self.img_in = ImageInWidget(self.settings_controller, self.api, 'input_image', 'controlnet_%s' % self.unit, self.size_dict)
         self.layout().addWidget(self.img_in)
         self.img_in.setVisible(not self.use_mask.isChecked())
 

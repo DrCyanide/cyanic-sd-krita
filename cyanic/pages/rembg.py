@@ -47,7 +47,7 @@ class RemBGPage(CyanicPage):
 
     def init_ui(self):
         # Image select
-        self.img_in = ImageInWidget(self.settings_controller, self.api, 'input_image', self.size_dict)
+        self.img_in = ImageInWidget(self.settings_controller, self.api, 'input_image', 'rembg', self.size_dict)
         self.cyanic_widgets.append(self.img_in)
         self.layout().addWidget(self.img_in)
 

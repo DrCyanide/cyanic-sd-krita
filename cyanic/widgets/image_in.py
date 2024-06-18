@@ -10,17 +10,18 @@ from ..widgets import CyanicWidget
 # Select an image
 class ImageInWidget(CyanicWidget):
     MAX_HEIGHT = 100
-    def __init__(self, settings_controller:SettingsController, api:SDAPI, key:str, size_dict:dict={"x":0,"y":0,"w":0,"h":0}, hide_refresh=True):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, key:str, sd_settings_key:str, size_dict:dict={"x":0,"y":0,"w":0,"h":0}, hide_refresh=True):
         super().__init__(settings_controller, api)
         self.key = key # `key` should be whatever the key get_generation_data() should use to return the image
-        # Example 'img2img' returns {'img2img': {...}}
+        # Example 'img2img_img' returns {'img2img_img': {...}}, the format Img2Img expects
+        self.sd_settings_key = sd_settings_key # How this img should be saved in settings files
         # self.size_dict = size_dict
         self.hide_refresh = hide_refresh
         self.selection_mode = 'canvas'
         # self.image:QImage = None
 
-        self.img_ref_key = 'img_ref_%s' % self.key
-        self.img_ref_coords_key = 'img_ref_%s_coords' % self.key
+        self.img_ref_key = 'img_ref_%s' % self.sd_settings_key
+        self.img_ref_coords_key = 'img_ref_%s_coords' % self.sd_settings_key
 
         self.variables = {
             self.img_ref_key: None, # QImage

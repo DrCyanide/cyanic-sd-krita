@@ -92,6 +92,9 @@ class CyanicDocker(DockWidget):
         # Hide if the API isn't set
         self.on_api_change()
 
+        # Load the settings for all pages
+        self.update_all_page_settings()
+
         # Set the initial page
         self.change_page() 
 
@@ -114,6 +117,7 @@ class CyanicDocker(DockWidget):
 
     # Update the content widget based on the selected page
     def change_page(self):
+        # Save the last page's settings, since that's the only one that could've changed
         last_entry = [x for x in self.pages if x['name'] == self.last_page]
         if len(last_entry) > 0:
             last_entry[0]['page'].save_settings()
@@ -133,10 +137,14 @@ class CyanicDocker(DockWidget):
         self.settings_controller.set('cyanic_sd_last_page', self.last_page)
         self.update()
     
-    def on_dialog_close(self):
-        # Reload settings, since they could be changed in the dialog
+    def update_all_page_settings(self):
         for page in self.pages:
             page['page'].load_settings()
+
+    def on_dialog_close(self):
+        # Reload settings, since they could be changed in the dialog
+        self.update_all_page_settings()
+        # I don't think there needs to be an API update
 
     # This needs to be present in any class that implements DockWidget, even if it's not used
     def canvasChanged(self, canvas):

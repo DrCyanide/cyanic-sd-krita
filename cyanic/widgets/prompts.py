@@ -48,6 +48,10 @@ class PromptWidget(CyanicWidget):
         # Unsure what to do on this one
         pass
 
+    @property
+    def using_shared(self):
+        return self.variables['prompt_share'] and self.mode in self.variables['prompt_share_includes']
+
     def init_ui(self):
         # Prompt History
         self.prompt_history_row = QWidget()
@@ -189,11 +193,13 @@ class PromptWidget(CyanicWidget):
         self.variables[self.active_prompt_variable] = active_prompt_history
         self.variables['%s_negative' % self.active_prompt_variable] = active_negative_prompt_history
 
-        if self.variables['prompt_share'] and self.mode in self.variables['prompt_share_includes']:
+        # Set the shared prompts
+        if self.using_shared:
             self.variables['prompts_txt_shared'] = active_prompt_history
             self.variables['prompts_txt_shared_negative'] = active_negative_prompt_history
 
         # TODO: Save selected styles
+
         for key, value in self.variables.items():
             if key not in self.read_only_variables:
                 self.settings_controller.set(key, value)
@@ -231,6 +237,12 @@ class PromptWidget(CyanicWidget):
         self.update_history_label()
         active_prompt_history = self.variables[self.active_prompt_variable]
         active_negative_prompt_history = self.variables['%s_negative' % self.active_prompt_variable]
+
+        if self.using_shared:
+            # Use the shared prompt
+            active_prompt_history = self.variables['prompts_txt_shared']
+            active_negative_prompt_history = self.variables['prompts_txt_shared_negative']
+
         if self.prompt_history_index >= 0 and self.prompt_history_index < len(active_prompt_history):
             self.prompt_text_edit.setPlainText(active_prompt_history[self.prompt_history_index])
             self.negative_prompt_text_edit.setPlainText(active_negative_prompt_history[self.prompt_history_index])
@@ -244,6 +256,9 @@ class PromptWidget(CyanicWidget):
 
     def update_history_label(self):
         prompt_history_length = len(self.variables[self.active_prompt_variable])
+        if self.using_shared:
+            prompt_history_length = len(self.variables['prompts_txt_shared'])
+
         if prompt_history_length > 0:
             self.prompt_history_label.setText('%s/%s' % (self.prompt_history_index + 1, prompt_history_length))
             self.prompt_history_label.setToolTip('Which prompt in the history is selected. 1 is most recent, %s is oldest' % prompt_history_length)
