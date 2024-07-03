@@ -191,4 +191,5 @@ class ImageInWidget(CyanicWidget):
             data[self.key] = kc.qimage_to_b64_str(self.image)
         else:
             data[self.key] = None # Keeps things from crashing, even if it's not very useful.
+        self.save_settings()
         return data

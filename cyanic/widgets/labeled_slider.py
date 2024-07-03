@@ -40,21 +40,33 @@ class LabeledSlider (QWidget):
         self.set_value(value)
 
     def on_value_change(self):
-        value = self.slider.value() / self.multiplier
+        value = self._from_slider_value(self.slider.value())
+        if self.as_percent:
+            value = value * 100
+
+        if value % self.step_size != 0:
+            value = value - (value % self.step_size) # Rounds down by 
+
+        # Format the label string
+        if self.step_size >= 1:
+            value = "%d" % value
+        elif self.step_size < 1:
+            value = "%.1f" % value
+        elif self.step_size < 0.1:
+            value = "%.2f" % value
+        else:
+            value = "%.3f" % value
 
         # TODO: have "0%" and "100%" take the same width.
+        # Seems like QLabel trims leading spaces
         if self.as_percent:
             self.label.setText('%s%%' % value)
         else:
             self.label.setText('%s' % value)
 
     def set_value(self, value):
-        value = int(value * self.multiplier) # Used to account for step_size
-
-        if self.as_percent:
-            self.slider.setValue(int(value * 100))
-        else:
-            self.slider.setValue(value)
+        value = self._to_slider_value(value)
+        self.slider.setValue(value)
         self.on_value_change()
 
     def set_range(self, min=0, max=100):
@@ -62,8 +74,22 @@ class LabeledSlider (QWidget):
         self.slider.setMinimum(min)
         self.slider.setMaximum(max)
 
+    def _to_slider_value(self, value):
+        # Used to account for step_size
+        slider_value = value * self.multiplier
+        if self.as_percent:
+            if slider_value < 1.0:
+                slider_value = slider_value * 100
+            # return int(slider_value * 100)
+        return int(slider_value)
+    
+    def _from_slider_value(self, slider_value):
+        value = slider_value / self.multiplier
+        # convert to %
+        if self.as_percent and value > 0:
+            return value / 100
+        return value
+
     def value(self):
-        if self.as_percent and self.slider.value() > 0:
-            return self.slider.value() / 100
-        else:
-            return self.slider.value()
+        value = self._from_slider_value(self.slider.value())
+        return value
