@@ -100,6 +100,9 @@ class ImageInWidget(CyanicWidget):
         self.variables[self.img_ref_key] = None
 
     def set_ref_coords(self, x, y, w, h):
+        if self.variables[self.img_ref_coords_key] is None:
+            # RemBG is triggering this. Not sure why.
+            self.variables[self.img_ref_coords_key] = {"x":0,"y":0,"w":0,"h":0}
         self.variables[self.img_ref_coords_key]['x'] = x
         self.variables[self.img_ref_coords_key]['y'] = y
         self.variables[self.img_ref_coords_key]['w'] = w
@@ -150,13 +153,30 @@ class ImageInWidget(CyanicWidget):
             self.preview_list.addItem(QListWidgetItem(icon, name))
 
     def load_settings(self):
-        super().load_settings()
+        # super().load_settings()
+        for key in self.variables:
+            if key == self.img_ref_key:
+                # Convert the byte array to QImage
+                # self.variables[key] = QImage(self.settings_controller.get(key))
+                pass
+            else:
+                self.variables[key] = self.settings_controller.get(key)
         self.update_preview_icons()
         # Update selected area to match? Might cause confusion going back and forth either way.
         # I'm going to leave it turned off for now.
         # kc = KritaController()
         # coords = self.variables[self.img_ref_coords_key]
         # kc.set_selection(coords['x'], coords['y'], coords['w'], coords['h'])
+
+    def save_settings(self):
+        for key in self.variables:
+            if key == self.img_ref_key:
+                # Convert the QImage to byte array
+                # bits = self.variables[key].constBits()
+                # self.settings_controller.set(key, bits)
+                pass
+            else:
+                self.settings_controller.set(key, self.variables[key])
 
     def get_generation_data(self):
         data = {}

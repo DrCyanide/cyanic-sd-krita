@@ -237,6 +237,8 @@ class KritaController():
                 img_layer_parent.addChildNode(layer, dest)
                 if img_w != w or img_h != h:
                     self.transform_to_width_height(layer, x, y, w, h)
+                
+                layer.setCollapsed(True) # Trying to make it compact when it's drawn 
                 self.doc.refreshProjection()
 
             if len(results['images']) > 1:
@@ -278,6 +280,8 @@ class KritaController():
 
             if img_w != w or img_h != h:
                 self.transform_to_width_height(layer, x, y, w, h)
+            
+            layer.setCollapsed(True) # Trying to make it compact when it's drawn 
             self.doc.refreshProjection()
 
         self.doc.refreshProjection()
@@ -556,4 +560,4 @@ class KritaController():
     def get_background_color_hex(self):
         view = Application.activeWindow.activeView()
         canvas = view.canvas()
-        return view.backgroundColor().colorForCanvas(canvas).name() # "name" is the hex value, with lowercase letters
+        return view.backgroundColor().colorForCanvas(canvas).name() # "name" is the hex value, with lowercase letters 

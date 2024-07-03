@@ -9,7 +9,7 @@ from . import CyanicPage
 class RemBGPage(CyanicPage):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
         super().__init__(settings_controller, api)
-        self.debug = False
+        self.debug = True
         self.size_dict = {"x":0,"y":0,"w":0,"h":0}
 
         self.variables = {
@@ -39,6 +39,9 @@ class RemBGPage(CyanicPage):
         for key in self.variables:
             self.variables[key] = self.settings_controller.get(key)
 
+        if self.variables['rembg_model'] not in self.rembg_models:
+            self.variables['rembg_model'] = self.rembg_models[0]
+
         self.model_select.setCurrentText(self.variables['rembg_model'])
         self.as_mask_cb.setChecked(self.variables['rembg_results_as_mask'])
         self.apply_mask_cb.setChecked(self.variables['rembg_apply_mask'])
@@ -54,6 +57,8 @@ class RemBGPage(CyanicPage):
         # Background Removal model
         self.model_select = QComboBox()
         self.model_select.addItems(self.rembg_models)
+        if self.variables['rembg_model'] not in self.rembg_models:
+            self.variables['rembg_model'] = self.rembg_models[0]
         self.model_select.setCurrentText(self.variables['rembg_model'])
         self.model_select.currentTextChanged.connect(lambda: self.update_variable('rembg_model', self.model_select.currentText()))
         self.layout().addWidget(self.model_select)
@@ -166,13 +171,21 @@ class RemBGPage(CyanicPage):
 
 
     def get_generation_data(self):
+        # data = {
+        #     'model': self.settings_controller.get('rembg_model'),
+        #     'return_mask': self.settings_controller.get('rembg_results_as_mask'),
+        #     'alpha_matting': self.settings_controller.get('rembg_alpha_mat'),
+        #     'alpha_matting_foreground_threshold': self.settings_controller.get('rembg_foreground_threshold'),
+        #     'alpha_matting_background_threshold': self.settings_controller.get('rembg_background_threshold'),
+        #     'alpha_matting_erode_size': self.settings_controller.get('rembg_erode'),
+        # }
         data = {
-            'model': self.settings_controller.get('rembg_model'),
-            'return_mask': self.settings_controller.get('rembg_results_as_mask'),
-            'alpha_matting': self.settings_controller.get('rembg_alpha_mat'),
-            'alpha_matting_foreground_threshold': self.settings_controller.get('rembg_foreground_threshold'),
-            'alpha_matting_background_threshold': self.settings_controller.get('rembg_background_threshold'),
-            'alpha_matting_erode_size': self.settings_controller.get('rembg_erode'),
+            'model': self.variables['rembg_model'],
+            'return_mask': self.variables['rembg_results_as_mask'],
+            'alpha_matting': self.variables['rembg_alpha_mat'],
+            'alpha_matting_foreground_threshold': self.variables['rembg_threshold_foreground'],
+            'alpha_matting_background_threshold': self.variables['rembg_threshold_background'],
+            'alpha_matting_erode_size': self.variables['rembg_erode'],
         }
         # Add the image
         data.update(self.img_in.get_generation_data())
@@ -181,6 +194,10 @@ class RemBGPage(CyanicPage):
     def run_rembg(self):
         kc = KritaController()
         data = self.get_generation_data()
+        
+        if self.debug:
+            import json
+            self.debug_text.setPlainText("%s" % json.dumps(data))
         # TODO: Make this async
         results = self.api.post('/rembg', data)
         if results is not None:
@@ -190,3 +207,5 @@ class RemBGPage(CyanicPage):
                 kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
             else:
                 kc.result_to_transparency_mask(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
+        else:
+            raise Exception('No results?')

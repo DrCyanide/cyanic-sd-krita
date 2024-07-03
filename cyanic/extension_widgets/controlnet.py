@@ -558,8 +558,8 @@ class ControlNetUnit(QWidget):
     
     def gen_preview(self):
         image_data = self.img_in.get_generation_data()
-        # results = self.cnapi.preview(image_data['input_image'], self.preprocessor, self.variables['preprocessor_resolution'], self.variables['threshold_a'], self.variables['threshold_b'])
-        results = self.cnapi.preview(image_data['controlnet_%s' % self.unit], self.preprocessor, self.variables['preprocessor_resolution'], self.variables['threshold_a'], self.variables['threshold_b'])
+        results = self.cnapi.preview(image_data['input_image'], self.preprocessor, self.variables['preprocessor_resolution'], self.variables['threshold_a'], self.variables['threshold_b'])
+        # results = self.cnapi.preview(image_data['controlnet_%s' % self.unit], self.preprocessor, self.variables['preprocessor_resolution'], self.variables['threshold_a'], self.variables['threshold_b'])
         if results is not None:
             kc = KritaController()
             kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'], 'ControlNet Preview')
