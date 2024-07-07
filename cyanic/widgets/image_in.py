@@ -1,7 +1,12 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QImage, QPixmap, QIcon
 from PyQt5.QtCore import QSize, Qt, QBuffer, QIODevice, QByteArray
+try:
+    from PyQt5 import sip
+except ImportError:
+    import sip
 import base64
+import ctypes
 from ..krita_controller import KritaController
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
@@ -157,8 +162,16 @@ class ImageInWidget(CyanicWidget):
         for key in self.variables:
             if key == self.img_ref_key:
                 # Convert the byte array to QImage
-                # self.variables[key] = QImage(self.settings_controller.get(key))
-                pass
+                value = self.settings_controller.get(key)
+                if value is not None and len(value) > 0:
+                    byte_array = QByteArray(bytes(value, encoding='UTF-16', errors='ignore'))
+                    # w = self.variables[self.img_ref_coords_key]['w']
+                    # h = self.variables[self.img_ref_coords_key]['h']
+                    # f = QImage.Format_RGBA8888
+                    # self.variables[key] = QImage(byte_array, width=w,  height=h, format=f)
+                    self.variables[key] = QImage.fromData(byte_array)
+                else:
+                    self.variables[key] = None
             else:
                 self.variables[key] = self.settings_controller.get(key)
         self.update_preview_icons()
@@ -172,9 +185,14 @@ class ImageInWidget(CyanicWidget):
         for key in self.variables:
             if key == self.img_ref_key:
                 # Convert the QImage to byte array
-                # bits = self.variables[key].constBits()
-                # self.settings_controller.set(key, bits)
-                pass
+                if self.variables[key] is not None:
+                    bits = self.variables[key].constBits()
+                    if bits is None:
+                        continue
+                    char_pointer = ctypes.cast(int(bits), ctypes.c_char_p)
+                    byte_array = char_pointer.value # Unsigned Chars have a 0-255 value
+                    # self.settings_controller.set(key, '%s' % byte_array) # Can write it to a string, but not decode it
+                    self.settings_controller.set(key, byte_array.decode('UTF-16', errors="ignore"))
             else:
                 self.settings_controller.set(key, self.variables[key])
 

@@ -117,14 +117,18 @@ class CyanicDocker(DockWidget):
 
     # Update the content widget based on the selected page
     def change_page(self):
+        current_page = self.page_combobox.currentText()
+
         # Save the last page's settings, since that's the only one that could've changed
         last_entry = [x for x in self.pages if x['name'] == self.last_page]
         if len(last_entry) > 0:
             last_entry[0]['page'].save_settings()
+            # Update the last page in settings, so it'll resume at the new page
+            self.settings_controller.set('cyanic_sd_last_page', current_page)
             self.settings_controller.save_kra_settings()
             self.settings_controller.save()
 
-        current_page = self.page_combobox.currentText()
+        
 
         for page in self.pages:
             if page['name'] == current_page:
@@ -134,7 +138,6 @@ class CyanicDocker(DockWidget):
                 page['page'].setHidden(True)
 
         self.last_page = current_page
-        self.settings_controller.set('cyanic_sd_last_page', self.last_page)
         self.update()
     
     def update_all_page_settings(self):

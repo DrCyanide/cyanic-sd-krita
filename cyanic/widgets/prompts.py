@@ -176,6 +176,13 @@ class PromptWidget(CyanicWidget):
                 active_prompt_history.pop(i)
                 active_negative_prompt_history.pop(i)
                 break
+
+        # Remove empty prompts
+        for i in range(0, len(active_prompt_history)):
+            if len(active_prompt_history[i]) == 0:
+                active_prompt_history.pop(i)
+                active_negative_prompt_history.pop(i)
+                break
         
         # Insert at the beginning
         if len(prompt) > 0 or len(negative_prompt) > 0:

@@ -238,8 +238,8 @@ class KritaController():
                 if img_w != w or img_h != h:
                     self.transform_to_width_height(layer, x, y, w, h)
                 
-                layer.setCollapsed(True) # Trying to make it compact when it's drawn 
                 self.doc.refreshProjection()
+                layer.setCollapsed(True) # Trying to make it compact when it's drawn 
 
             if len(results['images']) > 1:
                 if below_active or below_layer is not None:
@@ -261,28 +261,15 @@ class KritaController():
             dest = None
             if below_active or below_layer is not None:
                 dest = self.find_below(below_layer)
-            # if below_active or below_layer is not None: # Needed to get the Transparency Mask in the right position
-            #     target_node = self.doc.activeNode()
-            #     if below_layer is not None:
-            #         target_node = below_layer
-            #     target_node_index = target_node.index()
-            #     target_parent = target_node.parentNode()
-            #     target_parent_children = target_parent.childNodes()
-            #     max_index = len(target_parent_children)
-
-            #     dest = None
-            #     if target_node_index == max_index - 1:
-            #         dest = target_node
-            #     else:
-            #         dest = target_parent_children[target_node_index - 1]
 
             img_layer_parent.addChildNode(layer, dest)
 
             if img_w != w or img_h != h:
                 self.transform_to_width_height(layer, x, y, w, h)
-            
-            layer.setCollapsed(True) # Trying to make it compact when it's drawn 
+
             self.doc.refreshProjection()
+            layer.setCollapsed(True) # Trying to make it compact when it's drawn 
+            
 
         self.doc.refreshProjection()
 
@@ -476,7 +463,7 @@ class KritaController():
             if self.version_gte('5.2'):
                 self.use_transform_mask(layer, x, y, width, height)
             else:
-                self.scale_layer(layer, x, y, width, height) 
+                self.scale_layer(layer, x, y, width, height)
         except Exception as e:
             self.scale_layer(layer, x, y, width, height) 
 

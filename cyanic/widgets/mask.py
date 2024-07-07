@@ -197,7 +197,7 @@ class MaskWidget(CyanicWidget):
         self.preview_list.addItem(QListWidgetItem(mask_icon, 'Mask'))
 
     def update_mask_only(self, mode='canvas'):
-        kc = KritaController
+        kc = KritaController()
         self.update_size_dict(mode)
         self.mask, _ = kc.get_mask_and_image(mode)
         self.update_preview_icons()
