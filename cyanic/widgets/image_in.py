@@ -45,6 +45,13 @@ class ImageInWidget(CyanicWidget):
     def image(self, value:QImage):
         self.variables[self.img_ref_key] = value
 
+    @property
+    def size_dict(self):
+        return self.variables[self.img_ref_coords_key]
+    
+    @size_dict.setter
+    def size_dict(self, value):
+        self.variables[self.img_ref_coords_key] = value
 
     def load_settings(self):
         super().load_settings()

@@ -9,7 +9,7 @@ from . import CyanicPage
 class RemBGPage(CyanicPage):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
         super().__init__(settings_controller, api)
-        self.debug = True
+        self.debug = False
         self.size_dict = {"x":0,"y":0,"w":0,"h":0}
 
         self.variables = {
@@ -198,14 +198,25 @@ class RemBGPage(CyanicPage):
         if self.debug:
             import json
             self.debug_text.setPlainText("%s" % json.dumps(data))
+
+        # Update size_dict from self.img_in
+        self.size_dict = self.img_in.size_dict
+
         # TODO: Make this async
         results = self.api.post('/rembg', data)
         if results is not None:
-            apply_mask = self.settings_controller.get('rembg_apply_mask')
-            as_mask = self.settings_controller.get('rembg_results_as_mask')
+            if self.debug:
+                import json
+                self.debug_text.setPlainText("%s" % json.dumps(results))
+            # apply_mask = self.settings_controller.get('rembg_apply_mask')
+            # as_mask = self.settings_controller.get('rembg_results_as_mask')
+            apply_mask = self.variables['rembg_apply_mask']
+            as_mask = self.variables['rembg_results_as_mask']
+
             if (as_mask and not apply_mask) or not as_mask:
                 kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
             else:
                 kc.result_to_transparency_mask(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
         else:
             raise Exception('No results?')
+            
