@@ -87,5 +87,5 @@ class ADetailerExtension(CyanicWidget):
                 ]
             }
         }
-        self.prompt_widget.save_prompt()
+        self.prompt_widget.save_settings()
         return data

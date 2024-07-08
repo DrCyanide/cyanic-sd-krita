@@ -130,7 +130,7 @@ class GenerateWidget(QWidget):
             if 'CYANIC' in data.keys(): # Special instructions for processing results are passed through with this tag.
                 processing_instructions.update(data.pop('CYANIC'))
             # if type(widget) is PromptWidget:
-            #     widget.save_prompt()
+            #     widget.save_settings()
         # TODO: Check settings for anything that changes the parameters, such as limiting generation size, HR Fix, upscaling, clip skip, etc
         if self.debug:
             self.debug_data.setPlainText('%s' % json.dumps(self.api.cleanup_data(data)))

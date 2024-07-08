@@ -116,9 +116,6 @@ class SettingsPage(CyanicPage):
         self.add_tooltip(prompt_form, 'Changes to the checked prompts/negative prompts won\'t override the unchecked')
 
         # TODO: Replace with the amount of prompts to save, and include the options.
-        # prompt_form.layout().addRow('Save Prompts', self.create_checkbox('prompts.save_prompts'))
-        # self.add_tooltip(prompt_form, 'Save prompts/negative prompts in Krita\'s UI for next time.')
-        # self.layout().addWidget(prompt_form)
         save_history_size = QSpinBox()
         save_history_size.setRange(0, 15)
         save_history_size.setValue(self.settings_controller.get('prompt_history_max'))

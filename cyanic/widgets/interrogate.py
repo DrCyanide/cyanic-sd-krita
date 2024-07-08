@@ -111,8 +111,7 @@ class InterrogateWidget(CyanicWidget):
                 self.prompt_widget.prompt_text_edit.setPlainText(
                     self.results["caption"]
                 )
-
-                self.prompt_widget.save_prompt()
+                self.prompt_widget.save_settings()
 
             if self.debug:
                 self.debug_data.setPlainText(self.results["caption"])
