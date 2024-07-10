@@ -5,6 +5,7 @@ from ..settings_controller import SettingsController
 from . import CyanicPage
 
 class SettingsPage(CyanicPage):
+    # Connection, max size, previews
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
         super().__init__(settings_controller, api)
         self.connected = False

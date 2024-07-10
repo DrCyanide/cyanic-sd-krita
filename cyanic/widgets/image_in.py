@@ -67,6 +67,7 @@ class ImageInWidget(CyanicWidget):
 
     def init_ui(self):
         self.preview_list = QListWidget()
+        self.preview_list.setSelectionMode(QAbstractItemView.NoSelection)
         self.preview_list.setFixedHeight(ImageInWidget.MAX_HEIGHT)
         self.preview_list.setFlow(QListView.Flow.LeftToRight)
         self.preview_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)

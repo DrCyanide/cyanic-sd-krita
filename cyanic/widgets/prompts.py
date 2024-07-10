@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
+from ..dialogs import ExtraNetworksDialog
 from ..widgets import CollapsibleWidget, CyanicWidget
 
 class PromptWidget(CyanicWidget):
@@ -100,6 +101,7 @@ class PromptWidget(CyanicWidget):
         self.style_panel.layout().setContentsMargins(0,0,0,0)
         
         self.style_name_list = QListWidget()
+        # self.style_name_list.setSelectionMode(QAbstractItemView.MultiSelection)
         self.style_panel.layout().addWidget(self.style_name_list)
 
         self.style_append_to_prompt_btn = QPushButton('Add style text to prompt')
@@ -115,6 +117,12 @@ class PromptWidget(CyanicWidget):
         self.extra_network_panel.setLayout(QVBoxLayout())
         self.extra_network_panel.layout().setContentsMargins(0,0,0,0)
 
+        self.extra_network_dialog = ExtraNetworksDialog(self.settings_controller, self.api, on_close=self.on_network_dialog_close)
+        self.show_network_dialog_btn = QPushButton('Open Dialog')
+        # self.show_network_dialog_btn.setIcon( Krita.instance().icon('properties') )
+        # self.show_network_dialog_btn.setToolTip('Open Cyanic SD Settings')
+        self.show_network_dialog_btn.clicked.connect(self.show_network_dialog)
+        self.layout().addWidget(self.show_network_dialog_btn)
         # TODO: Add a label that explains autocomplete functionality (where typing in '<' in the prompt triggers a suggestion)
 
         # Select Lora/Hypernetwork/Embedding
@@ -228,6 +236,14 @@ class PromptWidget(CyanicWidget):
     # -----------------------
     # Widget specific methods
     # -----------------------
+
+    def show_network_dialog(self):
+        self.extra_network_dialog.update_prompt_txt(self.prompt_text_edit.toPlainText())
+        self.extra_network_dialog.show()
+
+    def on_network_dialog_close(self, new_prompt=''):
+        if len(new_prompt) > 0:
+            self.prompt_text_edit.setPlainText(new_prompt)
 
     def load_prev_prompt(self):
         if self.prompt_history_index > 0:

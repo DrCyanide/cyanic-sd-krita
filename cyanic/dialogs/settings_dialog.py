@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import *
-from ..pages import SettingsPage, SimplifyPage, PromptSettingsPage
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 
@@ -12,16 +11,20 @@ class SettingsDialog(QDialog):
 
         self.setLayout(QVBoxLayout())
 
+        from ..pages import SettingsPage, SimplifyPage, PromptSettingsPage, DefaultsPage
+        # If these imports were at the top of the page, it could cause circular dependency issues for other dialogs
+
         self.tabs = QTabWidget()
         self.settings_page = SettingsPage(self.settings_controller, self.api)
         self.prompt_settings_page = PromptSettingsPage(self.settings_controller, self.api)
         self.simplify_page = SimplifyPage(self.settings_controller, self.api)
-        # Default Settings?
+        self.default_page = DefaultsPage(self.settings_controller, self.api)
 
         self.pages = [
             self.settings_page,
             self.prompt_settings_page,
             self.simplify_page,
+            self.default_page,
         ]
 
         self.init_ui()
@@ -38,6 +41,13 @@ class SettingsDialog(QDialog):
         scroll.setWidget(self.simplify_page)
         scroll.setWidgetResizable(True)
         self.tabs.addTab(scroll, 'Simplify')
+
+        # Same with defaults
+        scroll2 = QScrollArea()
+        scroll2.setWidget(self.default_page)
+        scroll2.setWidgetResizable(True)
+        self.tabs.addTab(scroll2, 'Defaults')
+        
 
     def load_all_settings(self):
         for page in self.pages:

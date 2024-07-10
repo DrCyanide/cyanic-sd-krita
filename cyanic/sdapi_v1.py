@@ -37,7 +37,7 @@ class SDAPI():
         self.connected = False
         self.on_connection_change = on_connection_change # A function that can be called if self.connected changes - DO NOT CALL IN A THREAD EVALUATION!!! It will crash Krita with no error message.
         self.last_url = ''
-        self.init_api()
+        self.test_connection(self.host, switch_if_success=True) # If there's a connection, it'll change host and init_api(). If not, it won't wait for a bunch of startup calls, allowing Krita to boot faster.
 
     def change_host(self, host=DEFAULT_HOST):
         self.host = host
@@ -58,6 +58,7 @@ class SDAPI():
             if old_connected:
                 self.on_connection_change()
             return # There was an issue, but the server might not be online yet.
+        
         init_processes = [
             self.get_models,
             self.get_vaes,
@@ -89,6 +90,10 @@ class SDAPI():
 
 
     def get(self, url):
+        if not self.connected:
+            # Drastically improves Krita boot times when the Stable Diffusion server isn't running.
+            return None 
+
         self.last_url = "{}{}".format(self.host, url)
         try:
             response = urllib.request.urlopen(self.last_url)
@@ -124,6 +129,7 @@ class SDAPI():
                 queue_status = json.loads(text)
                 success = len(queue_status.keys()) > 0
                 if success and switch_if_success:
+                    self.connected = True
                     self.change_host(host)
                 return success
             except Exception as e:
@@ -280,6 +286,12 @@ class SDAPI():
             return self.hypernetworks
         else:
             return []
+        
+    def get_thumbnail(self, path):
+        if path.rsplit('.')[1].lower() is not 'png':
+            path = "%s.png" % path.rsplit('.')[0]
+        image = self.get("/sd_extra_networks/thumb?filename=%s" % path)
+        return image
     
     # TODO: /sdapi/v1/lycos exists in SD.Next
     

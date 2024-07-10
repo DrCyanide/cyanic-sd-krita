@@ -48,7 +48,10 @@ class ControlNetAPI():
         return 3 # The latest version as of writing this - May 20, 2024
     
     def get_models(self):
-        self.models = self.api.get('/controlnet/model_list?update=true')['model_list']
+        try:
+            self.models = self.api.get('/controlnet/model_list?update=true')['model_list']
+        except:
+            self.models = []
     
     def get_modules(self):
         results = self.api.get('/controlnet/module_list?alias_names=true')

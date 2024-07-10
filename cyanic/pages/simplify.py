@@ -8,9 +8,6 @@ from . import CyanicPage
 class SimplifyPage(CyanicPage):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
         super().__init__(settings_controller, api)
-        self.settings_controller = settings_controller
-        self.api = api
-        self.setLayout(QVBoxLayout())
         self.auto_save = self.settings_controller.get('hide_ui_auto_save')
         self.hidden = {
             'model': self.settings_controller.get('hide_ui_model'),
@@ -54,15 +51,16 @@ class SimplifyPage(CyanicPage):
         self.init_ui()
 
     def init_ui(self):
-        instructions = QLabel("Reducing the clutter in the UI by hiding settings. Hidden settings will still be applied during generation. If you adjust a default setting remember to click the 'Save' button at the bottom of the page.")
+        # instructions = QLabel("Reducing the clutter in the UI by hiding settings. Hidden settings will still be applied during generation. If you adjust a default setting remember to click the 'Save' button at the bottom of the page.")
+        instructions = QLabel("Reducing the clutter in the UI by hiding settings. Hidden settings will still be applied during generation.")
         instructions.setWordWrap(True)
         self.layout().addWidget(instructions)
 
         # Autosave
-        autosave_cb = QCheckBox('Autosave hidden changes (NOT default settings!)')
-        autosave_cb.setChecked(self.auto_save)
-        autosave_cb.stateChanged.connect(lambda: self._update_autosave(autosave_cb.isChecked()))
-        self.layout().addWidget(autosave_cb)
+        # autosave_cb = QCheckBox('Autosave hidden changes (NOT default settings!)')
+        # autosave_cb.setChecked(self.auto_save)
+        # autosave_cb.stateChanged.connect(lambda: self._update_autosave(autosave_cb.isChecked()))
+        # self.layout().addWidget(autosave_cb)
 
         # Models
         model_settings = QGroupBox('Model')
@@ -80,8 +78,8 @@ class SimplifyPage(CyanicPage):
         hide_sampler = self._setup_checkbox('Hide Sampler and Steps', 'sampler')
         model_settings.layout().addWidget(hide_sampler)
 
-        self.model_widget = ModelsWidget(self.settings_controller, self.api, ignore_hidden=True)
-        model_settings.layout().addWidget(self.model_widget)
+        # self.model_widget = ModelsWidget(self.settings_controller, self.api, ignore_hidden=True)
+        # model_settings.layout().addWidget(self.model_widget)
 
         self.layout().addWidget(model_settings)
 
@@ -101,8 +99,8 @@ class SimplifyPage(CyanicPage):
         hide_hires_denoise = self._setup_checkbox('Hide Hires Fix Denoise Strength', 'hires_denoise')
         hires_fix_settings.layout().addWidget(hide_hires_denoise)
 
-        self.hires_fix_widget = HiResFixWidget(self.settings_controller, self.api, ignore_hidden=True)
-        hires_fix_settings.layout().addWidget(self.hires_fix_widget)
+        # self.hires_fix_widget = HiResFixWidget(self.settings_controller, self.api, ignore_hidden=True)
+        # hires_fix_settings.layout().addWidget(self.hires_fix_widget)
 
         self.layout().addWidget(hires_fix_settings)
 
@@ -112,8 +110,8 @@ class SimplifyPage(CyanicPage):
         hide_cfg = self._setup_checkbox('Hide CFG Scale', 'cfg')
         cfg_settings.layout().addWidget(hide_cfg)
 
-        self.cfg_widget = CFGWidget(self.settings_controller, self.api)
-        cfg_settings.layout().addWidget(self.cfg_widget)
+        # self.cfg_widget = CFGWidget(self.settings_controller, self.api)
+        # cfg_settings.layout().addWidget(self.cfg_widget)
 
         self.layout().addWidget(cfg_settings)
 
@@ -127,13 +125,13 @@ class SimplifyPage(CyanicPage):
         hide_color_correction = self._setup_checkbox('Hide Color Correction', 'color_correction')
         img2img_settings.layout().addWidget(hide_color_correction)
 
-        img2img_settings.layout().addWidget(QSplitter())
+        # img2img_settings.layout().addWidget(QSplitter())
 
-        self.denoise_widget = DenoiseWidget(self.settings_controller)
-        img2img_settings.layout().addWidget(self.denoise_widget)
+        # self.denoise_widget = DenoiseWidget(self.settings_controller)
+        # img2img_settings.layout().addWidget(self.denoise_widget)
 
-        self.color_correction = ColorCorrectionWidget(self.settings_controller, self.api)
-        img2img_settings.layout().addWidget(self.color_correction)
+        # self.color_correction = ColorCorrectionWidget(self.settings_controller, self.api)
+        # img2img_settings.layout().addWidget(self.color_correction)
 
         self.layout().addWidget(img2img_settings)
 
@@ -153,26 +151,26 @@ class SimplifyPage(CyanicPage):
 
         # TODO: add Mask Blur, Mask Mode, Masked Content, Inpaint Area
 
-            # Update Mask before Generating
-        mask_auto_update_cb = QCheckBox('Update mask before generating')
-        mask_auto_update_cb.setToolTip('Will remember the last layer used as a mask and use the current state of that layer whenever the "Generate" button is clicked')
-        mask_auto_update_cb.setChecked(self.variables['mask_auto_update'])
-        mask_auto_update_cb.stateChanged.connect(lambda: self._update_variable('mask_auto_update', mask_auto_update_cb.isChecked()))
-        inpaint_settings.layout().addWidget(mask_auto_update_cb)
+        #     # Update Mask before Generating
+        # mask_auto_update_cb = QCheckBox('Update mask before generating')
+        # mask_auto_update_cb.setToolTip('Will remember the last layer used as a mask and use the current state of that layer whenever the "Generate" button is clicked')
+        # mask_auto_update_cb.setChecked(self.variables['mask_auto_update'])
+        # mask_auto_update_cb.stateChanged.connect(lambda: self._update_variable('mask_auto_update', mask_auto_update_cb.isChecked()))
+        # inpaint_settings.layout().addWidget(mask_auto_update_cb)
 
-            # Add Results below Mask
-        mask_above_results_cb = QCheckBox('Mask above results')
-        mask_above_results_cb.setToolTip('Will insert the results as a new layer below the mask')
-        mask_above_results_cb.setChecked(self.variables['mask_above_results'])
-        mask_above_results_cb.stateChanged.connect(lambda: self._update_variable('mask_above_results', mask_above_results_cb.isChecked()))
-        inpaint_settings.layout().addWidget(mask_above_results_cb)
+        #     # Add Results below Mask
+        # mask_above_results_cb = QCheckBox('Mask above results')
+        # mask_above_results_cb.setToolTip('Will insert the results as a new layer below the mask')
+        # mask_above_results_cb.setChecked(self.variables['mask_above_results'])
+        # mask_above_results_cb.stateChanged.connect(lambda: self._update_variable('mask_above_results', mask_above_results_cb.isChecked()))
+        # inpaint_settings.layout().addWidget(mask_above_results_cb)
 
-            # Hide mask on generation
-        hide_mask_cb = QCheckBox('Hide mask when generating')
-        hide_mask_cb.setToolTip('Turns off mask visibility so that you can see the results faster')
-        hide_mask_cb.setChecked(self.variables['mask_hide_while_gen'])
-        hide_mask_cb.stateChanged.connect(lambda: self._update_variable('mask_hide_while_gen', hide_mask_cb.isChecked()))
-        inpaint_settings.layout().addWidget(hide_mask_cb)
+        #     # Hide mask on generation
+        # hide_mask_cb = QCheckBox('Hide mask when generating')
+        # hide_mask_cb.setToolTip('Turns off mask visibility so that you can see the results faster')
+        # hide_mask_cb.setChecked(self.variables['mask_hide_while_gen'])
+        # hide_mask_cb.stateChanged.connect(lambda: self._update_variable('mask_hide_while_gen', hide_mask_cb.isChecked()))
+        # inpaint_settings.layout().addWidget(hide_mask_cb)
 
         self.layout().addWidget(inpaint_settings)
 
@@ -180,11 +178,11 @@ class SimplifyPage(CyanicPage):
         hide_soft_inpainting = self._setup_checkbox('Hide Soft Inpainting', 'soft_inpaint')
         inpaint_settings.layout().addWidget(hide_soft_inpainting)
 
-        soft_inpaint_settings = QGroupBox('Soft Inpaint Settings')
-        soft_inpaint_settings.setLayout(QVBoxLayout())
-        self.soft_inpaint = SoftInpaintWidget(self.settings_controller, self.api, settings_only=True)
-        soft_inpaint_settings.layout().addWidget(self.soft_inpaint)
-        inpaint_settings.layout().addWidget(soft_inpaint_settings)
+        # soft_inpaint_settings = QGroupBox('Soft Inpaint Settings')
+        # soft_inpaint_settings.setLayout(QVBoxLayout())
+        # self.soft_inpaint = SoftInpaintWidget(self.settings_controller, self.api, settings_only=True)
+        # soft_inpaint_settings.layout().addWidget(self.soft_inpaint)
+        # inpaint_settings.layout().addWidget(soft_inpaint_settings)
 
         # Batch
         batch_settings = QGroupBox('Batch')
@@ -193,8 +191,8 @@ class SimplifyPage(CyanicPage):
         hide_batch = self._setup_checkbox('Hide Batch Settings', 'batch')
         batch_settings.layout().addWidget(hide_batch)
 
-        self.batch_widget = BatchWidget(self.settings_controller, self.api)
-        batch_settings.layout().addWidget(self.batch_widget)
+        # self.batch_widget = BatchWidget(self.settings_controller, self.api)
+        # batch_settings.layout().addWidget(self.batch_widget)
         self.layout().addWidget(batch_settings)
 
         # Seed
@@ -204,8 +202,8 @@ class SimplifyPage(CyanicPage):
         hide_seed = self._setup_checkbox('Hide Seed Settings', 'seed')
         seed_settings.layout().addWidget(hide_seed)
         
-        self.seed_widget = SeedWidget(self.settings_controller)
-        seed_settings.layout().addWidget(self.seed_widget)
+        # self.seed_widget = SeedWidget(self.settings_controller)
+        # seed_settings.layout().addWidget(self.seed_widget)
         self.layout().addWidget(seed_settings)
         
         # Prompts
@@ -279,9 +277,9 @@ class SimplifyPage(CyanicPage):
 
         self.layout().addWidget(interrogate_settings)
 
-        save_btn = QPushButton("Save")
-        save_btn.clicked.connect(lambda: self.save())
-        self.layout().addWidget(save_btn)
+        # save_btn = QPushButton("Save")
+        # save_btn.clicked.connect(lambda: self.save())
+        # self.layout().addWidget(save_btn)
 
         self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top
 

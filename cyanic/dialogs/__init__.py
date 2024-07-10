@@ -1,1 +1,2 @@
+from .extra_networks_dialog import ExtraNetworksDialog
 from .settings_dialog import SettingsDialog

@@ -4,7 +4,7 @@ A Krita Plugin to work with the [Automatic1111 WebUI](https://github.com/AUTOMAT
 
 ![Img2Img Example](readme_imgs/img2img_example.png "Img2Img Example")
 
-**Note:** This plugin is in a "Usable Alpha" state. It might crash, or might not be compatible with your server settings. Things are expected to change somewhat frequently.
+**Note:** This plugin is in a "Beta" state. It might crash, or might not be compatible with your server settings. However most tasks should be stable.
 
 # Updates
 **Apr 11 2024** - Added support for Soft Inpainting

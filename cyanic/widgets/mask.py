@@ -50,6 +50,7 @@ class MaskWidget(CyanicWidget):
     def init_ui(self):
         # Making the combined Mask + Image box uses a lot of the same code that ImageInWidget uses.
         self.preview_list = QListWidget()
+        self.preview_list.setSelectionMode(QAbstractItemView.NoSelection)
         self.preview_list.setFixedHeight(MaskWidget.MAX_HEIGHT)
         self.preview_list.setFlow(QListView.Flow.LeftToRight)
         self.preview_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
