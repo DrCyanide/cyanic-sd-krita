@@ -158,7 +158,8 @@ class ImageInWidget(CyanicWidget):
 
     def update_preview_icons(self):
         self.preview_list.clear()
-        name = ''
+        # name = ''
+        name = None
         if self.image is not None:
             if type(self.image) == str:
                 self.image = QImage(self.image)

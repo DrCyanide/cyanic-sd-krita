@@ -4,6 +4,8 @@
     "host": "common.server.host",
     "host_save_imgs": "common.server.save_imgs",
 
+    "show_extra_network_thumbnails": "common.cyanic_settings.options.show_extra_network_thumbnails",
+
     "preview_shown": "common.previews.enabled",
     "preview_refresh": "common.previews.refresh_seconds",
 

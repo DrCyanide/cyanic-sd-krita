@@ -18,8 +18,7 @@ class ExtraNetworksDialog(QDialog):
         self.prompt_txt = prompt_txt
 
         self.label_key = 'name' # 'alias' isn't part of hypernetwork
-        self.show_icons = False # TODO: Make it toggle
-        self.enabled_networks = []
+        self.show_icons = False
 
         self.thumbnails = {}
 
@@ -33,9 +32,22 @@ class ExtraNetworksDialog(QDialog):
 
         # self.importer_tab = QWidget()
         self.setLayout(QVBoxLayout())
+        self.load_settings()
         self.init_ui()
 
     def init_ui(self):
+        header = QWidget()
+        header.setLayout(QHBoxLayout())
+        header.layout().setContentsMargins(0,0,0,0)
+
+        self.toggle_images_checkbox = QCheckBox('Show thumbnails')
+        self.toggle_images_checkbox.setChecked(self.show_icons)
+        self.toggle_images_checkbox.toggled.connect(lambda: self.update_show_icons())
+
+        header.layout().addWidget(self.toggle_images_checkbox)
+
+        self.layout().addWidget(header)
+
         # Filter by Version?
         self.layout().addWidget(self.tabs)
         # Tabs for Lora (and LyCORIS), Hypernetwork, Textual Inversion
@@ -49,7 +61,7 @@ class ExtraNetworksDialog(QDialog):
         self.lora_list.setResizeMode(QListView.ResizeMode.Adjust)
         self.lora_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.lora_list.setViewMode(QListWidget.IconMode)
-        self.lora_list.setIconSize(QSize(ExtraNetworksDialog.MAX_HEIGHT, ExtraNetworksDialog.MAX_HEIGHT))
+        self.lora_list.setIconSize(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
         # self.layout().addWidget(self.lora_list)
         self.tabs.addTab(self.lora_list, 'Loras')
 
@@ -61,7 +73,7 @@ class ExtraNetworksDialog(QDialog):
         self.hypernetwork_list.setResizeMode(QListView.ResizeMode.Adjust)
         self.hypernetwork_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.hypernetwork_list.setViewMode(QListWidget.IconMode)
-        self.hypernetwork_list.setIconSize(QSize(ExtraNetworksDialog.MAX_HEIGHT, ExtraNetworksDialog.MAX_HEIGHT))
+        self.hypernetwork_list.setIconSize(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
         # self.layout().addWidget(self.hypernetwork_list)
         self.tabs.addTab(self.hypernetwork_list, 'Hypernetworks')
 
@@ -73,20 +85,22 @@ class ExtraNetworksDialog(QDialog):
         self.embedding_list.setResizeMode(QListView.ResizeMode.Adjust)
         self.embedding_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.embedding_list.setViewMode(QListWidget.IconMode)
-        self.embedding_list.setIconSize(QSize(ExtraNetworksDialog.MAX_HEIGHT, ExtraNetworksDialog.MAX_HEIGHT))
+        self.embedding_list.setIconSize(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
         # self.layout().addWidget(self.embedding_list)
         self.tabs.addTab(self.embedding_list, 'Embeddings')
         
         self.layout().addWidget(self.tabs)
 
         footer = QWidget()
-        footer.setLayout(QVBoxLayout())
+        footer.setLayout(QHBoxLayout())
         footer.layout().setContentsMargins(0,0,0,0)
 
         write_button = QPushButton('Update prompt')
+        write_button.clicked.connect(lambda: self.write_changes_and_close())
         footer.layout().addWidget(write_button)
 
         cancel_button = QPushButton('Cancel')
+        cancel_button.clicked.connect(lambda: self.close())
         footer.layout().addWidget(cancel_button)
 
         self.layout().addWidget(footer)
@@ -103,6 +117,12 @@ class ExtraNetworksDialog(QDialog):
     
     def update_prompt_txt(self, prompt_txt=''):
         self.prompt_txt = prompt_txt
+
+    def update_show_icons(self):
+        self.show_icons = self.toggle_images_checkbox.isChecked()
+        self.settings_controller.set('show_extra_network_thumbnails', self.show_icons)
+        self.settings_controller.save() # This setting should be applied to future opens
+        self.set_widget_values()
 
     def raw_img_to_qicon(self, raw_img):
         ba = QByteArray(raw_img)
@@ -131,7 +151,7 @@ class ExtraNetworksDialog(QDialog):
         for embedding_name in raw_embeddings['loaded'].keys():
             path = ''
             if len(embeddings_dir) > 0:
-                path = os.path.join(embeddings_dir, '%s.pt' % embedding_name)
+                path = os.path.join(embeddings_dir, '%s.preview.png' % embedding_name)
             data = {
                 'name': embedding_name,
                 'alias': embedding_name,
@@ -140,13 +160,19 @@ class ExtraNetworksDialog(QDialog):
             new_embeddings.append(data)
         self.embeddings = new_embeddings
 
+    def load_settings(self):
+        self.show_icons = self.settings_controller.get('show_extra_network_thumbnails', True)
+
     def set_widget_values(self):
         self.lora_list.clear()
-        self.enabled_networks.clear()
+        self.hypernetwork_list.clear()
+        self.embedding_list.clear()
         self.loras = self.api.get_loras()
         self.hypernetworks = self.api.get_hypernetworks()
         # self.embeddings = self.api.get_embeddings()
         self.map_embeddings(self.api.get_embeddings())
+
+        self.toggle_images_checkbox.setChecked(self.show_icons)
 
         for lora in self.loras:
             raw_img = self.get_thumbnail(lora['path'])
@@ -252,6 +278,16 @@ class ExtraNetworksDialog(QDialog):
                 self.prompt_txt = "%s %s" % (self.prompt_txt, self.create_default_value('embedding', embedding_data))
 
     def closeEvent(self, event):
-        if self.on_close is not None:
-            self.write_new_prompt_txt()
-            self.on_close(self.prompt_txt)
+        return
+        # if self.on_close is not None:
+            # self.write_new_prompt_txt()
+            # self.on_close(self.prompt_txt)
+
+    def write_changes_and_close(self):
+        self.write_new_prompt_txt()
+        self.on_close(self.prompt_txt)
+        self.close()
+
+    def show(self):
+        super().show()
+        self.set_widget_values()

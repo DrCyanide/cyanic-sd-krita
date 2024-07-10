@@ -288,9 +288,15 @@ class SDAPI():
             return []
         
     def get_thumbnail(self, path):
-        if path.rsplit('.')[1].lower() is not 'png':
-            path = "%s.png" % path.rsplit('.')[0]
-        image = self.get("/sd_extra_networks/thumb?filename=%s" % path)
+        image_path = path
+        ext = os.path.splitext(path)[1].lower()
+        if ext is not 'png' or ext is not 'jpg':
+            image_path = "%s.png" % os.path.splitext(path)[0]
+        image = self.get("/sd_extra_networks/thumb?filename=%s" % image_path)
+        if image is None:
+            # try .preview.png
+            image_path = "%s.preview.png" % os.path.splitext(path)[0]
+        image = self.get("/sd_extra_networks/thumb?filename=%s" % image_path)
         return image
     
     # TODO: /sdapi/v1/lycos exists in SD.Next
