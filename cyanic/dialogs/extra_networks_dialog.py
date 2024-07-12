@@ -35,6 +35,23 @@ class ExtraNetworksDialog(QDialog):
         self.load_settings()
         self.init_ui()
 
+    def open_menu(self, position, network_list:QListWidget):
+        menu = QMenu()
+        index = network_list.indexAt(position)
+        item = network_list.itemFromIndex(index)
+
+        if item is None:
+            # The user didn't click on an item
+            return
+
+        customizeAction = menu.addAction("Customize")
+        action = menu.exec_(network_list.mapToGlobal(position))
+
+        if action == customizeAction:
+            # Open customize option for this item
+            
+            raise Exception('Clicked on %s' % item.text())
+
     def init_ui(self):
         header = QWidget()
         header.setLayout(QHBoxLayout())
@@ -62,7 +79,9 @@ class ExtraNetworksDialog(QDialog):
         self.lora_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.lora_list.setViewMode(QListWidget.IconMode)
         self.lora_list.setIconSize(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
-        # self.layout().addWidget(self.lora_list)
+        # Add right-click menu
+        self.lora_list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.lora_list.customContextMenuRequested.connect(lambda x: self.open_menu(x, self.lora_list))
         self.tabs.addTab(self.lora_list, 'Loras')
 
         self.hypernetwork_list = QListWidget()
@@ -74,7 +93,9 @@ class ExtraNetworksDialog(QDialog):
         self.hypernetwork_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.hypernetwork_list.setViewMode(QListWidget.IconMode)
         self.hypernetwork_list.setIconSize(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
-        # self.layout().addWidget(self.hypernetwork_list)
+        # Add right-click menu
+        self.lora_list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.lora_list.customContextMenuRequested.connect(lambda x: self.open_menu(x, self.lora_list))
         self.tabs.addTab(self.hypernetwork_list, 'Hypernetworks')
 
         self.embedding_list = QListWidget()
@@ -86,7 +107,6 @@ class ExtraNetworksDialog(QDialog):
         self.embedding_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.embedding_list.setViewMode(QListWidget.IconMode)
         self.embedding_list.setIconSize(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
-        # self.layout().addWidget(self.embedding_list)
         self.tabs.addTab(self.embedding_list, 'Embeddings')
         
         self.layout().addWidget(self.tabs)
@@ -161,7 +181,7 @@ class ExtraNetworksDialog(QDialog):
         self.embeddings = new_embeddings
 
     def load_settings(self):
-        self.show_icons = self.settings_controller.get('show_extra_network_thumbnails', True)
+        self.show_icons = self.settings_controller.get('show_extra_network_thumbnails', False) # Default to False for faster loading times
 
     def set_widget_values(self):
         self.lora_list.clear()
@@ -190,12 +210,16 @@ class ExtraNetworksDialog(QDialog):
             list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
     
         for hypernetwork in self.hypernetworks:
-            raw_img = self.get_thumbnail(hypernetwork['path'])
             list_item = QListWidgetItem()
             label = hypernetwork[self.label_key]
-            if self.show_icons and raw_img:
-                icon = self.raw_img_to_qicon(raw_img)
-                list_item = QListWidgetItem(icon, label, self.hypernetwork_list)
+            if self.show_icons:
+                # Don't even try to get the thumbnails from the server if icons are turned off.
+                raw_img = self.get_thumbnail(hypernetwork['path'])
+                if raw_img:
+                    icon = self.raw_img_to_qicon(raw_img)
+                    list_item = QListWidgetItem(icon, label, self.hypernetwork_list)
+                else:
+                    list_item = QListWidgetItem(label, self.hypernetwork_list)
             else:
                 list_item = QListWidgetItem(label, self.hypernetwork_list)
 

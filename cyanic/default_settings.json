@@ -53,7 +53,8 @@
         "cyanic_settings": {
             "options": {
                 "new_doc_prompt_mode": "empty",
-                "debug_mode": false
+                "debug_mode": false,
+                "show_extra_network_thumbnails": false
             },
             "pages": {
                 "last": ""
