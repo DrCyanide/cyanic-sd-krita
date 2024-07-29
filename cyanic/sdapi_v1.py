@@ -17,6 +17,7 @@ class SDAPI():
         self.models = []
         self.vaes = []
         self.samplers = []
+        self.schedulers = []
         self.upscalers = []
         self.facerestorers = []
         self.styles = []
@@ -27,6 +28,7 @@ class SDAPI():
         self.default_settings = {}
         self.defaults = {
             'sampler': '',
+            'scheduler': '',
             'model': '',
             'vae': '',
             'upscaler': '',
@@ -63,6 +65,7 @@ class SDAPI():
             self.get_models,
             self.get_vaes,
             self.get_samplers,
+            self.get_schedulers,
             self.get_upscalers,
             self.get_facerestorers,
             self.get_styles,
@@ -175,6 +178,7 @@ class SDAPI():
                 self.supports_refiners = False
 
         # self.defaults['sampler'] = There isn't one in settings
+        # self.defaults['scheduler'] = There isn't one in the settings
         self.defaults['model'] = self.default_settings.get('sd_model_checkpoint', '')
         self.defaults['vae'] = self.default_settings.get('sd_vae', '')
         # self.defaults['upscaler'] = There isn't one in settings
@@ -190,6 +194,12 @@ class SDAPI():
             self.samplers = []
         return self.samplers
     
+    def get_schedulers(self):
+        self.schedulers = self.get("/sdapi/v1/schedulers")
+        if self.schedulers is None:
+            self.schedulers = []
+        return self.schedulers
+
     def get_upscalers(self):
         self.upscalers = self.get("/sdapi/v1/upscalers")
         if self.upscalers is None:
@@ -310,6 +320,12 @@ class SDAPI():
             return list(map(lambda x: x['name'], self.samplers)), self.defaults['sampler']
         else:
             return [], 'None'
+    
+    def get_schedulers_and_default(self):
+        if self.connected and self.schedulers:
+            return list(map(lambda x: x['name'], self.schedulers)), self.defaults['scheduler']
+        else:
+            return [], 'Automatic'
     
     def get_models_and_default(self):
         if self.connected and self.models:

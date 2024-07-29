@@ -15,6 +15,7 @@ class ModelsWidget(CyanicWidget):
             'refiner': '',
             'refiner_start': 0.7,
             'sampler': '',
+            'scheduler': '',
             'steps': 20,
         }
         self.server_const = {
@@ -22,6 +23,7 @@ class ModelsWidget(CyanicWidget):
             'vaes': ['None'],
             'refiners': [],
             'samplers': [],
+            'schedulers': [],
         }
         self.init_ui()
         self.set_widget_values()
@@ -56,6 +58,14 @@ class ModelsWidget(CyanicWidget):
 
         # Steps
         self.steps_spin.setValue(self.variables['steps'])
+
+        # Scheduler (Added in A1111 1.10)
+        self.scheduler_box.clear()
+        try:
+            self.scheduler_box.addItems(self.server_const['schedulers'])
+            self.scheduler_box.setCurrentText(self.variables['scheduler'])
+        except:
+            self.scheduler_box.setCurrentIndex(0)
 
         # Refiner
         self.refiner_box.clear()
@@ -124,6 +134,15 @@ class ModelsWidget(CyanicWidget):
 
         self.form_panel.layout().addRow('Sampler', self.sampler_row)
 
+        # Scheduler (Added in A1111 1.10)
+        self.scheduler_box = QComboBox()
+        self.scheduler_box.wheelEvent = lambda event: None
+        self.scheduler_box.setMinimumContentsLength(VISIBLE_ITEMS)
+        self.scheduler_box.setStyleSheet(STYLESHEET)
+        self.scheduler_box.setMaxVisibleItems(VISIBLE_ITEMS)
+        # self.scheduler_box.setToolTip('') # To be honest, I don't know how to describe this
+        self.form_panel.layout().addRow('Scheduler', self.scheduler_box)
+
         self.layout().addWidget(self.form_panel)
 
         # Refiner Collapse
@@ -159,11 +178,13 @@ class ModelsWidget(CyanicWidget):
         self.model_box.setHidden(self.settings_controller.get('hide_ui_model'))
         self.vae_box.setHidden(self.settings_controller.get('hide_ui_vae'))
         self.sampler_box.setHidden(self.settings_controller.get('hide_ui_sampler'))
+        self.scheduler_box.setHidden(self.settings_controller.get('hide_ui_scheduler') or len(self.server_const['schedulers']) == 0) # Older versions don't expose this, so hide it if the server doesn't support it
         self.refiner_collapse.setHidden(self.settings_controller.get('hide_ui_refiner'))
 
     def load_server_data(self):
         # Refresh UI elements that depend on SD server settings (models, vaes, etc)
         self.server_const['samplers'], self.variables['sampler'] = self.api.get_samplers_and_default()
+        self.server_const['schedulers'], self.variables['scheduler'] = self.api.get_schedulers_and_default()
         self.server_const['models'], self.variables['model'] = self.api.get_models_and_default()
         self.server_const['vaes'], self.variables['vae'] = self.api.get_vaes_and_default()
         self.server_const['refiners'], self.variables['refiner'] = self.api.get_refiners_and_default()
@@ -186,6 +207,7 @@ class ModelsWidget(CyanicWidget):
 
         self.variables['vae'] = self.vae_box.currentText()
         self.variables['sampler'] = self.sampler_box.currentText()
+        self.variables['scheduler'] = self.scheduler_box.currentText()
         self.variables['steps'] = self.steps_spin.value()
         self.variables['refiner'] = self.refiner_box.currentText()
         self.variables['refiner_enabled'] = self.refiner_enable.isChecked()
@@ -201,6 +223,11 @@ class ModelsWidget(CyanicWidget):
         # Return a formatted dict with data used to generate images.
         self.save_settings() # Updates the variables
         data = {**self.variables}
+
+        # Remove the scheduler if it's not supported by the server
+        if len(self.server_const['schedulers']) == 0:
+            data.pop('scheduler')
+
         # SD only starts the refiner if 'refiner' and 'refiner_start' is there.
         data.pop('refiner_enabled') # Unused by SD API
         if not self.variables['refiner_enabled']:

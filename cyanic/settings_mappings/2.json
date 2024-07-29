@@ -111,6 +111,7 @@
     "hide_ui_refiner": "common.cyanic_settings.hide_ui.refiner",
     "hide_ui_vae": "common.cyanic_settings.hide_ui.vae",
     "hide_ui_sampler": "common.cyanic_settings.hide_ui.sampler",
+    "hide_ui_scheduler": "common.cyanic_settings.hide_ui.scheduler",
     "hide_ui_seed": "common.cyanic_settings.hide_ui.seed",
     "hide_ui_batch": "common.cyanic_settings.hide_ui.batch",
     "hide_ui_negative_prompt": "common.cyanic_settings.hide_ui.negative_prompt",

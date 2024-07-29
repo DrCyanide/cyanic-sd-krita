@@ -14,6 +14,7 @@ class SimplifyPage(CyanicPage):
             'vae': self.settings_controller.get('hide_ui_vae'),
             'refiner': self.settings_controller.get('hide_ui_refiner'),
             'sampler': self.settings_controller.get('hide_ui_sampler'),
+            'scheduler': self.settings_controller.get('hide_ui_scheduler'),
             'batch': self.settings_controller.get('hide_ui_batch'),
             'seed': self.settings_controller.get('hide_ui_seed'),
             'negative_prompt': self.settings_controller.get('hide_ui_negative_prompt'),
@@ -77,6 +78,9 @@ class SimplifyPage(CyanicPage):
 
         hide_sampler = self._setup_checkbox('Hide Sampler and Steps', 'sampler')
         model_settings.layout().addWidget(hide_sampler)
+
+        hide_scheduler = self._setup_checkbox('Hide Scheduler', 'scheduler')
+        model_settings.layout().addWidget(hide_scheduler)
 
         # self.model_widget = ModelsWidget(self.settings_controller, self.api, ignore_hidden=True)
         # model_settings.layout().addWidget(self.model_widget)
