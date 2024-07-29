@@ -48,8 +48,7 @@ class ExtraNetworksDialog(QDialog):
         action = menu.exec_(network_list.mapToGlobal(position))
 
         if action == customizeAction:
-            # Open customize option for this item
-            
+            # Open customize options for this item
             raise Exception('Clicked on %s' % item.text())
 
     def init_ui(self):
@@ -201,9 +200,11 @@ class ExtraNetworksDialog(QDialog):
             if self.show_icons and raw_img:
                 icon = self.raw_img_to_qicon(raw_img)
                 list_item = QListWidgetItem(icon, label, self.lora_list)
+                list_item.setToolTip(label)
             else:
                 list_item = QListWidgetItem(label, self.lora_list)
-
+                list_item.setToolTip(label)
+            
             # Regex to see if this was already in the prompt
             re_found = self.find_in_text('lora', lora)
             list_item.setSelected(re_found is not None)

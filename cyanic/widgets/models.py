@@ -30,8 +30,11 @@ class ModelsWidget(CyanicWidget):
         # Model
         self.model_box.clear()
         try:
-            self.model_box.addItems(self.server_const['models'])
-            self.model_box.setCurrentText(self.variables['model'])
+            # self.model_box.addItems(self.server_const['models'])
+            # self.model_box.setCurrentText(self.variables['model'])
+            simple_model_names = [x.rsplit('.')[0] for x in self.server_const['models']]
+            self.model_box.addItems(simple_model_names)
+            self.model_box.setCurrentText(self.variables['model'].rsplit('.')[0])
         except:
             self.model_box.setCurrentIndex(0)
 
@@ -173,7 +176,14 @@ class ModelsWidget(CyanicWidget):
 
     def save_settings(self):
         # Write widget settings to settings_controller
-        self.variables['model'] = self.model_box.currentText()
+        # self.variables['model'] = self.model_box.currentText()
+        full_model_name = [x for x in self.server_const['models'] if x.rsplit('.')[0] == self.model_box.currentText()]
+        if len(full_model_name) > 0:
+            full_model_name = full_model_name[0]
+        else:
+            full_model_name = ''
+        self.variables['model'] = full_model_name
+
         self.variables['vae'] = self.vae_box.currentText()
         self.variables['sampler'] = self.sampler_box.currentText()
         self.variables['steps'] = self.steps_spin.value()
