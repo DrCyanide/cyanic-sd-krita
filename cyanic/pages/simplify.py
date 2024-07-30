@@ -42,12 +42,12 @@ class SimplifyPage(CyanicPage):
             'controlnet': self.api.script_installed('controlnet'),
             'adetailer': self.api.script_installed('adetailer'),
         }
-        self.variables = {
-            # These are variables that can't be updated by importing their component widget
-            'mask_auto_update': self.settings_controller.get('inpaint_mask_auto_update'),
-            'mask_above_results': self.settings_controller.get('inpaint_mask_above_results'),
-            'mask_hide_while_gen': self.settings_controller.get('inpaint_mask_hide_while_gen'),
-        }
+        # self.variables = {
+        #     # These are variables that can't be updated by importing their component widget
+        #     'mask_auto_update': self.settings_controller.get('inpaint_mask_auto_update'),
+        #     'mask_above_results': self.settings_controller.get('inpaint_mask_above_results'),
+        #     'mask_hide_while_gen': self.settings_controller.get('inpaint_mask_hide_while_gen'),
+        # }
 
         self.init_ui()
 
@@ -73,17 +73,14 @@ class SimplifyPage(CyanicPage):
         hide_vae = self._setup_checkbox('Hide VAE', 'vae')
         model_settings.layout().addWidget(hide_vae)
 
-        hide_refiner = self._setup_checkbox('Hide Refiner options', 'refiner')
-        model_settings.layout().addWidget(hide_refiner)
-
         hide_sampler = self._setup_checkbox('Hide Sampler and Steps', 'sampler')
         model_settings.layout().addWidget(hide_sampler)
 
         hide_scheduler = self._setup_checkbox('Hide Scheduler', 'scheduler')
         model_settings.layout().addWidget(hide_scheduler)
 
-        # self.model_widget = ModelsWidget(self.settings_controller, self.api, ignore_hidden=True)
-        # model_settings.layout().addWidget(self.model_widget)
+        hide_refiner = self._setup_checkbox('Hide Refiner options', 'refiner')
+        model_settings.layout().addWidget(hide_refiner)
 
         self.layout().addWidget(model_settings)
 
@@ -103,9 +100,6 @@ class SimplifyPage(CyanicPage):
         hide_hires_denoise = self._setup_checkbox('Hide Hires Fix Denoise Strength', 'hires_denoise')
         hires_fix_settings.layout().addWidget(hide_hires_denoise)
 
-        # self.hires_fix_widget = HiResFixWidget(self.settings_controller, self.api, ignore_hidden=True)
-        # hires_fix_settings.layout().addWidget(self.hires_fix_widget)
-
         self.layout().addWidget(hires_fix_settings)
 
         # CFG
@@ -113,9 +107,6 @@ class SimplifyPage(CyanicPage):
         cfg_settings.setLayout(QVBoxLayout())
         hide_cfg = self._setup_checkbox('Hide CFG Scale', 'cfg')
         cfg_settings.layout().addWidget(hide_cfg)
-
-        # self.cfg_widget = CFGWidget(self.settings_controller, self.api)
-        # cfg_settings.layout().addWidget(self.cfg_widget)
 
         self.layout().addWidget(cfg_settings)
 
@@ -128,14 +119,6 @@ class SimplifyPage(CyanicPage):
 
         hide_color_correction = self._setup_checkbox('Hide Color Correction', 'color_correction')
         img2img_settings.layout().addWidget(hide_color_correction)
-
-        # img2img_settings.layout().addWidget(QSplitter())
-
-        # self.denoise_widget = DenoiseWidget(self.settings_controller)
-        # img2img_settings.layout().addWidget(self.denoise_widget)
-
-        # self.color_correction = ColorCorrectionWidget(self.settings_controller, self.api)
-        # img2img_settings.layout().addWidget(self.color_correction)
 
         self.layout().addWidget(img2img_settings)
 
@@ -153,40 +136,11 @@ class SimplifyPage(CyanicPage):
         hide_hide_mask.setToolTip('Yeah, I know...')
         inpaint_settings.layout().addWidget(hide_hide_mask)
 
-        # TODO: add Mask Blur, Mask Mode, Masked Content, Inpaint Area
-
-        #     # Update Mask before Generating
-        # mask_auto_update_cb = QCheckBox('Update mask before generating')
-        # mask_auto_update_cb.setToolTip('Will remember the last layer used as a mask and use the current state of that layer whenever the "Generate" button is clicked')
-        # mask_auto_update_cb.setChecked(self.variables['mask_auto_update'])
-        # mask_auto_update_cb.stateChanged.connect(lambda: self._update_variable('mask_auto_update', mask_auto_update_cb.isChecked()))
-        # inpaint_settings.layout().addWidget(mask_auto_update_cb)
-
-        #     # Add Results below Mask
-        # mask_above_results_cb = QCheckBox('Mask above results')
-        # mask_above_results_cb.setToolTip('Will insert the results as a new layer below the mask')
-        # mask_above_results_cb.setChecked(self.variables['mask_above_results'])
-        # mask_above_results_cb.stateChanged.connect(lambda: self._update_variable('mask_above_results', mask_above_results_cb.isChecked()))
-        # inpaint_settings.layout().addWidget(mask_above_results_cb)
-
-        #     # Hide mask on generation
-        # hide_mask_cb = QCheckBox('Hide mask when generating')
-        # hide_mask_cb.setToolTip('Turns off mask visibility so that you can see the results faster')
-        # hide_mask_cb.setChecked(self.variables['mask_hide_while_gen'])
-        # hide_mask_cb.stateChanged.connect(lambda: self._update_variable('mask_hide_while_gen', hide_mask_cb.isChecked()))
-        # inpaint_settings.layout().addWidget(hide_mask_cb)
-
         self.layout().addWidget(inpaint_settings)
 
             # Soft Inpainting
         hide_soft_inpainting = self._setup_checkbox('Hide Soft Inpainting', 'soft_inpaint')
         inpaint_settings.layout().addWidget(hide_soft_inpainting)
-
-        # soft_inpaint_settings = QGroupBox('Soft Inpaint Settings')
-        # soft_inpaint_settings.setLayout(QVBoxLayout())
-        # self.soft_inpaint = SoftInpaintWidget(self.settings_controller, self.api, settings_only=True)
-        # soft_inpaint_settings.layout().addWidget(self.soft_inpaint)
-        # inpaint_settings.layout().addWidget(soft_inpaint_settings)
 
         # Batch
         batch_settings = QGroupBox('Batch')
@@ -320,19 +274,8 @@ class SimplifyPage(CyanicPage):
     def save_hidden(self):
         for key in self.hidden.keys():
             self.settings_controller.set('hide_ui_%s' % key, self.hidden[key])
+        self.settings_controller.save()
 
-    def save(self):
-        # Save what's hidden and the default values to the config
+    def save_settings(self):
         self.save_hidden()
 
-        # Save default settings
-        widgets = [self.model_widget, self.hires_fix_widget, self.cfg_widget, self.batch_widget, self.seed_widget, self.color_correction, self.soft_inpaint, self.denoise_widget]
-        for widget in widgets:
-            widget.save_settings()
-        
-        # Save the variables
-        self.settings_controller.set('inpaint_mask_auto_update', self.variables['mask_auto_update'])
-        self.settings_controller.set('inpaint_mask_above_results', self.variables['mask_above_results'])
-        self.settings_controller.set('inpaint_mask_hide_while_gen', self.variables['mask_hide_while_gen'])
-
-    

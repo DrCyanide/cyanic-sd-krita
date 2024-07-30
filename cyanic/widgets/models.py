@@ -109,7 +109,9 @@ class ModelsWidget(CyanicWidget):
         self.model_box.setStyleSheet(STYLESHEET) # Needed for setMaxVisibleItems to work
         self.model_box.setMaxVisibleItems(VISIBLE_ITEMS) # Suppose to limit the number of visible options
         self.model_box.setToolTip('SD Model')
-        self.form_panel.layout().addRow('Model', self.model_box)
+        # self.form_panel.layout().addRow('Model', self.model_box)
+        self.model_box_label = QLabel('Model')
+        self.form_panel.layout().addRow(self.model_box_label, self.model_box)
 
         # VAE select
         self.vae_box = QComboBox()
@@ -118,7 +120,9 @@ class ModelsWidget(CyanicWidget):
         self.vae_box.setStyleSheet(STYLESHEET)
         self.vae_box.setMaxVisibleItems(VISIBLE_ITEMS)
         self.vae_box.setToolTip('Variational Autoencoder. If your images look desaturated, you probably need to download and use a VAE with it.')
-        self.form_panel.layout().addRow('VAE', self.vae_box)
+        # self.form_panel.layout().addRow('VAE', self.vae_box)
+        self.vae_box_label = QLabel('VAE')
+        self.form_panel.layout().addRow(self.vae_box_label, self.vae_box)
 
         # Sampler + Steps
         self.sampler_row = QWidget()
@@ -142,7 +146,9 @@ class ModelsWidget(CyanicWidget):
 
         self.sampler_row.layout().addWidget(self.steps_spin)
 
-        self.form_panel.layout().addRow('Sampler', self.sampler_row)
+        # self.form_panel.layout().addRow('Sampler', self.sampler_row)
+        self.sampler_row_label = QLabel('Sampler')
+        self.form_panel.layout().addRow(self.sampler_row_label, self.sampler_row)
 
         # Scheduler (Added in A1111 1.10)
         self.scheduler_box = QComboBox()
@@ -151,7 +157,9 @@ class ModelsWidget(CyanicWidget):
         self.scheduler_box.setStyleSheet(STYLESHEET)
         self.scheduler_box.setMaxVisibleItems(VISIBLE_ITEMS)
         # self.scheduler_box.setToolTip('') # To be honest, I don't know how to describe this
-        self.form_panel.layout().addRow('Scheduler', self.scheduler_box)
+        # self.form_panel.layout().addRow('Scheduler', self.scheduler_box)
+        self.scheduler_box_label = QLabel('Scheduler')
+        self.form_panel.layout().addRow(self.scheduler_box_label, self.scheduler_box)
 
         self.layout().addWidget(self.form_panel)
 
@@ -188,9 +196,16 @@ class ModelsWidget(CyanicWidget):
 
         # The rows can't be hidden like this... they don't hide the title
         self.model_box.setHidden(self.settings_controller.get('hide_ui_model'))
+        self.model_box_label.setHidden(self.settings_controller.get('hide_ui_model'))
+
         self.vae_box.setHidden(self.settings_controller.get('hide_ui_vae'))
-        self.sampler_box.setHidden(self.settings_controller.get('hide_ui_sampler'))
+        self.vae_box_label.setHidden(self.settings_controller.get('hide_ui_vae'))
+
+        self.sampler_row.setHidden(self.settings_controller.get('hide_ui_sampler'))
+        self.sampler_row_label.setHidden(self.settings_controller.get('hide_ui_sampler'))
+
         self.scheduler_box.setHidden(self.settings_controller.get('hide_ui_scheduler') or len(self.server_const['schedulers']) == 0) # Older versions don't expose this, so hide it if the server doesn't support it
+        self.scheduler_box_label.setHidden(self.settings_controller.get('hide_ui_scheduler') or len(self.server_const['schedulers']) == 0) # Older versions don't expose this, so hide it if the server doesn't support it
         
         self.refiner_collapse.setHidden(self.settings_controller.get('hide_ui_refiner'))
 
