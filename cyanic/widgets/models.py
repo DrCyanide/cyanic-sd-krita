@@ -30,13 +30,18 @@ class ModelsWidget(CyanicWidget):
 
     def get_simplified_model_names(self):
         # Remove the extension if there is one
-        return ['.'.join(x.split('.'))[:-1] if '.' in x else x for x in self.server_const['models']]
+        return [self.get_simplified_name(x) for x in self.server_const['models']]
     
+    def get_simplified_name(self, name):
+        if '.' in name:
+            return '.'.join(name.split('.')[:-1])
+        return name
+
     def get_full_model_name(self, short_name):
-        index = self.get_simplified_model_names().index(short_name)
-        if index < 0:
-            return '' # No name found
-        return self.server_const['models'][index]
+        matched_name = [x for x in self.server_const['models'] if self.get_simplified_name(x) == short_name]
+        if len(matched_name) > 0:
+            return matched_name[0]
+        return ''
 
     def set_widget_values(self):
         # Model
@@ -46,7 +51,7 @@ class ModelsWidget(CyanicWidget):
             # self.model_box.setCurrentText(self.variables['model'])
             simple_model_names = self.get_simplified_model_names()
             self.model_box.addItems(simple_model_names)
-            self.model_box.setCurrentText(self.variables['model'].rsplit('.')[0])
+            self.model_box.setCurrentText(self.get_simplified_name(self.variables['model']))
         except:
             self.model_box.setCurrentIndex(0)
 
