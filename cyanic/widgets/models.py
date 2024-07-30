@@ -28,13 +28,23 @@ class ModelsWidget(CyanicWidget):
         self.init_ui()
         self.set_widget_values()
 
+    def get_simplified_model_names(self):
+        # Remove the extension if there is one
+        return ['.'.join(x.split('.'))[:-1] if '.' in x else x for x in self.server_const['models']]
+    
+    def get_full_model_name(self, short_name):
+        index = self.get_simplified_model_names().index(short_name)
+        if index < 0:
+            return '' # No name found
+        return self.server_const['models'][index]
+
     def set_widget_values(self):
         # Model
         self.model_box.clear()
         try:
             # self.model_box.addItems(self.server_const['models'])
             # self.model_box.setCurrentText(self.variables['model'])
-            simple_model_names = [x.rsplit('.')[0] for x in self.server_const['models']]
+            simple_model_names = self.get_simplified_model_names()
             self.model_box.addItems(simple_model_names)
             self.model_box.setCurrentText(self.variables['model'].rsplit('.')[0])
         except:
@@ -175,10 +185,13 @@ class ModelsWidget(CyanicWidget):
     def handle_hidden(self):
         # Hide widgets that settings specify shouldn't show up. Must be called in init_ui() and on load_settings()
         # Due to the row nature of the layout, this may encounter issues.
+
+        # The rows can't be hidden like this... they don't hide the title
         self.model_box.setHidden(self.settings_controller.get('hide_ui_model'))
         self.vae_box.setHidden(self.settings_controller.get('hide_ui_vae'))
         self.sampler_box.setHidden(self.settings_controller.get('hide_ui_sampler'))
         self.scheduler_box.setHidden(self.settings_controller.get('hide_ui_scheduler') or len(self.server_const['schedulers']) == 0) # Older versions don't expose this, so hide it if the server doesn't support it
+        
         self.refiner_collapse.setHidden(self.settings_controller.get('hide_ui_refiner'))
 
     def load_server_data(self):
@@ -198,12 +211,13 @@ class ModelsWidget(CyanicWidget):
     def save_settings(self):
         # Write widget settings to settings_controller
         # self.variables['model'] = self.model_box.currentText()
-        full_model_name = [x for x in self.server_const['models'] if x.rsplit('.')[0] == self.model_box.currentText()]
-        if len(full_model_name) > 0:
-            full_model_name = full_model_name[0]
-        else:
-            full_model_name = ''
-        self.variables['model'] = full_model_name
+        # full_model_name = [x for x in self.server_const['models'] if x.rsplit('.')[0] == self.model_box.currentText()]
+        # if len(full_model_name) > 0:
+        #     full_model_name = full_model_name[0]
+        # else:
+        #     full_model_name = ''
+        # self.variables['model'] = full_model_name
+        self.variables['model'] = self.get_full_model_name(self.model_box.currentText())
 
         self.variables['vae'] = self.vae_box.currentText()
         self.variables['sampler'] = self.sampler_box.currentText()
