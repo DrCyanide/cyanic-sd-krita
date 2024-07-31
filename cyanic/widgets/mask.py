@@ -260,5 +260,6 @@ class MaskWidget(CyanicWidget):
             }
         if self.variables['inpaint_mask_hide_while_gen']:
             layer = kc.get_layer_from_uuid(self.mask_uuid)
-            kc.set_layer_visible(layer, False)
+            if layer is not None:
+                kc.set_layer_visible(layer, False)
         return data
