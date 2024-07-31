@@ -3,6 +3,7 @@ from PyQt5.QtGui import QDoubleValidator
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from . import CyanicPage
+from ..widgets import SDConnectionWidget
 
 class SettingsPage(CyanicPage):
     # Connection, max size, previews
@@ -17,24 +18,25 @@ class SettingsPage(CyanicPage):
         # self._generation_group()
         self._size_group()
         self._previews_group()
-        self._prompt_group()
+        # self._prompt_group()
         self.layout().addStretch() # Takes up the remaining space at the bottom, allowing everything to be pushed to the top
 
     def _server_settings_group(self):
         host_form = QGroupBox('Server Settings')
-        host_form.setLayout(QFormLayout())
-        host_addr = QLineEdit(self.settings_controller.get('host'))
-        host_addr.setPlaceholderText(self.api.DEFAULT_HOST)
-        host_form.layout().addRow('Host', host_addr)
-        
-        connect_btn = QPushButton("Connect")
-        connect_btn.clicked.connect(lambda: self.test_new_host(host_addr.text()))
-        host_form.layout().addWidget(connect_btn)
-        self.connection_label = QLabel()
-        host_form.layout().addWidget(self.connection_label)
+        host_form.setLayout(QVBoxLayout())
 
-        host_form.layout().addRow('Save images on host', self.create_checkbox('host_save_imgs'))
-        self.add_tooltip(host_form, 'Enable to have the host save generated images, the same way it would in the WebUI.')
+        self.connection = SDConnectionWidget(self.settings_controller, self.api)
+        self.cyanic_widgets.append(self.connection)
+        host_form.layout().addWidget(self.connection)
+
+        self.save_img_to_server_cb = QCheckBox('Save images to host')
+        self.save_img_to_server_cb.setChecked(self.settings_controller.get('host_save_imgs'))
+        self.save_img_to_server_cb.toggled.connect(lambda: self.update_setting('host_save_imgs', self.save_img_to_server_cb.isChecked()))
+        self.save_img_to_server_cb.setToolTip('Enable to have the host save generated images, the same way it would in the WebUI.')
+        host_form.layout().addWidget(self.save_img_to_server_cb)
+
+        # host_form.layout().addWidget('Save images on host', self.create_checkbox('host_save_imgs'))
+        # self.add_tooltip(host_form, 'Enable to have the host save generated images, the same way it would in the WebUI.')
 
         # IDK what server setting to change to toggle this, so it'll have to be server default
         # host_form.layout().addRow('Filter NSFW', self.create_checkbox('server.filter_nsfw'))
@@ -81,48 +83,48 @@ class SettingsPage(CyanicPage):
 
         self.layout().addWidget(previews_form)
 
+    # Moved to their own file - prompt_settings.py
+    # def _prompt_group(self):
+    #     prompt_form = QGroupBox('Prompts')
+    #     prompt_form.setLayout(QFormLayout())
 
-    def _prompt_group(self):
-        prompt_form = QGroupBox('Prompts')
-        prompt_form.setLayout(QFormLayout())
+    #     prompt_form.layout().addRow('Share Prompts', self.create_checkbox('prompt_share'))
+    #     self.add_tooltip(prompt_form, 'Share prompt/negative prompt text between Txt2Img, Img2Img, etc.')
 
-        prompt_form.layout().addRow('Share Prompts', self.create_checkbox('prompt_share'))
-        self.add_tooltip(prompt_form, 'Share prompt/negative prompt text between Txt2Img, Img2Img, etc.')
+    #     # Excluded from sharing
+    #     include_form = QWidget()
+    #     include_form.setLayout(QVBoxLayout())
+    #     include_txt2img = QCheckBox('Txt2Img')
+    #     include_txt2img.setChecked('txt2img' in self.settings_controller.get('prompt_share_includes'))
+    #     include_txt2img.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'txt2img'))
+    #     include_form.layout().addWidget(include_txt2img)
 
-        # Excluded from sharing
-        include_form = QWidget()
-        include_form.setLayout(QVBoxLayout())
-        include_txt2img = QCheckBox('Txt2Img')
-        include_txt2img.setChecked('txt2img' in self.settings_controller.get('prompt_share_includes'))
-        include_txt2img.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'txt2img'))
-        include_form.layout().addWidget(include_txt2img)
+    #     include_img2img = QCheckBox('Img2Img')
+    #     include_img2img.setChecked('img2img' in self.settings_controller.get('prompt_share_includes'))
+    #     include_img2img.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'img2img'))
+    #     include_form.layout().addWidget(include_img2img)
 
-        include_img2img = QCheckBox('Img2Img')
-        include_img2img.setChecked('img2img' in self.settings_controller.get('prompt_share_includes'))
-        include_img2img.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'img2img'))
-        include_form.layout().addWidget(include_img2img)
+    #     include_inpaint = QCheckBox('Inpaint')
+    #     include_inpaint.setChecked('inpaint' in self.settings_controller.get('prompt_share_includes'))
+    #     include_inpaint.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'inpaint'))
+    #     include_form.layout().addWidget(include_inpaint)
 
-        include_inpaint = QCheckBox('Inpaint')
-        include_inpaint.setChecked('inpaint' in self.settings_controller.get('prompt_share_includes'))
-        include_inpaint.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'inpaint'))
-        include_form.layout().addWidget(include_inpaint)
-
-        if self.api.script_installed('adetailer'):
-            include_adetailer = QCheckBox('ADetailer')
-            include_adetailer.setChecked('adetailer' in self.settings_controller.get('prompt_share_includes'))
-            include_adetailer.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'adetailer'))
-            include_form.layout().addWidget(include_adetailer)
+    #     if self.api.script_installed('adetailer'):
+    #         include_adetailer = QCheckBox('ADetailer')
+    #         include_adetailer.setChecked('adetailer' in self.settings_controller.get('prompt_share_includes'))
+    #         include_adetailer.toggled.connect(lambda: self._toggle_and_save('prompt_share_includes', 'adetailer'))
+    #         include_form.layout().addWidget(include_adetailer)
         
-        prompt_form.layout().addRow('Included in prompt sharing', include_form)
-        self.add_tooltip(prompt_form, 'Changes to the checked prompts/negative prompts won\'t override the unchecked')
+    #     prompt_form.layout().addRow('Included in prompt sharing', include_form)
+    #     self.add_tooltip(prompt_form, 'Changes to the checked prompts/negative prompts won\'t override the unchecked')
 
-        # TODO: Replace with the amount of prompts to save, and include the options.
-        save_history_size = QSpinBox()
-        save_history_size.setRange(0, 15)
-        save_history_size.setValue(self.settings_controller.get('prompt_history_max'))
-        save_history_size.valueChanged.connect(lambda: self.settings_controller.set('prompt_history_max', save_history_size.value()))
-        prompt_form.layout().addRow('Prompts to save', save_history_size)
-        self.add_tooltip(prompt_form, 'How many unique prompts should be saved in the prompt history. 0 won\'t save any prompts.')
+    #     # TODO: Replace with the amount of prompts to save, and include the options.
+    #     save_history_size = QSpinBox()
+    #     save_history_size.setRange(0, 15)
+    #     save_history_size.setValue(self.settings_controller.get('prompt_history_max'))
+    #     save_history_size.valueChanged.connect(lambda: self.settings_controller.set('prompt_history_max', save_history_size.value()))
+    #     prompt_form.layout().addRow('Prompts to save', save_history_size)
+    #     self.add_tooltip(prompt_form, 'How many unique prompts should be saved in the prompt history. 0 won\'t save any prompts.')
 
 
     def _toggle_and_save(self, key, value):
@@ -180,44 +182,10 @@ class SettingsPage(CyanicPage):
         # cb.eventFilter(self, QtGui.QWheelEvent()) # Would like to filter out scroll wheel changing combobox
         cb.currentIndexChanged.connect(lambda: self.update_setting(settings_key, cb.currentText()))
         return cb
-    
-
-    def test_new_host(self, host=''):
-        self.connection_label.setText('Testing...')
-        if len(host) == 0: # Check if the host provided in the API is a valid server (or running)
-            try:
-                status = self.api.get_status()
-                if status is None:
-                    self.connection_label.setText('No Connection')
-                    self.connected = False
-                else:
-                    self.connection_label.setText('Connected')
-                    self.connected = True
-            except:
-                self.connection_label.setText('No Connection')
-                self.connected = False
-            return
-        # Check a user entered host
-        try:
-            test_api = SDAPI(host)
-            status = test_api.get_status()
-            if status is None:
-                self.connection_label.setText('No Connection')
-                self.connected = False
-            # Test passed, inform user, update api
-            self.connection_label.setText('Connected')
-            self.api.change_host(host)
-            self.settings_controller.set('host', host)
-            self.settings_controller.save()
-            self.connected = True
-        except:
-            # Test failed, inform user
-            self.connection_label.setText('No Connection')
-            self.connected = False
-
 
     def update_setting(self, key, value):
         self.settings_controller.set(key, value)
+        self.settings_controller.save()
 
 
     def save_user_settings(self):

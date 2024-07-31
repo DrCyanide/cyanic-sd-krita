@@ -3,16 +3,17 @@ from PyQt5.QtWidgets import *
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..krita_controller import KritaController
+from . import CyanicWidget
 
-class SDConnectionWidget(QWidget):
+# class SDConnectionWidget(QWidget):
+class SDConnectionWidget(CyanicWidget):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
-        super().__init__()
-        self.settings_controller = settings_controller
-        self.api = api
-        self.testing_connection = False
+        super().__init__(settings_controller, api, layout=QFormLayout)
+        # self.settings_controller = settings_controller
+        # self.api = api
+        # self.setLayout(QFormLayout())
         self.kc = KritaController()
-
-        self.setLayout(QFormLayout())
+        self.testing_connection = False
         self.init_ui()
         self.set_widget_values()
     
@@ -38,6 +39,10 @@ class SDConnectionWidget(QWidget):
 
     def load_settings(self):
         self.set_widget_values()
+
+    def load_server_data(self):
+        # Not really used here
+        pass
 
     def handle_connect_btn_click(self):
         self.test_connection()
