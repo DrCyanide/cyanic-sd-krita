@@ -541,7 +541,7 @@ class SDAPI():
 
     def txt2img(self, data):
         data = self.cleanup_data(data)
-
+        self.log_request_and_response(data)
         results = self.post("/sdapi/v1/txt2img", data)
         if type(results['info']) is str:
             results['info'] = json.loads(results['info'])
@@ -550,7 +550,7 @@ class SDAPI():
 
     def img2img(self, data):
         data = self.cleanup_data(data)
-
+        self.log_request_and_response(data)
         results = self.post("/sdapi/v1/img2img", data)
         if type(results['info']) is str:
             results['info'] = json.loads(results['info'])
@@ -559,12 +559,14 @@ class SDAPI():
     
     def extra(self, data):
         data = self.cleanup_data(data)
+        self.log_request_and_response(data)
         results = self.post("/sdapi/v1/extra-single-image", data)
         # No 'info' section to parse
         self.log_request_and_response(data, results)
         return results
         
     def interrogate(self, data):
+        self.log_request_and_response(data)
         results = self.post("/sdapi/v1/interrogate", data)
         self.log_request_and_response(data, results)
         return results
@@ -573,7 +575,7 @@ class SDAPI():
     # Debugging fun!
     # ===========================
 
-    def log_request_and_response(self, data, response, filename='log.json'):
+    def log_request_and_response(self, data, response=None, filename='log.json'):
         plugin_dir = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(plugin_dir, filename), 'w') as output_file:
             log = {
