@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from enum import Enum
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
-from ..widgets import PromptWidget, CollapsibleWidget, CyanicWidget
+from ..widgets import PromptWidget, CollapsibleWidget, CyanicWidget, DenoiseWidget
 
 class ADetailerExtension(CyanicWidget):
     def __init__(self, settings_controller:SettingsController, api:SDAPI):
@@ -23,7 +23,7 @@ class ADetailerExtension(CyanicWidget):
             'mediapipe_face_mesh',
             'mediapipe_face_mesh_eyes_only',
         ]
-        
+        self.cyanic_widgets = []
         self.init_ui()
 
 
@@ -55,7 +55,12 @@ class ADetailerExtension(CyanicWidget):
 
         # Prompts
         self.prompt_widget = PromptWidget(self.settings_controller, self.api, 'adetailer')
+        self.cyanic_widgets.append(self.prompt_widget)
         self.layout().addWidget(self.prompt_widget)
+
+        self.denoise = DenoiseWidget(self.settings_controller, self.api, settings_key='ad_denoise', default_value=0.4)
+        self.cyanic_widgets.append(self.denoise)
+        self.layout().addWidget(self.denoise)
 
         # ... a ton of settings I never use...
         # A few more need to be added though
@@ -81,11 +86,57 @@ class ADetailerExtension(CyanicWidget):
                         'ad_model': self.model_select.currentText(),
                         'ad_prompt': prompt_data['prompt'],
                         'ad_negative_prompt': prompt_data['negative_prompt'],
+                        'ad_denoising_strength': self.denoise.get_value(),
                         # Many more args I'm skipping and using the defaults for
                     }
                     # Could add more tabs, just add their args down here in the same way
                 ]
             }
         }
+        # v24.5.1 parameters
+        # {
+        #     "ad_cfg_scale" : 7,
+        #     "ad_checkpoint" : "Use same checkpoint",
+        #     "ad_clip_skip" : 1,
+        #     "ad_confidence" : 0.33,
+        #     "ad_controlnet_guidance_end" : 1,
+        #     "ad_controlnet_guidance_start" : 0,
+        #     "ad_controlnet_model" : "None",
+        #     "ad_controlnet_module" : "None",
+        #     "ad_controlnet_weight" : 1,
+        #     "ad_denoising_strength" : 0.63,
+        #     "ad_dilate_erode" : 4,
+        #     "ad_inpaint_height" : 512,
+        #     "ad_inpaint_only_masked" : true,
+        #     "ad_inpaint_only_masked_padding" : 32,
+        #     "ad_inpaint_width" : 512,
+        #     "ad_mask_blur" : 4,
+        #     "ad_mask_k_largest" : 0,
+        #     "ad_mask_max_ratio" : 1,
+        #     "ad_mask_merge_invert" : "None",
+        #     "ad_mask_min_ratio" : 0,
+        #     "ad_model" : "face_yolov8n.pt",
+        #     "ad_model_classes" : "",
+        #     "ad_negative_prompt" : "",
+        #     "ad_noise_multiplier" : 1,
+        #     "ad_prompt" : "",
+        #     "ad_restore_face" : false,
+        #     "ad_sampler" : "DPM++ 2M",
+        #     "ad_scheduler" : "Use same scheduler",
+        #     "ad_steps" : 28,
+        #     "ad_tap_enable" : true,
+        #     "ad_use_cfg_scale" : false,
+        #     "ad_use_checkpoint" : false,
+        #     "ad_use_clip_skip" : false,
+        #     "ad_use_inpaint_width_height" : false,
+        #     "ad_use_noise_multiplier" : false,
+        #     "ad_use_sampler" : false,
+        #     "ad_use_steps" : false,
+        #     "ad_use_vae" : false,
+        #     "ad_vae" : "Use same VAE",
+        #     "ad_x_offset" : 0,
+        #     "ad_y_offset" : 0,
+        #     "is_api" : [ ]
+        # },
         self.prompt_widget.save_settings()
         return data

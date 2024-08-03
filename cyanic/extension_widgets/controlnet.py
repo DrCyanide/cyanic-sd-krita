@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from enum import Enum
+from krita import Krita
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..krita_controller import KritaController
@@ -285,6 +286,7 @@ class ControlNetUnit(QWidget):
 
         # Preview Preprocessor button
         self.preview_preprocessor_btn = QPushButton("Preview")
+        self.preview_preprocessor_btn.setIcon( Krita.instance().icon('view-preview') )
         self.preview_preprocessor_btn.clicked.connect(lambda: self.gen_preview())
         self.layout().addWidget(self.preview_preprocessor_btn)
 

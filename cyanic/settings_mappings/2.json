@@ -98,10 +98,10 @@
     "interrogate_prompt_mode": "common.interrogate.prompt_mode",
 
     "controlnet_unit_count": "common.extensions.controlnet.units",
-    "controlnet_units": "kra_file_overridden_settings.extensions.controlnet.units",
+    "controlnet_unit_settings": "kra_file_overridden_settings.extensions.controlnet.units",
 
     "adetailer_unit_count": "common.extensions.adetailer.units",
-    "adetailer_units": "kra_file_overridden_settings.extensions.adetailer.units",
+    "adetailer_unit_settings": "kra_file_overridden_settings.extensions.adetailer.units",
 
     "new_doc_prompt_mode": "common.cyanic_settings.options.new_doc_prompt_mode",
     "debug_mode_enabled": "common.cyanic_settings.options.debug_mode",

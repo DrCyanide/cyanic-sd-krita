@@ -1,9 +1,10 @@
 from krita import *
-from PyQt5.QtGui import QImage
+from PyQt5.QtGui import QImage, QGuiApplication, QPalette, QIcon
 from PyQt5.QtCore import QBuffer, QIODevice, QByteArray, QThread, QPointF, pyqtSignal, Qt, QTimer
 import base64
 import random
 import json
+import os
 # https://scripting.krita.org/lessons/layers
 # https://api.kde.org/krita/html/classNode.html
 
@@ -24,6 +25,20 @@ class KritaController():
     def __init__(self):
         self.doc = Krita.instance().activeDocument()
         self.preview_layer_uid = None
+        self.plugin_dir = os.path.dirname(os.path.realpath(__file__))
+        self.icon_dir = os.path.join(self.plugin_dir, 'icons')
+
+        _palette = QGuiApplication.palette()
+        self.is_dark = _palette.color(QPalette.ColorRole.Window).lightness() < 128
+
+    def get_custom_icon(self, icon_name: str):
+        # Import custom icons
+        # 'dark' and 'light' reffer to the colors in the SVG itself. So 'dark' goes with a light background, 'light' goes with a dark background
+        theme = 'light' if self.is_dark else 'dark'
+        path = os.path.join(self.icon_dir, '%s_%s.svg' % (theme, icon_name))
+        if not os.path.exists(path):
+            return None
+        return QIcon(str(path))
 
     def version_gte(self, target_version):
         # Check if the current version is greater than or equal to the target version

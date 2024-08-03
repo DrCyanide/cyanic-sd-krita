@@ -47,19 +47,26 @@ class CyanicDocker(DockWidget):
         self.rembg = RemBGPage(self.settings_controller, self.api)
 
         # Set up the page select
+        
         self.page_combobox = QComboBox()
+        kc = KritaController()
         self.pages = [
-            {'name': 'Txt2Img', 'page': self.txt2img},
-            {'name': 'Img2Img', 'page': self.img2img},
-            {'name': 'Inpaint', 'page': self.inpaint},
-            {'name': 'Interrogate', 'page': self.interrogate},
-            {'name': 'Upscale', 'page': self.upscale},
-            {'name': 'Remove Background', 'page': self.rembg},
-            # {'name': 'Segmentation Map', 'page': self.segmap}, # TODO
+            {'name': 'Txt2Img', 'page': self.txt2img, 'icon': kc.get_custom_icon('txt2img')},
+            {'name': 'Img2Img', 'page': self.img2img, 'icon': kc.get_custom_icon('img2img')},
+            {'name': 'Inpaint', 'page': self.inpaint, 'icon': kc.get_custom_icon('inpaint')},
+            {'name': 'Interrogate', 'page': self.interrogate, 'icon': kc.get_custom_icon('interrogate')},
+            {'name': 'Upscale', 'page': self.upscale, 'icon': Krita.instance().icon('transform_icons_liquify_resize') },
+            {'name': 'Remove Background', 'page': self.rembg, 'icon': kc.get_custom_icon('rembg') },
+            # TODO pages that would be nice to add, but aren't ready yet
+            # {'name': 'Segmentation Map', 'page': self.segmap}, 
+            # {'name': 'Face Tools', 'page': self.facetools}
         ]
         # Add pages to the page_holder
         for page in self.pages:
-            self.page_combobox.addItem(page['name'])
+            if 'icon' in page.keys() and page['icon'] is not None:
+                self.page_combobox.addItem(page['icon'], page['name'])
+            else:
+                self.page_combobox.addItem(page['name'])
             self.page_holder.layout().addWidget(page['page'])
             page['page'].setHidden(True)
         self.page_combobox.activated.connect(self.change_page)

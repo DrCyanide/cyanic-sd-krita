@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
+from krita import Krita
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
 from ..dialogs import ExtraNetworksDialog
@@ -118,27 +119,27 @@ class PromptWidget(CyanicWidget):
         self.extra_network_panel.layout().setContentsMargins(0,0,0,0)
 
         self.extra_network_dialog = ExtraNetworksDialog(self.settings_controller, self.api, on_close=self.on_network_dialog_close)
-        self.show_network_dialog_btn = QPushButton('Open Dialog')
-        # self.show_network_dialog_btn.setIcon( Krita.instance().icon('properties') )
-        # self.show_network_dialog_btn.setToolTip('Open Cyanic SD Settings')
+        self.show_network_dialog_btn = QPushButton('Open Extra Networks')
+        self.show_network_dialog_btn.setIcon( Krita.instance().icon('configure') )
+        self.show_network_dialog_btn.setToolTip('Access Loras, Hypernetworks, Textual Inversions, etc.')
         self.show_network_dialog_btn.clicked.connect(self.show_network_dialog)
         self.layout().addWidget(self.show_network_dialog_btn)
         # TODO: Add a label that explains autocomplete functionality (where typing in '<' in the prompt triggers a suggestion)
 
         # Select Lora/Hypernetwork/Embedding
-        self.extra_network_box = QComboBox()
-        self.extra_network_box.wheelEvent = lambda event : None # Disable scrollwheel interactions
-        self.extra_network_box.activated.connect(lambda: self.change_extra_network_list(self.extra_network_box.currentText()))
-        self.extra_network_box.addItems(list(self.extra_network_types.keys()))
-        self.extra_network_panel.layout().addWidget(self.extra_network_box)
+        # self.extra_network_box = QComboBox()
+        # self.extra_network_box.wheelEvent = lambda event : None # Disable scrollwheel interactions
+        # self.extra_network_box.activated.connect(lambda: self.change_extra_network_list(self.extra_network_box.currentText()))
+        # self.extra_network_box.addItems(list(self.extra_network_types.keys()))
+        # self.extra_network_panel.layout().addWidget(self.extra_network_box)
 
         # List of items
-        self.extra_network_item_list = QListWidget()
-        self.extra_network_item_list.itemPressed.connect(self.add_extra_network_to_prompt)
-        self.extra_network_panel.layout().addWidget(self.extra_network_item_list)
+        # self.extra_network_item_list = QListWidget()
+        # self.extra_network_item_list.itemPressed.connect(self.add_extra_network_to_prompt)
+        # self.extra_network_panel.layout().addWidget(self.extra_network_item_list)
 
-        self.extra_network_collapse = CollapsibleWidget('Extra Networks', self.extra_network_panel)
-        self.layout().addWidget(self.extra_network_collapse)
+        # self.extra_network_collapse = CollapsibleWidget('Extra Networks', self.extra_network_panel)
+        # self.layout().addWidget(self.extra_network_collapse)
 
         self.handle_hidden()
 
@@ -146,7 +147,8 @@ class PromptWidget(CyanicWidget):
         # Hide widgets that settings specify shouldn't show up. Must be called in init_ui() and on load_settings()
         self.negative_prompt_text_edit.setHidden(self.settings_controller.get('hide_ui_negative_prompt'))
         self.style_collapse.setHidden(self.prompts_only or self.settings_controller.get('hide_ui_styles'))
-        self.extra_network_collapse.setHidden(self.prompts_only or self.settings_controller.get('hide_ui_extra_networks'))
+        # self.extra_network_collapse.setHidden(self.prompts_only or self.settings_controller.get('hide_ui_extra_networks'))
+        self.show_network_dialog_btn.setHidden(self.prompts_only or self.settings_controller.get('hide_ui_extra_networks'))
         self.prompt_history_row.setHidden(self.prompts_only or self.variables['prompt_history_max'] <= 0)
 
     def load_server_data(self):
@@ -154,7 +156,7 @@ class PromptWidget(CyanicWidget):
         self.server_const['lora_names'] = self.api.get_lora_names()
         self.server_const['hypernetwork_names'] = self.api.get_hypernetwork_names()
         self.server_const['embedding_names'] = self.api.get_embedding_names()
-        self.load_styles_and_extra_networks()
+        self.load_styles_and_extra_networks() 
 
     def load_settings(self):
         self.variables['prompt_history_max'] = self.settings_controller.get('prompt_history_max', self.variables['prompt_history_max'])
@@ -299,7 +301,7 @@ class PromptWidget(CyanicWidget):
                 item.setBackground( QColor('#222222') )
         
         # Load loras/hypernetworks/embeddings
-        self.change_extra_network_list(self.extra_network_box.currentText())
+        # self.change_extra_network_list(self.extra_network_box.currentText())
 
     def change_extra_network_list(self, list_type=None):
         if list_type is None:
