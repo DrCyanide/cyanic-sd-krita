@@ -218,10 +218,12 @@ class GenerateWidget(QWidget):
                 expected_images = self.results['parameters']['batch_size'] * self.results['parameters']['n_iter']
                 if len(self.results['images']) > expected_images:
                     # Determine if the extra images are from ControlNet (after the results), or Grid previews (before the results), or a combination of the two
-                    if self.results['parameters']['save_images']:
+
+                    if self.results['parameters']['save_images'] and expected_images > 1:
                         # Remove the grid from the front
                         self.results['images'] = self.results['images'][1:]
-                    if len(self.results['images']) > expected_images: # Checking again incase the grid was the difference
+                    if len(self.results['images']) > expected_images:
+                        # Remove the ControlNet previews
                         self.results['images'] = self.results['images'][:expected_images]
 
             if 'results_below_layer_uuid' in processing_instructions:

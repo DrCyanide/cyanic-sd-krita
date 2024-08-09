@@ -179,6 +179,11 @@ class ControlNetUnit(QWidget):
         self.preprocessor_list = self.cnapi.module_list
         self.model_list = self.cnapi.models
 
+        self.server_const = {
+            'model_list': self.cnapi.models,
+            'preprocessor_list': self.cnapi.module_list
+        }
+
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
 
@@ -230,7 +235,8 @@ class ControlNetUnit(QWidget):
         # Preprocessor select
         self.preprocessor_select = QComboBox()
         self.preprocessor_select.wheelEvent = lambda event : None
-        self.preprocessor_select.addItems(self.preprocessor_list)
+        # self.preprocessor_select.addItems(self.preprocessor_list)
+        self.preprocessor_select.addItems(self.server_const['preprocessor_list'])
         self.preprocessor_select.setCurrentIndex(0)
         self.preprocessor_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         self.preprocessor_select.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
@@ -242,7 +248,9 @@ class ControlNetUnit(QWidget):
         # Model select
         self.model_select = QComboBox()
         self.model_select.wheelEvent = lambda event : None
-        self.model_select.addItems(self.model_list)
+        # self.model_select.addItems(self.model_list)
+        simple_model_names = self.get_simplified_model_names()
+        self.model_select.addItems(simple_model_names)
         self.model_select.setCurrentIndex(0)
         self.model_select.setMinimumContentsLength(10) # Allows the box to be smaller than the longest item's char length
         self.model_select.setStyleSheet("QComboBox { combobox-popup: 0; }") # Needed for setMaxVisibleItems to work
@@ -345,6 +353,22 @@ class ControlNetUnit(QWidget):
             self.debug_text = QPlainTextEdit()
             self.debug_text.setPlaceholderText('Debugging text')
             self.layout().addWidget(self.debug_text)
+
+
+    def get_simplified_model_names(self):
+        # Remove the extension if there is one
+        return [self.get_simplified_name(x) for x in self.server_const['model_list']]
+    
+    def get_simplified_name(self, name):
+        if '[' in name and  ']' in name and name[len(name) - 1] == ']':
+            return name[:name.index('[')].strip()
+        return name
+    
+    def get_full_model_name(self, short_name):
+        matched_name = [x for x in self.server_const['model_list'] if self.get_simplified_name(x) == short_name]
+        if len(matched_name) > 0:
+            return matched_name[0]
+        return ''
 
     def size_change(self):
         # Used to fix sizes for CollapsibleWidgets
@@ -473,11 +497,16 @@ class ControlNetUnit(QWidget):
         self.preprocessor_select.clear()
         self.model_select.clear()
 
-        self.preprocessor_list = self.cnapi.control_types[control_type]['module_list']
-        self.model_list = self.cnapi.control_types[control_type]['model_list']
+        # self.preprocessor_list = self.cnapi.control_types[control_type]['module_list']
+        # self.model_list = self.cnapi.control_types[control_type]['model_list']
+        self.server_const['preprocessor_list'] = self.cnapi.control_types[control_type]['module_list']
+        self.server_const['model_list'] = self.cnapi.control_types[control_type]['model_list']
 
-        self.preprocessor_select.addItems(self.preprocessor_list)
-        self.model_select.addItems(self.model_list)
+        # self.preprocessor_select.addItems(self.preprocessor_list)
+        self.preprocessor_select.addItems(self.server_const['preprocessor_list'])
+        # self.model_select.addItems(self.model_list)
+        simple_model_names = self.get_simplified_model_names()
+        self.model_select.addItems(simple_model_names)
 
         # if len(self.preprocessor_list) > 1 and self.preprocessor_list[0].lower() == 'none':
         #     self.preprocessor_select.setCurrentIndex(1)
@@ -493,6 +522,9 @@ class ControlNetUnit(QWidget):
         self.model_select.setCurrentText(self.cnapi.control_types[control_type]['default_model'])
 
     def update_model(self, model_name:str):
+        if '[' not in model_name:
+            # This is the simplified name, need to get the raw name
+            model_name = self.get_full_model_name(model_name)
         self.model = model_name
 
     def set_preprocessor_settings(self, preprocessor_name:str):
