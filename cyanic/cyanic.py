@@ -55,7 +55,7 @@ class CyanicDocker(DockWidget):
             {'name': 'Img2Img', 'page': self.img2img, 'icon': kc.get_custom_icon('img2img')},
             {'name': 'Inpaint', 'page': self.inpaint, 'icon': kc.get_custom_icon('inpaint')},
             {'name': 'Interrogate', 'page': self.interrogate, 'icon': kc.get_custom_icon('interrogate')},
-            {'name': 'Upscale', 'page': self.upscale, 'icon': Krita.instance().icon('transform_icons_liquify_resize') },
+            {'name': 'Upscale', 'page': self.upscale, 'icon': kc.get_custom_icon('upscale') },
             {'name': 'Remove Background', 'page': self.rembg, 'icon': kc.get_custom_icon('rembg') },
             # TODO pages that would be nice to add, but aren't ready yet
             # {'name': 'Segmentation Map', 'page': self.segmap}, 

@@ -153,7 +153,8 @@ class ExtraNetworksDialog(QDialog):
     def map_embeddings(self, raw_embeddings):
         # Try to make embeddings return similar to the other network types
         # Need to guess the path based on other methods
-        if len(raw_embeddings) == 0:
+
+        if raw_embeddings is None or len(raw_embeddings['loaded']) == 0:
             # server isn't started, or has no embeddings
             self.embeddings = []
             return

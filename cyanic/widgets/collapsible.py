@@ -31,8 +31,20 @@ class CollapsibleWidget(QWidget):
         # if not self.show_child:
         #     self.child.setMaximumHeight(0)
         
-        self.layout().addWidget(child)
-        self.child.setHidden(not self.show_child)
+        # Original version
+        # self.layout().addWidget(child)
+        # self.child.setHidden(not self.show_child)
+
+        self.child_container = QWidget()
+        self.child_container.setLayout(QHBoxLayout())
+        self.child_container.layout().setContentsMargins(10,0,0,0)
+        line = QFrame()
+        line.setFrameStyle(QFrame.VLine)
+        line.setLineWidth(1)
+        self.child_container.layout().addWidget(line)
+        self.child_container.layout().addWidget(self.child)
+        self.layout().addWidget(self.child_container)
+        self.child_container.setHidden(not self.show_child)
 
         # indented = QWidget()
         # indented.setLayout(QVBoxLayout())
@@ -60,5 +72,7 @@ class CollapsibleWidget(QWidget):
         # else:
         #     self.animator.setDirection(QAbstractAnimation.Backward)
         #     self.animator.start()
-        self.child.setHidden(not self.show_child)
+
+        # self.child.setHidden(not self.show_child)
+        self.child_container.setHidden(not self.show_child)
         self.update()

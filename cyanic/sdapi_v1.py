@@ -138,6 +138,17 @@ class SDAPI():
             except Exception as e:
                 return False
         except Exception as e:
+            original_host = host
+            if 'http' not in host:
+                # It's probably locally hosted on their network, and not https
+                host = 'http://%s' % original_host
+                result = self.test_connection(host, switch_if_success)
+                if result:
+                    return result
+                else:
+                    # Maybe they're connecting to an outside service and forgot an HTTPS
+                    host = 'https://%s' % original_host
+                    return self.test_connection(host, switch_if_success)
             return False
 
     # ===========================
