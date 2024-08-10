@@ -135,15 +135,21 @@ class UpscalePage(CyanicPage):
     def update(self):
         super().update()
 
+    def save_settings(self):
+        for key in self.variables:
+            self.settings_controller.set(key, self.variables[key])
+        self.settings_controller.save()
+
     def btn_click(self):
         if self.generating:
             self.upscale_btn.setText('Upscale')
 
     def upscale(self):
-        kc = KritaController()
+        self.kc = KritaController()
         tab = self.scale_tabs.currentIndex()
         self.settings_controller.set('upscale_tab', tab)
         # self.settings_controller.save()
+        self.save_settings()
         
         data = {
             'resize_mode': tab, # 0 = "Upscale By", 1 = "Upscale to"
@@ -152,23 +158,24 @@ class UpscalePage(CyanicPage):
             'upscaling_resize_h': self.settings_controller.get('upscale_height'),
             'upscaling_crop': self.settings_controller.get('upscale_crop_to_fit'),
             'upscaler_1': self.settings_controller.get('upscaler'),
-            'image': kc.qimage_to_b64_str(kc.get_canvas_img()),
+            'image': self.kc.qimage_to_b64_str(self.kc.get_canvas_img()),
         }
         # self.debug_text.setPlainText(json.dumps(data))
         # self.debug_text.setPlainText('%s' % type(data))
-        # kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return())
-        self.results = self.api.extra(data)
-        self.threadable_return()
+        self.kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return())
+        # self.results = self.api.extra(data)
+        # self.threadable_return()
 
 
     def threadable_run(self, data):
-        self.results = self.api.extra(data)
-
         self.upscale_btn.setText('Upscaling')
         self.upscale_btn.setDisabled(True)
         self.update()
+        self.results = self.api.extra(data)
 
     def threadable_return(self):
+        self.upscale_btn.setText('Upscale')
+        self.upscale_btn.setDisabled(False)
         kc = KritaController()
         x, y, canvas_w, canvas_h = kc.get_canvas_bounds()
         if self.settings_controller.get('upscale_tab') == 0:
