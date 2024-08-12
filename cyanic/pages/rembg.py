@@ -56,6 +56,7 @@ class RemBGPage(CyanicPage):
 
         # Background Removal model
         self.model_select = QComboBox()
+        self.model_select.wheelEvent = lambda event:None
         self.model_select.addItems(self.rembg_models)
         if self.variables['rembg_model'] not in self.rembg_models:
             self.variables['rembg_model'] = self.rembg_models[0]
@@ -102,9 +103,9 @@ class RemBGPage(CyanicPage):
         self.layout().addWidget(self.alpha_matting_settings)
 
         # Remove Background/Generate button
-        generate_btn = QPushButton('Remove Background')
-        generate_btn.clicked.connect(lambda: self.run_rembg())
-        self.layout().addWidget(generate_btn)
+        self.generate_btn = QPushButton('Remove Background')
+        self.generate_btn.clicked.connect(lambda: self.run_rembg())
+        self.layout().addWidget(self.generate_btn)
 
         # Disclaimer
         disclaimer_text = "The RemBG extension is created by Automatic1111, and is available in the extensions tab as 'stable-diffusion-webui-rembg'."
@@ -127,12 +128,14 @@ class RemBGPage(CyanicPage):
         init_value = self.settings_controller.get(settings_key)
 
         slider = QSlider(Qt.Horizontal)
+        slider.wheelEvent = lambda event:None
         slider.setMaximum(max)
         slider.setMinimum(min)
         slider.setValue(init_value)
         widget.layout().addWidget(slider)
 
         box = QSpinBox()
+        box.wheelEvent = lambda event:None
         box.setMaximum(max)
         box.setMinimum(min)
         box.setValue(init_value)
@@ -192,7 +195,8 @@ class RemBGPage(CyanicPage):
         return data
     
     def run_rembg(self):
-        kc = KritaController()
+        self.save_settings()
+        self.kc = KritaController()
         data = self.get_generation_data()
         
         if self.debug:
@@ -201,22 +205,30 @@ class RemBGPage(CyanicPage):
 
         # Update size_dict from self.img_in
         self.size_dict = self.img_in.size_dict
+        
+        self.kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return())        
 
-        # TODO: Make this async
-        results = self.api.post('/rembg', data)
-        if results is not None:
+    def threadable_run(self, data):
+        self.generate_btn.setText('Removing Background...')
+        self.generate_btn.setDisabled(True)
+        self.update()
+        self.results = self.api.post('/rembg', data)
+        return
+
+    def threadable_return(self):
+        self.generate_btn.setText('Remove Background')
+        self.generate_btn.setDisabled(False)
+
+        if self.results is not None:
             if self.debug:
                 import json
-                self.debug_text.setPlainText("%s" % json.dumps(results))
-            # apply_mask = self.settings_controller.get('rembg_apply_mask')
-            # as_mask = self.settings_controller.get('rembg_results_as_mask')
+                self.debug_text.setPlainText("%s" % json.dumps(self.results))
             apply_mask = self.variables['rembg_apply_mask']
             as_mask = self.variables['rembg_results_as_mask']
 
             if (as_mask and not apply_mask) or not as_mask:
-                kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
+                self.kc.results_to_layers(self.results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
             else:
-                kc.result_to_transparency_mask(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
+                self.kc.result_to_transparency_mask(self.results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'])
         else:
             raise Exception('No results?')
-            
