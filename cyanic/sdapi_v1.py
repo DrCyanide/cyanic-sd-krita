@@ -23,7 +23,7 @@ class SDAPI():
         self.styles = []
         self.scripts = {} # Dictionary, because it's split into txt2img scripts and img2img scripts
         self.loras = []
-        self.embeddings = []
+        self.embeddings = {}
         self.hypernetworks = []
         self.default_settings = {}
         self.defaults = {
@@ -36,6 +36,7 @@ class SDAPI():
             'face_restorer': '',
             'color_correction': True,
         }
+        self.known_thumbnail_paths = {}
         self.connected = False
         self.on_connection_change = on_connection_change # A function that can be called if self.connected changes - DO NOT CALL IN A THREAD EVALUATION!!! It will crash Krita with no error message.
         self.last_url = ''
@@ -61,6 +62,8 @@ class SDAPI():
                 self.on_connection_change()
             return # There was an issue, but the server might not be online yet.
         
+        self.known_thumbnail_paths = {} # Each server can have a different file extension for the same base path
+
         init_processes = [
             self.get_models,
             self.get_vaes,
@@ -295,30 +298,58 @@ class SDAPI():
             return []
     
     def get_embeddings(self):
-        self.embeddings = self.get("/sdapi/v1/embeddings")
-        if self.embeddings:
+        response = self.get("/sdapi/v1/embeddings")
+        if response:
+            self.embeddings = response
             return self.embeddings
         else:
-            return []
+            return {}
     
     def get_hypernetworks(self):
-        self.hypernetworks = self.get("/sdapi/v1/hypernetworks")
-        if self.hypernetworks:
+        response = self.get("/sdapi/v1/hypernetworks")
+        if response:
+            self.hypernetworks = response
             return self.hypernetworks
         else:
             return []
         
     def get_thumbnail(self, path):
+        if path in self.known_thumbnail_paths.keys():
+            # Already know what the path should be
+            image = self.get("/sd_extra_networks/thumb?filename=%s" % self.known_thumbnail_paths[path])
+            if image is not None:
+                return image
+            else:
+                # The saved path is wrong, remove it from the cache
+                self.known_thumbnail_paths.pop(path)
+
         image_path = path
         ext = os.path.splitext(path)[1].lower()
-        if ext is not 'png' or ext is not 'jpg':
+        if ext != 'png' or ext != 'jpg':
             image_path = "%s.png" % os.path.splitext(path)[0]
         image = self.get("/sd_extra_networks/thumb?filename=%s" % image_path)
-        if image is None:
-            # try .preview.png
-            image_path = "%s.preview.png" % os.path.splitext(path)[0]
+        if image is not None:
+            self.known_thumbnail_paths[path] = image_path
+            return image
+    
+        # Try the other extension
+        if ext == 'png':
+            image_path = "%s.jpg" % os.path.splitext(path)[0]
+        else:
+            image_path = "%s.png" % os.path.splitext(path)[0]
         image = self.get("/sd_extra_networks/thumb?filename=%s" % image_path)
-        return image
+        if image is not None:
+            self.known_thumbnail_paths[path] = image_path
+            return image
+
+        # Try .preview.png
+        image_path = "%s.preview.png" % os.path.splitext(path)[0]
+        image = self.get("/sd_extra_networks/thumb?filename=%s" % image_path)
+        if image is not None:
+            self.known_thumbnail_paths[path] = image_path
+            return image
+
+        return None # Image was not found
     
     # TODO: /sdapi/v1/lycos exists in SD.Next
     

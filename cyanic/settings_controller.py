@@ -18,6 +18,16 @@ class SettingsController():
         self.plugin_dir = os.path.dirname(os.path.realpath(__file__))
         self.user_settings_file = os.path.join(self.plugin_dir, 'user_settings.json')
         self.default_settings_file = os.path.join(self.plugin_dir, 'default_settings.json')
+        self.extra_networks_dir = os.path.join(self.plugin_dir, 'extra_networks')
+        self.extra_networks_settings_file = os.path.join(self.extra_networks_dir, 'extra_networks.json')
+        self.extra_networks_thumbnail_dir = os.path.join(self.extra_networks_dir, 'thumbnails')
+        self.default_extra_network_data = {
+            'description': '',
+            'sd version': 'Unknown',
+            'activation text': '',
+            'preferred weight': 1.0,
+            'notes': '',
+        }
         try:
             self.load()
         except Exception as e:
@@ -172,6 +182,147 @@ class SettingsController():
         self.settings = self.tmp_settings
         self.save_user_settings()
         self.save_kra_settings()
+
+    # Extra Network saved settings and thumbnail caching
+    # Extra Networks have APIs that differ between A1111, Forge, SD.Next, etc, so handling this locally is the best option.
+
+    def load_local_server_extra_network_settings(self, path:str):
+        # path should be from the lora or hypernetwork API endpoint, which is a full file path on the server.
+        if not os.path.exists(path):
+            return # This isn't the server.
+        # .../models/lora or .../models/hypernetworks or .../models/lycoris
+        # Capitalization of folders could be different too.
+        parent_dir = ''
+        if os.path.isfile(path):
+            parent_dir = os.path.split(path)[0]
+        else:
+            parent_dir = path
+
+        model_dir = os.path.split(parent_dir)[0]
+        folders_to_visit = ['lora', 'lycoris', 'hypernetwork']
+
+        # Note: lycoris is counted under the lora network_type in the API
+        folder_name = os.path.split(parent_dir)[1].lower()
+        network_type = self._folder_to_network_type(folder_name)
+       
+
+        existing_settings = {'lora':{}, 'hypernetwork': {}}
+        existing_settings[network_type] = self._read_settings_from_server_folder(parent_dir) # Add the parsed data 
+        folders_to_visit = [folder for folder in folders_to_visit if folder not in folder_name] # Mark this folder as visited
+        
+        # Check model_dir for more folders
+        sub_folders = [folder for folder in os.listdir(model_dir) if os.path.isdir(os.path.join(model_dir, folder))]
+        for unvisited_folder in folders_to_visit:
+            # check sub_folders for this unvisted_folder
+            matching_folders = list(filter(lambda folder_name: unvisited_folder in folder_name.lower(), sub_folders))
+            for folder in matching_folders:
+                network_type = self._folder_to_network_type(folder)
+                if existing_settings[network_type] is None:
+                    existing_settings[network_type] = {}
+                existing_settings[network_type].update(self._read_settings_from_server_folder(os.path.join(model_dir, folder)))
+    
+        # That should be all of the server's custom files injested
+        self.save_extra_network_settings(existing_settings)
+
+
+    def _folder_to_network_type(self, folder_name):
+        # Not including a separate lycoris network type, because A1111 APIs treats them as part of lora
+        if 'hypernetwork' in folder_name:
+            return 'hypernetwork' # get rid of pluralizations
+        else:
+           return 'lora'
+
+
+    def _read_settings_from_server_folder(self, folder):
+        # Search this folder for any .json files
+        settings = {}
+        server_data_files = [x for x in os.listdir(folder) if 'json' in os.path.splitext(x)[1].lower()]
+        for server_file in server_data_files:
+            with open(os.path.join(folder, server_file), 'r') as file:
+                data = json.load(file)
+                network_name = os.path.splitext(server_file)[0].lower()
+                settings[network_name] = data
+        return settings
+
+
+    def _thumbnail_file_path(self, network_type:str, network_name:str):
+        return os.path.join(self.extra_networks_thumbnail_dir, network_type.lower(), '%s.png' % network_name.lower())
+
+
+    def cache_thumbnail(self, network_type:str, network_name:str, thumbnail):
+        # Writes the thumbnail data recieved from the API to the local file system
+        with open(self._thumbnail_file_path(network_type, network_name), 'wb') as file:
+            file.write(thumbnail)
+
+
+    def get_cached_thumbnail(self, network_type:str, network_name:str):
+        # Returns the thumbnail from the local file system
+        target_file = self._thumbnail_file_path(network_type, network_name)
+        if os.path.exists(target_file):
+            with open(target_file, 'rb') as file:
+                return file
+        return None
+
+
+    def get_extra_network_settings(self):
+        # From the Krita settings
+        existing_settings = {'lora':{}, 'hypernetwork': {}}
+        if os.path.exists(self.extra_networks_settings_file):
+            with open(self.extra_networks_settings_file, 'r') as file:
+                existing_settings = json.load(file)
+        return existing_settings
+
+
+    def save_extra_network_settings(self, extra_network_settings):
+        # {
+        #   lora: {
+        #       lora_name: self.default_extra_network_data
+        #   },
+        #   hypernetwork: {
+        #       hypernetwork_name: self.default_extra_network_data
+        #   }
+        # }
+        manditory_keys = ['lora', 'hypernetwork']
+        for key in manditory_keys:
+            if key not in extra_network_settings.keys():
+                extra_network_settings[key] = {}
+        with open(self.extra_networks_settings_file, 'w') as file:
+            file.write(json.dumps(extra_network_settings))
+
+
+    def set_extra_network_data_from_dict(self, network_type:str, network_name:str, data):
+        # See default_extra_network_data for example of data format
+        save_data = self.default_extra_network_data
+
+        # Make sure the new data has the minimum number of fields
+        for key in save_data.keys():
+            if key in data.keys():
+                save_data[key] = data[key]
+
+        existing_settings = self.get_extra_network_settings()
+        if network_type.lower() not in existing_settings.keys():
+            existing_settings[network_type.lower()] = {}
+        
+        if network_name.lower() in existing_settings[network_type.lower()].keys():
+            # Need to update the existing data with the new data
+            existing_settings[network_type.lower()][network_name.lower()].update(save_data)
+        else:
+            existing_settings[network_type.lower()][network_name.lower()] = save_data
+
+        self.save_extra_network_settings(existing_settings)
+
+
+    def get_extra_network_data(self, network_type:str, network_name:str):
+        existing_settings = self.get_extra_network_settings()
+        if network_type.lower() not in existing_settings.keys():
+            # No data, use the defaults
+            return self.default_extra_network_data
+        
+        if network_name.lower() not in existing_settings[network_type.lower()].keys():
+            # No data, use the defaults
+            return self.default_extra_network_data
+        
+        return existing_settings[network_type.lower()][network_name.lower()]
 
     # The key system should be slightly abstracted, so that widgets don't need to have a perfect map of the settings files.
     # The exception to this is extensions, which should have all of their internal data self contained

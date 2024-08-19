@@ -5,6 +5,7 @@ from ..settings_controller import SettingsController
 class SettingsDialog(QDialog):
     def __init__(self, settings_controller:SettingsController, api:SDAPI, on_close=None):
         super().__init__()
+        self.setWindowTitle('Cyanic SD Settings')
         self.settings_controller = settings_controller
         self.api = api
         self.on_close = on_close

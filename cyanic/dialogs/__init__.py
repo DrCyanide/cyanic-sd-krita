@@ -1,2 +1,3 @@
 from .extra_networks_dialog import ExtraNetworksDialog
+from .extra_networks_edit_dialog import ExtraNetworksEditDialog
 from .settings_dialog import SettingsDialog

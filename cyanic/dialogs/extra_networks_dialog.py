@@ -5,13 +5,17 @@ import re
 import os
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
+from krita import Krita
 
 
 class ExtraNetworksDialog(QDialog):
-    MAX_HEIGHT = 100
-    MAX_WIDTH = 100
+    MAX_HEIGHT = 150
+    MAX_WIDTH = 150
+    # MAX_HEIGHT = 100
+    # MAX_WIDTH = 100
     def __init__(self, settings_controller:SettingsController, api:SDAPI, on_close=None, prompt_txt=''):
         super().__init__()
+        self.setWindowTitle('Extra Networks')
         self.settings_controller = settings_controller
         self.api = api
         self.on_close = on_close
@@ -21,6 +25,17 @@ class ExtraNetworksDialog(QDialog):
         self.show_icons = False
 
         self.thumbnails = {}
+
+        self.model_versions = [
+            'All', # Not official, just allow all options
+            'SD1',
+            'SD2',
+            'SD3',
+            'SDXL',
+            'Unknown',
+        ]
+        self.model_filter = 'all'
+        self.search_text = ''
 
         self.loras = []
         self.hypernetworks = []
@@ -59,53 +74,82 @@ class ExtraNetworksDialog(QDialog):
         self.toggle_images_checkbox = QCheckBox('Show thumbnails')
         self.toggle_images_checkbox.setChecked(self.show_icons)
         self.toggle_images_checkbox.toggled.connect(lambda: self.update_show_icons())
-
         header.layout().addWidget(self.toggle_images_checkbox)
 
+        # Model Filter
+        self.model_filter_box = QComboBox()
+        self.model_filter_box.wheelEvent = lambda event : None
+        self.model_filter_box.setToolTip('SD Model version')
+        self.model_filter_box.addItems(self.model_versions)
+        self.model_filter_box.setCurrentIndex(0)
+        self.model_filter_box.currentIndexChanged.connect(lambda: self.update_filtered_models())
+        header.layout().addWidget(self.model_filter_box)
+
+        # Search bar
+        self.search_bar = QLineEdit()
+        self.search_bar.setPlaceholderText('Search')
+        self.search_bar.textChanged.connect(lambda: self.update_search_text())
+        header.layout().addWidget(self.search_bar)
+
+        # Import from server/exported 
+        self.import_button = QPushButton('Import')
+        # self.import_button = QPushButton()
+        self.import_button.setIcon(Krita.instance().icon('document-import'))
+        self.import_button.setToolTip('Import extra network settings')
+        self.import_button.toggled.connect(lambda: self.import_extra_network_settings())
+        # header.layout().addWidget(self.import_button)
+
+        self.export_button  = QPushButton('Export')
+        # self.export_button  = QPushButton()
+        self.export_button.setIcon(Krita.instance().icon('document-export'))
+        self.export_button.setToolTip('Export local extra network settings')
+        self.export_button.toggled.connect(lambda: self.export_extra_network_settings())
+        # header.layout().addWidget(self.export_button)
+
         self.layout().addWidget(header)
+
+        icon_size = QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT)
 
         # Filter by Version?
         self.layout().addWidget(self.tabs)
         # Tabs for Lora (and LyCORIS), Hypernetwork, Textual Inversion
         self.lora_list = QListWidget()
-        # self.lora_list.setFixedHeight(ExtraNetworksDialog.MAX_HEIGHT)
+        self.lora_list.setMinimumWidth(int(ExtraNetworksDialog.MAX_WIDTH * 4.5)) # Sets width of the overall popup dialog.
+        self.lora_list.setMinimumHeight(int(ExtraNetworksDialog.MAX_WIDTH * 2.5)) # Sets height of the overall popup dialog.
         self.lora_list.setFlow(QListView.Flow.LeftToRight)
-        # self.lora_list.setFixedWidth(ExtraNetworksDialog.MAX_WIDTH)
         # self.lora_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.lora_list.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.lora_list.setSelectionMode(QAbstractItemView.MultiSelection)
         self.lora_list.setResizeMode(QListView.ResizeMode.Adjust)
         self.lora_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.lora_list.setViewMode(QListWidget.IconMode)
-        self.lora_list.setIconSize(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
+        self.lora_list.setIconSize(icon_size) # Adjusts the height/width of preview icons, but hid the label for the items
         # Add right-click menu
         self.lora_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.lora_list.customContextMenuRequested.connect(lambda x: self.open_menu(x, self.lora_list))
         self.tabs.addTab(self.lora_list, 'Loras')
 
         self.hypernetwork_list = QListWidget()
-        # self.hypernetwork_list.setFixedHeight(ExtraNetworksDialog.MAX_HEIGHT)
         self.hypernetwork_list.setFlow(QListView.Flow.LeftToRight)
         self.hypernetwork_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.hypernetwork_list.setSelectionMode(QAbstractItemView.MultiSelection)
         self.hypernetwork_list.setResizeMode(QListView.ResizeMode.Adjust)
         self.hypernetwork_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.hypernetwork_list.setViewMode(QListWidget.IconMode)
-        self.hypernetwork_list.setIconSize(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
+        self.hypernetwork_list.setIconSize(icon_size)
         # Add right-click menu
         self.lora_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.lora_list.customContextMenuRequested.connect(lambda x: self.open_menu(x, self.lora_list))
         self.tabs.addTab(self.hypernetwork_list, 'Hypernetworks')
 
         self.embedding_list = QListWidget()
-        # self.embedding_list.setFixedHeight(ExtraNetworksDialog.MAX_HEIGHT)
         self.embedding_list.setFlow(QListView.Flow.LeftToRight)
         self.embedding_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.embedding_list.setSelectionMode(QAbstractItemView.MultiSelection)
         self.embedding_list.setResizeMode(QListView.ResizeMode.Adjust)
         self.embedding_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.embedding_list.setViewMode(QListWidget.IconMode)
-        self.embedding_list.setIconSize(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
+        self.embedding_list.setIconSize(icon_size)
         self.tabs.addTab(self.embedding_list, 'Embeddings')
         
         self.layout().addWidget(self.tabs)
@@ -125,6 +169,20 @@ class ExtraNetworksDialog(QDialog):
         self.layout().addWidget(footer)
         self.set_widget_values()
 
+
+    def import_extra_network_settings(self):
+        pass
+
+    def export_extra_network_settings(self):
+        pass
+
+    def update_filtered_models(self):
+        self.model_filter = self.model_filter_box.currentText().lower()
+        self.set_widget_values()
+
+    def update_search_text(self):
+        self.search_text = self.search_bar.text()
+        self.set_widget_values()
 
     def get_thumbnail(self, path):
         # Assumes the server isn't going to update icons while Krita is running.
@@ -156,8 +214,8 @@ class ExtraNetworksDialog(QDialog):
 
         if raw_embeddings is None or len(raw_embeddings['loaded']) == 0:
             # server isn't started, or has no embeddings
-            self.embeddings = []
-            return
+            # self.embeddings = []
+            return []
 
         # TODO: Try to find the directory in the Settings, like a sane person!
         embeddings_dir = ''
@@ -178,7 +236,8 @@ class ExtraNetworksDialog(QDialog):
                 'path': path,
             }
             new_embeddings.append(data)
-        self.embeddings = new_embeddings
+        # self.embeddings = new_embeddings
+        return new_embeddings
 
     def load_settings(self):
         self.show_icons = self.settings_controller.get('show_extra_network_thumbnails', False) # Default to False for faster loading times
@@ -190,11 +249,39 @@ class ExtraNetworksDialog(QDialog):
         self.loras = self.api.get_loras()
         self.hypernetworks = self.api.get_hypernetworks()
         # self.embeddings = self.api.get_embeddings()
-        self.map_embeddings(self.api.get_embeddings())
+        self.embeddings = self.map_embeddings(self.api.get_embeddings()) # NOT A LIST!
+
+        # Filter down the list of models returned
+        if self.model_filter != 'all':
+            # Edit self.lora and self.hypernetwork to remove the models that don't fit the filter
+            # embeddings don't have the same info, and are filtered on server side as 'loaded' or 'skipped' based on current SD model
+            extra_network_settings = self.settings_controller.get_extra_network_settings()
+            new_loras = []
+            for lora in self.loras:
+                sd_version = 'unknown'
+                if lora['name'].lower() in extra_network_settings['lora']:
+                    sd_version = extra_network_settings['lora'][lora['name'].lower()]['sd version'].lower()
+                if sd_version == self.model_filter:
+                    new_loras.append(lora)
+            self.loras = new_loras
+
+            new_hypernetworks = []
+            for hn in self.hypernetworks:
+                sd_version = 'unknown'
+                if hn['name'].lower() in extra_network_settings['hypernetwork']:
+                    sd_version = extra_network_settings['hypernetwork'][hn['name'].lower()]['sd version'].lower()
+                if sd_version == self.model_filter:
+                    new_hypernetworks.append(hn)
+
+            self.hypernetworks = new_hypernetworks
 
         self.toggle_images_checkbox.setChecked(self.show_icons)
 
         for lora in self.loras:
+            if len(self.search_text) > 0 and not (self.search_text in lora['name'] or self.search_text in lora['alias']):
+                # Search text doesn't match this lora, so skip it
+                continue
+
             raw_img = self.get_thumbnail(lora['path'])
             list_item = QListWidgetItem()
             label = lora[self.label_key]
@@ -212,6 +299,10 @@ class ExtraNetworksDialog(QDialog):
             list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
     
         for hypernetwork in self.hypernetworks:
+            if len(self.search_text) > 0 and not self.search_text in hypernetwork['name']:
+                # Search text doesn't match this hypernetwork, so skip it
+                continue
+
             list_item = QListWidgetItem()
             label = hypernetwork[self.label_key]
             if self.show_icons:
@@ -304,7 +395,7 @@ class ExtraNetworksDialog(QDialog):
                 self.prompt_txt = "%s %s" % (self.prompt_txt, self.create_default_value('embedding', embedding_data))
 
     def closeEvent(self, event):
-        return
+        return # Close should act as a cancel, not a confirm.
         # if self.on_close is not None:
             # self.write_new_prompt_txt()
             # self.on_close(self.prompt_txt)

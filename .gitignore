@@ -1,5 +1,6 @@
 **/__pycache__/
 cyanic/user_settings.json
+cyanic/extra_networks/*
 cyanic/test.json
 cyanic/saved.png
 cyanic/log.json

@@ -602,6 +602,7 @@ class ControlNetUnit(QWidget):
             kc.results_to_layers(results, self.size_dict['x'], self.size_dict['y'], self.size_dict['w'], self.size_dict['h'], 'ControlNet Preview')
         # NOTE: For OpenPose, results includes {'poses': [{'people': [{'pose_keypoints_2d': [...]}] }]}
         # Those pose_keypoints_2d could be used to make a Vector preview of the pose, allowing users to edit the pose more precisely
+        # Acly's plugin creates an SVG that can be dragged and edited. Understanding how that works could be useful.
 
     def get_generation_data(self):
         # https://github.com/Mikubill/sd-webui-controlnet/wiki/API
