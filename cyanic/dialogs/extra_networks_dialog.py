@@ -5,6 +5,7 @@ import re
 import os
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
+from . import ExtraNetworksManageDialog
 from krita import Krita
 
 
@@ -26,14 +27,6 @@ class ExtraNetworksDialog(QDialog):
 
         self.thumbnails = {}
 
-        self.model_versions = [
-            'All', # Not official, just allow all options
-            'SD1',
-            'SD2',
-            'SD3',
-            'SDXL',
-            'Unknown',
-        ]
         self.model_filter = 'all'
         self.search_text = ''
 
@@ -80,7 +73,7 @@ class ExtraNetworksDialog(QDialog):
         self.model_filter_box = QComboBox()
         self.model_filter_box.wheelEvent = lambda event : None
         self.model_filter_box.setToolTip('SD Model version')
-        self.model_filter_box.addItems(self.model_versions)
+        self.model_filter_box.addItems(SettingsController.SD_MODEL_VERSIONS)
         self.model_filter_box.setCurrentIndex(0)
         self.model_filter_box.currentIndexChanged.connect(lambda: self.update_filtered_models())
         header.layout().addWidget(self.model_filter_box)
@@ -91,20 +84,13 @@ class ExtraNetworksDialog(QDialog):
         self.search_bar.textChanged.connect(lambda: self.update_search_text())
         header.layout().addWidget(self.search_bar)
 
-        # Import from server/exported 
-        self.import_button = QPushButton('Import')
-        # self.import_button = QPushButton()
-        self.import_button.setIcon(Krita.instance().icon('document-import'))
-        self.import_button.setToolTip('Import extra network settings')
-        self.import_button.toggled.connect(lambda: self.import_extra_network_settings())
-        # header.layout().addWidget(self.import_button)
-
-        self.export_button  = QPushButton('Export')
-        # self.export_button  = QPushButton()
-        self.export_button.setIcon(Krita.instance().icon('document-export'))
-        self.export_button.setToolTip('Export local extra network settings')
-        self.export_button.toggled.connect(lambda: self.export_extra_network_settings())
-        # header.layout().addWidget(self.export_button)
+        # Manage
+        self.manage_dialog = ExtraNetworksManageDialog(self.settings_controller, self.api, self.manage_extra_networks_dialog_closed)
+        self.manage_button = QPushButton('Manage')
+        self.manage_button.setIcon(Krita.instance().icon('properties'))
+        self.manage_button.setToolTip('Import/Export extra network settings')
+        self.manage_button.clicked.connect(lambda: self.open_manage_extra_networks_dialog())
+        header.layout().addWidget(self.manage_button)
 
         self.layout().addWidget(header)
 
@@ -170,18 +156,19 @@ class ExtraNetworksDialog(QDialog):
         self.set_widget_values()
 
 
-    def import_extra_network_settings(self):
-        pass
+    def open_manage_extra_networks_dialog(self):
+        self.manage_dialog.show()
 
-    def export_extra_network_settings(self):
-        pass
+    def manage_extra_networks_dialog_closed(self):
+        # Only called if there's an update.
+        self.set_widget_values()
 
     def update_filtered_models(self):
         self.model_filter = self.model_filter_box.currentText().lower()
         self.set_widget_values()
 
     def update_search_text(self):
-        self.search_text = self.search_bar.text()
+        self.search_text = self.search_bar.text().lower()
         self.set_widget_values()
 
     def get_thumbnail(self, path):
@@ -251,6 +238,21 @@ class ExtraNetworksDialog(QDialog):
         # self.embeddings = self.api.get_embeddings()
         self.embeddings = self.map_embeddings(self.api.get_embeddings()) # NOT A LIST!
 
+        # Filter by search
+        if len(self.search_text) > 0:
+            # TODO: Offer option to search by notes and description
+            self.loras = list(filter(lambda lora: self.search_text in lora['name'].lower() or self.search_text in lora['alias'].lower(), self.loras))
+
+            self.hypernetworks = list(filter(lambda hypernetwork: self.search_text in hypernetwork['name'].lower(), self.hypernetworks))
+
+            # Need to pop the embeddings that don't match.
+            for loaded in self.embeddings['loaded'].keys():
+                if self.search_text in loaded.lower():
+                    self.embeddings['loaded'].pop(loaded)
+            for skipped in self.embeddings['skipped'].keys():
+                if self.search_text in skipped.lower():
+                    self.embeddings['skipped'].pop(skipped)
+
         # Filter down the list of models returned
         if self.model_filter != 'all':
             # Edit self.lora and self.hypernetwork to remove the models that don't fit the filter
@@ -278,10 +280,6 @@ class ExtraNetworksDialog(QDialog):
         self.toggle_images_checkbox.setChecked(self.show_icons)
 
         for lora in self.loras:
-            if len(self.search_text) > 0 and not (self.search_text in lora['name'] or self.search_text in lora['alias']):
-                # Search text doesn't match this lora, so skip it
-                continue
-
             raw_img = self.get_thumbnail(lora['path'])
             list_item = QListWidgetItem()
             label = lora[self.label_key]
@@ -299,10 +297,6 @@ class ExtraNetworksDialog(QDialog):
             list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
     
         for hypernetwork in self.hypernetworks:
-            if len(self.search_text) > 0 and not self.search_text in hypernetwork['name']:
-                # Search text doesn't match this hypernetwork, so skip it
-                continue
-
             list_item = QListWidgetItem()
             label = hypernetwork[self.label_key]
             if self.show_icons:

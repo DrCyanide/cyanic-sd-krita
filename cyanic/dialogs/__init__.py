@@ -1,3 +1,4 @@
-from .extra_networks_dialog import ExtraNetworksDialog
+from .extra_networks_manage_dialog import ExtraNetworksManageDialog
 from .extra_networks_edit_dialog import ExtraNetworksEditDialog
+from .extra_networks_dialog import ExtraNetworksDialog
 from .settings_dialog import SettingsDialog

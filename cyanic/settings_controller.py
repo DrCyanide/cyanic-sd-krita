@@ -4,8 +4,17 @@ import os.path
 from PyQt5.QtCore import QByteArray
 from krita import *
 
+# Loads and saves settings for the entire plug-in
 class SettingsController():
-    # Loads and saves settings for the entire plug-in
+    
+    SD_MODEL_VERSIONS = [
+        'All', # Not official, just allow all options
+        'SD1',
+        'SD2',
+        'SD3',
+        'SDXL',
+        'Unknown',
+    ]
     def __init__(self):
         self.settings = {} # Settings loaded from .json files
         self.tmp_settings = {} # What's staged to be saved, the WIP settings
@@ -186,42 +195,32 @@ class SettingsController():
     # Extra Network saved settings and thumbnail caching
     # Extra Networks have APIs that differ between A1111, Forge, SD.Next, etc, so handling this locally is the best option.
 
-    def load_local_server_extra_network_settings(self, path:str):
-        # path should be from the lora or hypernetwork API endpoint, which is a full file path on the server.
-        if not os.path.exists(path):
-            return # This isn't the server.
-        # .../models/lora or .../models/hypernetworks or .../models/lycoris
-        # Capitalization of folders could be different too.
-        parent_dir = ''
-        if os.path.isfile(path):
-            parent_dir = os.path.split(path)[0]
-        else:
-            parent_dir = path
-
-        model_dir = os.path.split(parent_dir)[0]
-        folders_to_visit = ['lora', 'lycoris', 'hypernetwork']
-
-        # Note: lycoris is counted under the lora network_type in the API
-        folder_name = os.path.split(parent_dir)[1].lower()
-        network_type = self._folder_to_network_type(folder_name)
-       
-
-        existing_settings = {'lora':{}, 'hypernetwork': {}}
-        existing_settings[network_type] = self._read_settings_from_server_folder(parent_dir) # Add the parsed data 
-        folders_to_visit = [folder for folder in folders_to_visit if folder not in folder_name] # Mark this folder as visited
+    def load_local_server_extra_network_settings(self, dirs):
+        # Dirs should be obtained from the lora or hypernetwork API endpoint's "path", without the filenames
+        if type(dirs) == str:
+            dirs = [dirs]
         
-        # Check model_dir for more folders
-        sub_folders = [folder for folder in os.listdir(model_dir) if os.path.isdir(os.path.join(model_dir, folder))]
-        for unvisited_folder in folders_to_visit:
-            # check sub_folders for this unvisted_folder
-            matching_folders = list(filter(lambda folder_name: unvisited_folder in folder_name.lower(), sub_folders))
-            for folder in matching_folders:
-                network_type = self._folder_to_network_type(folder)
-                if existing_settings[network_type] is None:
-                    existing_settings[network_type] = {}
-                existing_settings[network_type].update(self._read_settings_from_server_folder(os.path.join(model_dir, folder)))
-    
-        # That should be all of the server's custom files injested
+        # Filter to only existing paths
+        dirs = list(filter(lambda dir: os.path.exists(dir), dirs))
+        if len(dirs) == 0:
+            return
+        
+        # If they're files, get their parent dir instead
+        folder_dirs = []
+        for dir in dirs:
+            if os.path.isdir(dir):
+                folder_dirs.append(dir)
+            else:
+                folder_dirs.append(os.path.split(dir)[0])
+        dirs = folder_dirs
+        
+        existing_settings = {'lora':{}, 'hypernetwork': {}}
+        for dir in dirs:
+            # Note: lycoris is counted under the lora network_type in the API
+            network_type = self._folder_to_network_type(os.path.split(dir)[1])
+            saved_settings = self._read_settings_from_server_folder(dir)
+            existing_settings[network_type].update(saved_settings)
+
         self.save_extra_network_settings(existing_settings)
 
 
@@ -286,8 +285,13 @@ class SettingsController():
         for key in manditory_keys:
             if key not in extra_network_settings.keys():
                 extra_network_settings[key] = {}
+
+        dump = json.dumps(extra_network_settings, indent=4)
+        os.makedirs(self.extra_networks_dir, exist_ok=True) # Create the folder if it doesn't already exist
         with open(self.extra_networks_settings_file, 'w') as file:
-            file.write(json.dumps(extra_network_settings))
+            file.write(dump)
+            file.close()
+        # raise Exception('Finished writing: %s' % self.extra_networks_settings_file) 
 
 
     def set_extra_network_data_from_dict(self, network_type:str, network_name:str, data):
