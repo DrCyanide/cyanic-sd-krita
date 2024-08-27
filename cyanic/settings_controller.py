@@ -272,7 +272,7 @@ class SettingsController():
         return existing_settings
 
 
-    def save_extra_network_settings(self, extra_network_settings):
+    def save_extra_network_settings(self, extra_network_settings, merge_with_existing=True):
         # {
         #   lora: {
         #       lora_name: self.default_extra_network_data
@@ -286,6 +286,12 @@ class SettingsController():
             if key not in extra_network_settings.keys():
                 extra_network_settings[key] = {}
 
+        if merge_with_existing:
+            existing_extra_network_settings = self.get_extra_network_settings()
+            for network_type in extra_network_settings: 
+                for network_name in extra_network_settings:
+                    existing_extra_network_settings[network_type][network_name] = extra_network_settings[network_type][network_name]
+
         dump = json.dumps(extra_network_settings, indent=4)
         os.makedirs(self.extra_networks_dir, exist_ok=True) # Create the folder if it doesn't already exist
         with open(self.extra_networks_settings_file, 'w') as file:
@@ -293,6 +299,10 @@ class SettingsController():
             file.close()
         # raise Exception('Finished writing: %s' % self.extra_networks_settings_file) 
 
+    def delete_extra_network_data(self):
+        # Just write an empty array to it
+        default_settings = {'lora':{}, 'hypernetwork': {}}
+        self.save_extra_network_settings(default_settings, merge_with_existing=False)
 
     def set_extra_network_data_from_dict(self, network_type:str, network_name:str, data):
         # See default_extra_network_data for example of data format
