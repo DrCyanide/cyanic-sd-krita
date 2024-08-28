@@ -94,6 +94,10 @@ class ExtraNetworksManageDialog(QDialog):
         self.status_label.setText('')
         self.status_label.setHidden(True)
 
+    def set_status_label(self, text):
+        self.status_label.setText(text)
+        self.status_label.setHidden(False)
+
     def import_server(self):
         self.clear_status_label()
         self.import_server_btn.setText('Importing...')
@@ -111,7 +115,7 @@ class ExtraNetworksManageDialog(QDialog):
         self.settings_controller.load_local_server_extra_network_settings(dirs)
 
         self.changed = True
-        self.status_label.setText('Imported settings from server')
+        self.set_status_label('Imported settings from server')
         self.import_server_btn.setText('Import from Server')
         self.import_server_btn.setDisabled(False)
 
@@ -124,7 +128,7 @@ class ExtraNetworksManageDialog(QDialog):
                 custom_settings = json.load(file)
             self.settings_controller.save_extra_network_settings(custom_settings)
             self.changed = True
-            self.status_label.setText('Imported settings from file')
+            self.set_status_label('Imported settings from file')
 
     def export_file(self):
         self.clear_status_label()
@@ -138,4 +142,4 @@ class ExtraNetworksManageDialog(QDialog):
     def delete_data(self):
         self.clear_status_label()
         self.settings_controller.delete_extra_network_data()
-        self.status_label('Deleted saved customizations')
+        self.set_status_label('Deleted saved customizations')

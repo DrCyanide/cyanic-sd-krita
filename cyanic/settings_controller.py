@@ -8,12 +8,12 @@ from krita import *
 class SettingsController():
     
     SD_MODEL_VERSIONS = [
-        'All', # Not official, just allow all options
+        'All', # Not official, just allow all options. "All" should always be first.
         'SD1',
         'SD2',
         'SD3',
         'SDXL',
-        'Unknown',
+        'Unknown', # "Unknown" should always be last.
     ]
     def __init__(self):
         self.settings = {} # Settings loaded from .json files
@@ -27,14 +27,17 @@ class SettingsController():
         self.plugin_dir = os.path.dirname(os.path.realpath(__file__))
         self.user_settings_file = os.path.join(self.plugin_dir, 'user_settings.json')
         self.default_settings_file = os.path.join(self.plugin_dir, 'default_settings.json')
+        self.icon_dir = os.path.join(self.plugin_dir, 'icons')
         self.extra_networks_dir = os.path.join(self.plugin_dir, 'extra_networks')
         self.extra_networks_settings_file = os.path.join(self.extra_networks_dir, 'extra_networks.json')
         self.extra_networks_thumbnail_dir = os.path.join(self.extra_networks_dir, 'thumbnails')
+        self.unknown_thumbnail = None
         self.default_extra_network_data = {
             'description': '',
             'sd version': 'Unknown',
             'activation text': '',
-            'preferred weight': 1.0,
+            'negative text': '',
+            'preferred weight': 0, # A1111 default is 0, which gets translated to a weight of 1.0
             'notes': '',
         }
         try:
@@ -250,18 +253,32 @@ class SettingsController():
 
     def cache_thumbnail(self, network_type:str, network_name:str, thumbnail):
         # Writes the thumbnail data recieved from the API to the local file system
-        with open(self._thumbnail_file_path(network_type, network_name), 'wb') as file:
-            file.write(thumbnail)
-
+        try:
+            save_target = self._thumbnail_file_path(network_type, network_name)
+            os.makedirs(os.path.split(save_target)[0], exist_ok=True) # Create the folder if it doesn't already exist
+            with open(save_target, 'wb') as file:
+                file.write(thumbnail)
+        except:
+            pass
 
     def get_cached_thumbnail(self, network_type:str, network_name:str):
         # Returns the thumbnail from the local file system
-        target_file = self._thumbnail_file_path(network_type, network_name)
-        if os.path.exists(target_file):
-            with open(target_file, 'rb') as file:
-                return file
-        return None
-
+        try:
+            target_file = self._thumbnail_file_path(network_type, network_name)
+            if os.path.exists(target_file):
+                data = None
+                with open(target_file, 'rb') as file:
+                    data = file.read()
+                return data
+            return None
+        except:
+            return None
+    
+    def get_unknown_thumbnail(self):
+        if self.unknown_thumbnail is None:
+            with open(os.path.join(self.icon_dir, 'unknown_network.png'), 'rb') as file:
+                self.unknown_thumbnail = file.read()
+        return self.unknown_thumbnail
 
     def get_extra_network_settings(self):
         # From the Krita settings
@@ -283,14 +300,15 @@ class SettingsController():
         # }
         manditory_keys = ['lora', 'hypernetwork']
         for key in manditory_keys:
-            if key not in extra_network_settings.keys():
+            if key not in extra_network_settings:
                 extra_network_settings[key] = {}
 
         if merge_with_existing:
-            existing_extra_network_settings = self.get_extra_network_settings()
-            for network_type in extra_network_settings: 
-                for network_name in extra_network_settings:
-                    existing_extra_network_settings[network_type][network_name] = extra_network_settings[network_type][network_name]
+            merged_settings = self.get_extra_network_settings()
+            for network_type in extra_network_settings:
+                for network_name in extra_network_settings[network_type]:
+                    merged_settings[network_type][network_name] = extra_network_settings[network_type][network_name]
+            extra_network_settings = merged_settings
 
         dump = json.dumps(extra_network_settings, indent=4)
         os.makedirs(self.extra_networks_dir, exist_ok=True) # Create the folder if it doesn't already exist
@@ -336,7 +354,17 @@ class SettingsController():
             # No data, use the defaults
             return self.default_extra_network_data
         
-        return existing_settings[network_type.lower()][network_name.lower()]
+        found_data = existing_settings[network_type.lower()][network_name.lower()]
+        # Make sure the found data has all the keys the default does, to preserve consistency
+        # This may seem like overkill, but it will make sure older save files work with newer plugin versions
+        returned_data = {}
+        for key in self.default_extra_network_data:
+            if key in found_data:
+                returned_data[key] = found_data[key]
+            else:
+                returned_data[key] = self.default_extra_network_data[key]
+
+        return returned_data
 
     # The key system should be slightly abstracted, so that widgets don't need to have a perfect map of the settings files.
     # The exception to this is extensions, which should have all of their internal data self contained

@@ -5,7 +5,7 @@ import re
 import os
 from ..sdapi_v1 import SDAPI
 from ..settings_controller import SettingsController
-from . import ExtraNetworksManageDialog
+from . import ExtraNetworksManageDialog, ExtraNetworksEditDialog
 from krita import Krita
 
 
@@ -38,6 +38,9 @@ class ExtraNetworksDialog(QDialog):
         self.hypernetwork_list = QListWidget()
         self.embedding_list = QListWidget()
 
+        self.list_width = int(ExtraNetworksDialog.MAX_WIDTH * 4.5)
+        self.list_height = int(ExtraNetworksDialog.MAX_WIDTH * 2.5)
+
         # self.importer_tab = QWidget()
         self.setLayout(QVBoxLayout())
         self.load_settings()
@@ -57,7 +60,18 @@ class ExtraNetworksDialog(QDialog):
 
         if action == customizeAction:
             # Open customize options for this item
-            raise Exception('Clicked on %s' % item.text())
+            # raise Exception('Clicked on %s' % item.text())
+            network_type = ''
+            if self.tabs.currentWidget() == self.lora_list:
+                network_type = 'lora'
+            elif self.tabs.currentWidget() == self.hypernetwork_list:
+                network_type = 'hypernetwork'
+            else:
+                # Not a valid network type?
+                return
+            network_name = item.text()
+            self.customizer = ExtraNetworksEditDialog(self.settings_controller, self.api, network_type, network_name, show_thumbnail=self.show_icons)
+            self.customizer.show()
 
     def init_ui(self):
         header = QWidget()
@@ -96,12 +110,11 @@ class ExtraNetworksDialog(QDialog):
 
         icon_size = QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT)
 
-        # Filter by Version?
         self.layout().addWidget(self.tabs)
         # Tabs for Lora (and LyCORIS), Hypernetwork, Textual Inversion
         self.lora_list = QListWidget()
-        self.lora_list.setMinimumWidth(int(ExtraNetworksDialog.MAX_WIDTH * 4.5)) # Sets width of the overall popup dialog.
-        self.lora_list.setMinimumHeight(int(ExtraNetworksDialog.MAX_WIDTH * 2.5)) # Sets height of the overall popup dialog.
+        self.lora_list.setMinimumWidth(self.list_width) # Sets width of the overall popup dialog.
+        self.lora_list.setMinimumHeight(self.list_height) # Sets height of the overall popup dialog.
         self.lora_list.setFlow(QListView.Flow.LeftToRight)
         # self.lora_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.lora_list.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -171,13 +184,33 @@ class ExtraNetworksDialog(QDialog):
         self.search_text = self.search_bar.text().lower()
         self.set_widget_values()
 
-    def get_thumbnail(self, path):
-        # Assumes the server isn't going to update icons while Krita is running.
-        if path in self.thumbnails.keys():
-            return self.thumbnails[path]
+    def get_thumbnail(self, network_type, network_name):
+        cached_thumbnail = self.settings_controller.get_cached_thumbnail(network_type, network_name)
+        if cached_thumbnail is not None:
+            return cached_thumbnail
+        # Get thumbnail from server
+        path = ''
+        if network_type == 'embedding':
+            # Embeddings is split into loaded and skipped, and needs to be handled differently
+            network_source = self.embeddings
+            if network_name in self.embeddings['loaded']:
+                path = self.embeddings['loaded'][network_name]['path']
+            elif network_name in self.embeddings['skipped']:
+                path = self.embeddings['skipped'][network_name]['path']
+            
+        else:
+            network_source = None
+            if network_type == 'lora':
+                network_source = self.loras
+            if network_type == 'hypernetwork':
+                network_source = self.hypernetworks
+            path = list(filter(lambda network: network['name'] == network_name, network_source))[0]['path']
         raw_img = self.api.get_thumbnail(path)
-        self.thumbnails[path] = raw_img
+        # Save thumbnail to cache
+        if raw_img is not None:
+            self.settings_controller.cache_thumbnail(network_type, network_name, raw_img)
         return raw_img
+        
     
     def update_prompt_txt(self, prompt_txt=''):
         self.prompt_txt = prompt_txt
@@ -198,11 +231,11 @@ class ExtraNetworksDialog(QDialog):
     def map_embeddings(self, raw_embeddings):
         # Try to make embeddings return similar to the other network types
         # Need to guess the path based on other methods
+        new_embeddings = {'loaded':[], 'skipped': []}
 
-        if raw_embeddings is None or len(raw_embeddings['loaded']) == 0:
+        if raw_embeddings is None:
             # server isn't started, or has no embeddings
-            # self.embeddings = []
-            return []
+            return new_embeddings
 
         # TODO: Try to find the directory in the Settings, like a sane person!
         embeddings_dir = ''
@@ -212,18 +245,16 @@ class ExtraNetworksDialog(QDialog):
             common_root = os.path.split(models_root)[0] # same directory as web-ui.bat
             embeddings_dir = os.path.join(common_root, 'embeddings') # This is where it is on my local system anyway
 
-        new_embeddings = []
-        for embedding_name in raw_embeddings['loaded'].keys():
-            path = ''
-            if len(embeddings_dir) > 0:
+        for embedding_status in ['loaded', 'skipped']:
+            for embedding_name in raw_embeddings[embedding_status].keys():
                 path = os.path.join(embeddings_dir, '%s.preview.png' % embedding_name)
-            data = {
-                'name': embedding_name,
-                'alias': embedding_name,
-                'path': path,
-            }
-            new_embeddings.append(data)
-        # self.embeddings = new_embeddings
+                # raise Exception('Path: %s' % path)
+                data = {
+                    'name': embedding_name,
+                    'alias': embedding_name,
+                    'path': path,
+                }
+                new_embeddings[embedding_status].append(data)
         return new_embeddings
 
     def load_settings(self):
@@ -236,7 +267,7 @@ class ExtraNetworksDialog(QDialog):
         self.loras = self.api.get_loras()
         self.hypernetworks = self.api.get_hypernetworks()
         # self.embeddings = self.api.get_embeddings()
-        self.embeddings = self.map_embeddings(self.api.get_embeddings()) # NOT A LIST!
+        self.embeddings = self.map_embeddings(self.api.get_embeddings()) # NOT A LIST! A dict with loaded/skipped keys
 
         # Filter by search
         if len(self.search_text) > 0:
@@ -279,56 +310,62 @@ class ExtraNetworksDialog(QDialog):
 
         self.toggle_images_checkbox.setChecked(self.show_icons)
 
+        unknown_thumbnail = self.raw_img_to_qicon(self.settings_controller.get_unknown_thumbnail())
+
         for lora in self.loras:
-            raw_img = self.get_thumbnail(lora['path'])
             list_item = QListWidgetItem()
             label = lora[self.label_key]
-            if self.show_icons and raw_img:
-                icon = self.raw_img_to_qicon(raw_img)
-                list_item = QListWidgetItem(icon, label, self.lora_list)
-                list_item.setToolTip(label)
-            else:
-                list_item = QListWidgetItem(label, self.lora_list)
-                list_item.setToolTip(label)
+            icon = unknown_thumbnail
+            if self.show_icons:
+                raw_img = self.get_thumbnail('lora', lora['name'])
+                if raw_img:
+                    icon = self.raw_img_to_qicon(raw_img)
+            list_item = QListWidgetItem(icon, label, self.lora_list)
+            list_item.setToolTip(label)
             
             # Regex to see if this was already in the prompt
             re_found = self.find_in_text('lora', lora)
             list_item.setSelected(re_found is not None)
-            list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
+            # list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
     
         for hypernetwork in self.hypernetworks:
             list_item = QListWidgetItem()
             label = hypernetwork[self.label_key]
+            icon = unknown_thumbnail
             if self.show_icons:
                 # Don't even try to get the thumbnails from the server if icons are turned off.
-                raw_img = self.get_thumbnail(hypernetwork['path'])
+                raw_img = self.get_thumbnail('hypernetwork', hypernetwork['name'])
                 if raw_img:
                     icon = self.raw_img_to_qicon(raw_img)
-                    list_item = QListWidgetItem(icon, label, self.hypernetwork_list)
-                else:
-                    list_item = QListWidgetItem(label, self.hypernetwork_list)
-            else:
-                list_item = QListWidgetItem(label, self.hypernetwork_list)
+            list_item = QListWidgetItem(icon, label, self.hypernetwork_list)
+            list_item.setToolTip(label)
 
             # Regex to see if this was already in the prompt
             re_found = self.find_in_text('hypernetwork', hypernetwork)
             list_item.setSelected(re_found is not None)
-            list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
+            # list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
 
-        for embedding in self.embeddings:
-            raw_img = self.get_thumbnail(embedding['path'])
-            list_item = QListWidgetItem()
-            label = embedding[self.label_key]
-            if self.show_icons and raw_img:
-                icon = self.raw_img_to_qicon(raw_img)
+        for embedding_status in ['loaded', 'skipped']:
+            # Add a separator
+            sep = QListWidgetItem("--- %s ---" % embedding_status, self.embedding_list)
+            sep.setFlags(Qt.NoItemFlags)
+            sep.setSizeHint(QSize(self.list_width, 30))
+
+            for embedding in self.embeddings[embedding_status]:
+                list_item = QListWidgetItem()
+                label = embedding[self.label_key]
+                icon = unknown_thumbnail
+                if self.show_icons:
+                    raw_img = self.get_thumbnail('embedding', embedding['name'])
+                    if raw_img:
+                        icon = self.raw_img_to_qicon(raw_img)
                 list_item = QListWidgetItem(icon, label, self.embedding_list)
-            else:
-                list_item = QListWidgetItem(label, self.embedding_list)
-
-            # Regex to see if this was already in the prompt
-            re_found = self.find_in_text('embedding', embedding)
-            list_item.setSelected(re_found is not None)
-            list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
+                list_item.setToolTip(label)
+                
+                # Regex to see if this was already in the prompt
+                re_found = self.find_in_text('embedding', embedding)
+                list_item.setSelected(re_found is not None)
+                # list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
 
 
     def create_default_value(self, network_type, data):

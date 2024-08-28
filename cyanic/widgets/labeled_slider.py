@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QSlider, QLabel
 
 class LabeledSlider (QWidget):
     # A slider with a label.
-    def __init__(self, min=0, max=100, value=0.5, as_percent=True, step_size=1):
+    def __init__(self, min=0, max=100, value=0.5, as_percent=True, step_size=1.0):
         # as_percent will add a '%' to the label, and return values as floats (so 70% becomes 0.7)
         # step_size is used to create rigid step sizes. So min=1, max=20, step_size=0.5 would give a slider that goes 1 to 20, stopping at 1.5, 2.0, 2.5, etc
         super().__init__()
