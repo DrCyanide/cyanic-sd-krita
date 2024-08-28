@@ -240,12 +240,13 @@ class PromptWidget(CyanicWidget):
     # -----------------------
 
     def show_network_dialog(self):
-        self.extra_network_dialog.update_prompt_txt(self.prompt_text_edit.toPlainText())
+        self.extra_network_dialog.update_prompt_txt(self.prompt_text_edit.toPlainText(), self.negative_prompt_text_edit.toPlainText())
         self.extra_network_dialog.show()
 
-    def on_network_dialog_close(self, new_prompt=''):
+    def on_network_dialog_close(self, new_prompt='', new_negative_prompt=''):
         if len(new_prompt) > 0:
             self.prompt_text_edit.setPlainText(new_prompt)
+            self.negative_prompt_text_edit.setPlainText(new_negative_prompt)
 
     def load_prev_prompt(self):
         if self.prompt_history_index > 0:

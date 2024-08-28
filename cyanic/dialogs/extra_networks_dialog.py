@@ -14,13 +14,14 @@ class ExtraNetworksDialog(QDialog):
     MAX_WIDTH = 150
     # MAX_HEIGHT = 100
     # MAX_WIDTH = 100
-    def __init__(self, settings_controller:SettingsController, api:SDAPI, on_close=None, prompt_txt=''):
+    def __init__(self, settings_controller:SettingsController, api:SDAPI, on_close=None, prompt_txt='', negative_txt=''):
         super().__init__()
         self.setWindowTitle('Extra Networks')
         self.settings_controller = settings_controller
         self.api = api
         self.on_close = on_close
         self.prompt_txt = prompt_txt
+        self.negative_txt = negative_txt
 
         self.label_key = 'name' # 'alias' isn't part of hypernetwork
         self.show_icons = False
@@ -212,8 +213,9 @@ class ExtraNetworksDialog(QDialog):
         return raw_img
         
     
-    def update_prompt_txt(self, prompt_txt=''):
+    def update_prompt_txt(self, prompt_txt='', negative_txt=''):
         self.prompt_txt = prompt_txt
+        self.negative_txt = negative_txt
 
     def update_show_icons(self):
         self.show_icons = self.toggle_images_checkbox.isChecked()
@@ -370,11 +372,26 @@ class ExtraNetworksDialog(QDialog):
 
     def create_default_value(self, network_type, data):
         # TODO: add weight and activation text to default value
-        label = data[self.label_key]
+        network_name = data[self.label_key]
         if network_type is not 'embedding':
-            return '<%s:%s:1.0>' % (network_type, label)
+            text = '<%s:%s' % (network_type, network_name)
+            custom_settings = self.settings_controller.get_extra_network_data(network_type, network_name)
+            if custom_settings['preferred weight'] == 0.0:
+                text = '%s:1.0>' % text
+            else:
+                text = '%s:%s>' % (text, custom_settings['preferred weight'])
+
+            if len(custom_settings['activation text']) > 0:
+                text = '%s %s' % (text, custom_settings['activation text'])
+            
+            negative_text = ''
+            if len(custom_settings['negative text']) > 0:
+                negative_text = custom_settings['negative text']
+
+            return text, negative_text
+            # return '<%s:%s:1.0>' % (network_type, network_name)
         else:
-            return label
+            return network_name, ''
         # self.network_default_values['%s:%s' % (network_type, label)] = '<%s:%s:1.0>' % (network_type, label)
 
     def find_in_text(self, network_type, data):
@@ -407,23 +424,32 @@ class ExtraNetworksDialog(QDialog):
             re_found = self.find_in_text('lora', lora_data)
             if re_found is None:
                 # The lora isn't in the string, add it
-                self.prompt_txt = "%s %s" % (self.prompt_txt, self.create_default_value('lora', lora_data))
+                prompt, negative_prompt = self.create_default_value('lora', lora_data)
+                self.prompt_txt = "%s %s" % (self.prompt_txt, prompt)
+                if len(negative_prompt) > 0:
+                    self.negative_txt = "%s %s" % (self.negative_txt, negative_prompt)
 
         for hypernetwork_item in self.hypernetwork_list.selectedItems():
             # Get the data
             hypernetwork_data = list(filter(lambda x: x[self.label_key] == hypernetwork_item.text(), self.hypernetworks))[0]
             re_found = self.find_in_text('hypernetwork', hypernetwork_data)
             if re_found is None:
-                # The lora isn't in the string, add it
-                self.prompt_txt = "%s %s" % (self.prompt_txt, self.create_default_value('hypernetwork', hypernetwork_data))
+                # The hypernetwork isn't in the string, add it
+                prompt, negative_prompt = self.create_default_value('hypernetwork', hypernetwork_data)
+                self.prompt_txt = "%s %s" % (self.prompt_txt, prompt)
+                if len(negative_prompt) > 0:
+                    self.negative_txt = "%s %s" % (self.negative_txt, negative_prompt)
 
         for embedding_item in self.embedding_list.selectedItems():
             # Get the data
             embedding_data = list(filter(lambda x: x[self.label_key] == embedding_item.text(), self.embeddings))[0]
             re_found = self.find_in_text('embedding', embedding_data)
             if re_found is None:
-                # The lora isn't in the string, add it
-                self.prompt_txt = "%s %s" % (self.prompt_txt, self.create_default_value('embedding', embedding_data))
+                # The embedding isn't in the string, add it
+                prompt, negative_prompt = self.create_default_value('embedding', embedding_data)
+                self.prompt_txt = "%s %s" % (self.prompt_txt, prompt)
+                if len(negative_prompt) > 0:
+                    self.negative_txt = "%s %s" % (self.negative_txt, negative_prompt)
 
     def closeEvent(self, event):
         return # Close should act as a cancel, not a confirm.
@@ -433,7 +459,7 @@ class ExtraNetworksDialog(QDialog):
 
     def write_changes_and_close(self):
         self.write_new_prompt_txt()
-        self.on_close(self.prompt_txt)
+        self.on_close(self.prompt_txt, self.negative_txt)
         self.close()
 
     def show(self):
