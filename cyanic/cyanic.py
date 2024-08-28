@@ -16,6 +16,16 @@ class CyanicDocker(DockWidget):
         self.settings_controller = SettingsController()
         host = self.settings_controller.get('host') if self.settings_controller.has_key('host') else DEFAULT_HOST
         self.api = SDAPI(host, self.on_api_change)
+
+        # Get notified when Krita closes, so all the popup dialogs can close too
+        # Krita.instance().notifier().windowCreated.connect(self.on_krita_close) # Activates on the Create Document dialog coming up
+        Krita.instance().notifier().imageCreated.connect(self.on_document_change)
+        Krita.instance().notifier().imageSaved.connect(self.on_document_change)
+        Krita.instance().notifier().imageClosed.connect(self.on_document_change)
+
+        Krita.instance().notifier().applicationClosing.connect(self.on_krita_close)
+
+
         self.last_page = ''
 
         self.setWindowTitle("Cyanic SD")
@@ -158,14 +168,34 @@ class CyanicDocker(DockWidget):
 
     # This needs to be present in any class that implements DockWidget, even if it's not used
     def canvasChanged(self, canvas):
-        # Can be used to detect active document change, which can update settings
-        doc = Krita.instance().activeDocument()
-        if doc is None or doc.width() <= 0:
-            return # The document doesn't exist yet.
+        self.on_document_change()
+        pass
+        # # Can be used to detect active document change, which can update settings
+        # doc = Krita.instance().activeDocument()
+        # if doc is None or doc.width() <= 0:
+        #     return # The document doesn't exist yet.
         
         # canvasChanged is triggered twice when creating files (creates as a pop-out window, then docks it), and once when switching to different files
         # raise Exception('Prompt: %s' % self.txt2img.prompt_widget.prompt_text_edit.toPlainText())
 
+        # Save the settings to the existing Krita doc
+        # for page in self.pages:
+        #     page['page'].save_settings()
+
+        # # Load the new doc's settings
+        # self.settings_controller.update_active_doc()
+
+        # self.settings_controller.load_kra_settings()
+        # for page in self.pages:
+        #     page['page'].load_settings()
+        # self.settings_dialog.load_settings()
+
+
+    def on_document_change(self):
+        doc = Krita.instance().activeDocument()
+        if doc is None or doc.width() <= 0:
+            return # The document doesn't exist yet.
+        
         # Save the settings to the existing Krita doc
         for page in self.pages:
             page['page'].save_settings()
@@ -177,6 +207,16 @@ class CyanicDocker(DockWidget):
         for page in self.pages:
             page['page'].load_settings()
         self.settings_dialog.load_settings()
+
+    def on_krita_close(self):
+        # raise Exception('Cyanic SD - Closing Krita')
+        # self.settings_dialog.close()
+        pass # Wasn't raising the exception. Would be nice to use this to close dialogs
+
+    def closeEvent(self, event):
+        # raise Exception('Cyanic SD - Closing Krita!')
+        # self.settings_dialog.close()
+        pass
 
 # This is what tells Krita to add the docker in the first place.
 Krita.instance().addDockWidgetFactory(

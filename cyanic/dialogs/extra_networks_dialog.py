@@ -73,6 +73,7 @@ class ExtraNetworksDialog(QDialog):
             network_name = item.text()
             self.customizer = ExtraNetworksEditDialog(self.settings_controller, self.api, network_type, network_name, show_thumbnail=self.show_icons)
             self.customizer.show()
+            menu.close()
 
     def init_ui(self):
         header = QWidget()
@@ -100,6 +101,7 @@ class ExtraNetworksDialog(QDialog):
         header.layout().addWidget(self.search_bar)
 
         # Manage
+        self.customizer = None # Done for closing children purposes
         self.manage_dialog = ExtraNetworksManageDialog(self.settings_controller, self.api, self.manage_extra_networks_dialog_closed)
         self.manage_button = QPushButton('Manage')
         self.manage_button.setIcon(Krita.instance().icon('properties'))
@@ -452,6 +454,7 @@ class ExtraNetworksDialog(QDialog):
                     self.negative_txt = "%s %s" % (self.negative_txt, negative_prompt)
 
     def closeEvent(self, event):
+        self.close_children()
         return # Close should act as a cancel, not a confirm.
         # if self.on_close is not None:
             # self.write_new_prompt_txt()
@@ -465,3 +468,14 @@ class ExtraNetworksDialog(QDialog):
     def show(self):
         super().show()
         self.set_widget_values()
+
+    def close(self):
+        self.close_children()
+        super().close()
+
+    def close_children(self):
+        # Close the child dialogs
+        if self.customizer is not None:
+            self.customizer.close()
+        if self.manage_dialog is not None:
+            self.manage_dialog.close()
