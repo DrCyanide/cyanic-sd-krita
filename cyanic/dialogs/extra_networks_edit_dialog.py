@@ -10,6 +10,8 @@ from ..widgets import LabeledSlider
 
 class ExtraNetworksEditDialog(QDialog):
     DESCRIPTION_LINES = 4
+    MAX_HEIGHT = 150
+    MAX_WIDTH = 150
     def __init__(self, settings_controller:SettingsController, api:SDAPI, extra_network_type:str, extra_network_name:str, show_thumbnail=False):
         super().__init__()
         self.setWindowTitle('Custom Settings - %s' % extra_network_name)
@@ -20,6 +22,7 @@ class ExtraNetworksEditDialog(QDialog):
         self.show_thumbnail = show_thumbnail
         self.extra_network_settings = {} 
         self.allowed_versions = SettingsController.SD_MODEL_VERSIONS[1:]
+        self.unknown_icon = self.raw_img_to_qpixmap(self.settings_controller.get_unknown_thumbnail())
         self.setLayout(QVBoxLayout())
 
         self.init_ui()
@@ -27,6 +30,12 @@ class ExtraNetworksEditDialog(QDialog):
 
     def init_ui(self):
         # Icon
+        self.icon = self.unknown_icon
+        self.icon_label = QLabel()
+        self.icon_label.setPixmap(self.icon)
+        self.icon_label.setMaximumHeight(ExtraNetworksEditDialog.MAX_HEIGHT)
+        self.icon_label.setMaximumWidth(ExtraNetworksEditDialog.MAX_WIDTH)
+        self.layout().addWidget(self.icon_label) 
 
         # Name
         label = QLabel(self.extra_network_name)
@@ -53,18 +62,21 @@ class ExtraNetworksEditDialog(QDialog):
 
         # Prefered Weight ("0 to disable")
         self.weight_slider = LabeledSlider(min=0, max=2, value=0.0, as_percent=False, step_size=0.01)
+        self.weight_slider.setToolTip('What weight the %s should be loaded with (the default 0 will be converted to 1.0)' % self.extra_network_type)
         # self.layout().addWidget(self.weight_slider)
         body.layout().addRow('Weight', self.weight_slider)
 
         # Activation Text
         self.activation_text_edit = QTextEdit()
         self.activation_text_edit.setFixedHeight(self.activation_text_edit.fontMetrics().lineSpacing() * ExtraNetworksEditDialog.DESCRIPTION_LINES)
+        self.activation_text_edit.setToolTip('Text that will be added to the prompt when this %s is used' % self.extra_network_type)
         # self.layout().addWidget(self.activation_text_edit)
         body.layout().addRow('Prompt', self.activation_text_edit)
 
         # Negative Prompt
         self.negative_text_edit = QTextEdit()
         self.negative_text_edit.setFixedHeight(self.negative_text_edit.fontMetrics().lineSpacing() * ExtraNetworksEditDialog.DESCRIPTION_LINES)
+        self.activation_text_edit.setToolTip('Text that will be added to the negative prompt when this %s is used' % self.extra_network_type)
         # self.layout().addWidget(self.negative_text_edit)
         body.layout().addRow('Negative Prompt', self.negative_text_edit)
 
@@ -81,8 +93,36 @@ class ExtraNetworksEditDialog(QDialog):
         self.save_btn.clicked.connect(self.save_settings)
         self.layout().addWidget(self.save_btn)
 
+    def raw_img_to_qpixmap(self, raw_img):
+        ba = QByteArray(raw_img)
+        qimage = QImage()
+        qimage.loadFromData(ba)
+        pixmap = QPixmap.fromImage(qimage)
+        # pixmap.scaledToHeight(ExtraNetworksEditDialog.MAX_HEIGHT)
+        # pixmap.scaledToWidth(ExtraNetworksEditDialog.MAX_WIDTH)
+        pixmap = pixmap.scaled(ExtraNetworksEditDialog.MAX_WIDTH, ExtraNetworksEditDialog.MAX_HEIGHT, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        return pixmap
+
+
+    def set_thumbnail(self):
+        if not self.show_thumbnail:
+            # If you're not showing thumbnails in the other UI, don't show it here.
+            self.icon = self.unknown_icon
+            return
+
+        cached_thumbnail = self.settings_controller.get_cached_thumbnail(self.extra_network_type, self.extra_network_name)
+        if cached_thumbnail is not None:
+            self.icon = self.raw_img_to_qpixmap(cached_thumbnail)
+        else:
+            # If the thumbnail existed on the server, it would've been cached. No need to search for it.
+            self.icon = self.unknown_icon
+        self.icon_label.setPixmap(self.icon)
+       
 
     def set_widget_values(self):
+        # Set icon
+        self.set_thumbnail()
+
         # Load settings
         self.extra_network_settings = self.settings_controller.get_extra_network_data(self.extra_network_type, self.extra_network_name)
         
