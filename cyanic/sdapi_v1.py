@@ -126,6 +126,10 @@ class SDAPI():
         if host is None:
             host = self.host
 
+        # Python seems to struggle with localhost, switch to 127.0.0.1
+        if 'localhost' in host:
+            host.replace('localhost', '127.0.0.1')
+
         try:
             last_url = "{}/queue/status".format(host)
         

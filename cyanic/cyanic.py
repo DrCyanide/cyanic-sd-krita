@@ -19,6 +19,7 @@ class CyanicDocker(DockWidget):
 
         # Get notified when Krita closes, so all the popup dialogs can close too
         # Krita.instance().notifier().windowCreated.connect(self.on_krita_close) # Activates on the Create Document dialog coming up
+        # https://krita-artists.org/t/connect-to-notifier-windowcreated-from-extension-fails/9981/3
         Krita.instance().notifier().imageCreated.connect(self.on_document_change)
         Krita.instance().notifier().imageSaved.connect(self.on_document_change)
         Krita.instance().notifier().imageClosed.connect(self.on_document_change)

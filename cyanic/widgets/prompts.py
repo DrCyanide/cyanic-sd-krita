@@ -96,23 +96,6 @@ class PromptWidget(CyanicWidget):
         
         self.layout().addWidget(self.negative_prompt_text_edit)
 
-        # Styles
-        self.style_panel = QWidget()
-        self.style_panel.setLayout(QVBoxLayout())
-        self.style_panel.layout().setContentsMargins(0,0,0,0)
-        
-        self.style_name_list = QListWidget()
-        # self.style_name_list.setSelectionMode(QAbstractItemView.MultiSelection)
-        self.style_panel.layout().addWidget(self.style_name_list)
-
-        self.style_append_to_prompt_btn = QPushButton('Add style text to prompt')
-        self.style_append_to_prompt_btn.clicked.connect(self.styles_to_prompt)
-        self.style_append_to_prompt_btn.setToolTip('Optional. Will append the prompt/negative prompt to the existing prompt.')
-        self.style_panel.layout().addWidget(self.style_append_to_prompt_btn)
-
-        self.style_collapse = CollapsibleWidget('Styles', self.style_panel)
-        self.layout().addWidget(self.style_collapse)
-
         # Extra Networks
         self.extra_network_panel = QWidget()
         self.extra_network_panel.setLayout(QVBoxLayout())
@@ -124,22 +107,25 @@ class PromptWidget(CyanicWidget):
         self.show_network_dialog_btn.setToolTip('Access Loras, Hypernetworks, Textual Inversions, etc.')
         self.show_network_dialog_btn.clicked.connect(self.show_network_dialog)
         self.layout().addWidget(self.show_network_dialog_btn)
-        # TODO: Add a label that explains autocomplete functionality (where typing in '<' in the prompt triggers a suggestion)
+        # TODO: Add autocomplete functionality (where typing in '<' in the prompt triggers a suggestion)
 
-        # Select Lora/Hypernetwork/Embedding
-        # self.extra_network_box = QComboBox()
-        # self.extra_network_box.wheelEvent = lambda event : None # Disable scrollwheel interactions
-        # self.extra_network_box.activated.connect(lambda: self.change_extra_network_list(self.extra_network_box.currentText()))
-        # self.extra_network_box.addItems(list(self.extra_network_types.keys()))
-        # self.extra_network_panel.layout().addWidget(self.extra_network_box)
 
-        # List of items
-        # self.extra_network_item_list = QListWidget()
-        # self.extra_network_item_list.itemPressed.connect(self.add_extra_network_to_prompt)
-        # self.extra_network_panel.layout().addWidget(self.extra_network_item_list)
+        # Styles
+        self.style_panel = QWidget()
+        self.style_panel.setLayout(QVBoxLayout())
+        self.style_panel.layout().setContentsMargins(0,0,0,0)
+        
+        self.style_name_list = QListWidget()
+        self.style_name_list.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.style_panel.layout().addWidget(self.style_name_list)
 
-        # self.extra_network_collapse = CollapsibleWidget('Extra Networks', self.extra_network_panel)
-        # self.layout().addWidget(self.extra_network_collapse)
+        self.style_append_to_prompt_btn = QPushButton('Add style text to prompt')
+        self.style_append_to_prompt_btn.clicked.connect(self.styles_to_prompt)
+        self.style_append_to_prompt_btn.setToolTip('Optional. Will append the prompt/negative prompt to the existing prompt.')
+        self.style_panel.layout().addWidget(self.style_append_to_prompt_btn)
+
+        self.style_collapse = CollapsibleWidget('Styles', self.style_panel)
+        self.layout().addWidget(self.style_collapse)
 
         self.handle_hidden()
 
@@ -298,8 +284,9 @@ class PromptWidget(CyanicWidget):
             style_names = list(map(lambda x: x['name'], self.server_const['styles']))
             for name in style_names:
                 item = QListWidgetItem(name, self.style_name_list)
-                item.setCheckState(Qt.Unchecked)
-                item.setBackground( QColor('#222222') )
+                item.setSelected(False)
+                # item.setCheckState(Qt.Unchecked)
+                # item.setBackground( QColor('#222222') )
         
         # Load loras/hypernetworks/embeddings
         # self.change_extra_network_list(self.extra_network_box.currentText())
@@ -314,7 +301,8 @@ class PromptWidget(CyanicWidget):
     def get_selected_style_names(self):
         items = []
         for index in range(self.style_name_list.count()):
-            if self.style_name_list.item(index).checkState() == Qt.Checked:
+            # if self.style_name_list.item(index).checkState() == Qt.Checked:
+            if self.style_name_list.item(index).isSelected():
                 items.append(self.style_name_list.item(index).text())
         return items
 
@@ -337,7 +325,8 @@ class PromptWidget(CyanicWidget):
 
         # Clear the selected prompts
         for index in range(self.style_name_list.count()):
-            self.style_name_list.item(index).setCheckState(Qt.Unchecked)
+            # self.style_name_list.item(index).setCheckState(Qt.Unchecked)
+            self.style_name_list.item(index).setSelected(False)
 
     def add_extra_network_to_prompt(self, item):
         extra_network_name = item.text()

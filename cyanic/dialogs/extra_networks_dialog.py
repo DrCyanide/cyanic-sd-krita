@@ -132,6 +132,7 @@ class ExtraNetworksDialog(QDialog):
         self.lora_list.customContextMenuRequested.connect(lambda x: self.open_menu(x, self.lora_list))
         self.tabs.addTab(self.lora_list, 'Loras')
 
+        # Hypernetworks
         self.hypernetwork_list = QListWidget()
         self.hypernetwork_list.setFlow(QListView.Flow.LeftToRight)
         self.hypernetwork_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -145,6 +146,7 @@ class ExtraNetworksDialog(QDialog):
         self.lora_list.customContextMenuRequested.connect(lambda x: self.open_menu(x, self.lora_list))
         self.tabs.addTab(self.hypernetwork_list, 'Hypernetworks')
 
+        # Embeddings
         self.embedding_list = QListWidget()
         self.embedding_list.setFlow(QListView.Flow.LeftToRight)
         self.embedding_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -271,9 +273,9 @@ class ExtraNetworksDialog(QDialog):
         self.lora_list.clear()
         self.hypernetwork_list.clear()
         self.embedding_list.clear()
+
         self.loras = self.api.get_loras()
         self.hypernetworks = self.api.get_hypernetworks()
-        # self.embeddings = self.api.get_embeddings()
         self.embeddings = self.map_embeddings(self.api.get_embeddings()) # NOT A LIST! A dict with loaded/skipped keys
 
         # Filter by search
