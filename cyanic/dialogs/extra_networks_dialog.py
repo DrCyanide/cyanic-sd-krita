@@ -22,6 +22,7 @@ class ExtraNetworksDialog(QDialog):
         self.on_close = on_close
         self.prompt_txt = prompt_txt
         self.negative_txt = negative_txt
+        self.is_shown = False
 
         self.label_key = 'name' # 'alias' isn't part of hypernetwork
         self.show_icons = False
@@ -195,11 +196,13 @@ class ExtraNetworksDialog(QDialog):
         path = ''
         if network_type == 'embedding':
             # Embeddings is split into loaded and skipped, and needs to be handled differently
-            network_source = self.embeddings
-            if network_name in self.embeddings['loaded']:
-                path = self.embeddings['loaded'][network_name]['path']
-            elif network_name in self.embeddings['skipped']:
-                path = self.embeddings['skipped'][network_name]['path']
+            matching_loaded_embeddings = list(filter(lambda embedding: embedding['name'] == network_name, self.embeddings['loaded']))
+            matching_skipped_embeddings = list(filter(lambda embedding: embedding['name'] == network_name, self.embeddings['skipped']))
+
+            if len(matching_loaded_embeddings) > 0:
+                path = matching_loaded_embeddings[0]['path']
+            elif len(matching_skipped_embeddings) > 0:
+                path = matching_skipped_embeddings[0]['path']
             
         else:
             network_source = None
@@ -320,7 +323,7 @@ class ExtraNetworksDialog(QDialog):
             list_item = QListWidgetItem()
             label = lora[self.label_key]
             icon = unknown_thumbnail
-            if self.show_icons:
+            if self.show_icons and self.is_shown:
                 raw_img = self.get_thumbnail('lora', lora['name'])
                 if raw_img:
                     icon = self.raw_img_to_qicon(raw_img)
@@ -336,7 +339,7 @@ class ExtraNetworksDialog(QDialog):
             list_item = QListWidgetItem()
             label = hypernetwork[self.label_key]
             icon = unknown_thumbnail
-            if self.show_icons:
+            if self.show_icons and self.is_shown:
                 # Don't even try to get the thumbnails from the server if icons are turned off.
                 raw_img = self.get_thumbnail('hypernetwork', hypernetwork['name'])
                 if raw_img:
@@ -359,7 +362,7 @@ class ExtraNetworksDialog(QDialog):
                 list_item = QListWidgetItem()
                 label = embedding[self.label_key]
                 icon = unknown_thumbnail
-                if self.show_icons:
+                if self.show_icons and self.is_shown:
                     raw_img = self.get_thumbnail('embedding', embedding['name'])
                     if raw_img:
                         icon = self.raw_img_to_qicon(raw_img)
@@ -467,10 +470,12 @@ class ExtraNetworksDialog(QDialog):
 
     def show(self):
         super().show()
+        self.is_shown = True
         self.set_widget_values()
 
     def close(self):
         self.close_children()
+        self.is_shown = False
         super().close()
 
     def close_children(self):
