@@ -34,7 +34,7 @@ class SettingsController():
         self.unknown_thumbnail = None
         self.default_extra_network_data = {
             'description': '',
-            'sd version': 'Unknown',
+            'sd version': SettingsController.SD_MODEL_VERSIONS[-1], # 'Unknown' should always be the last value
             'activation text': '',
             'negative text': '',
             'preferred weight': 0, # A1111 default is 0, which gets translated to a weight of 1.0

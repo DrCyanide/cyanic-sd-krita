@@ -27,14 +27,14 @@ class ExtraNetworksDialog(QDialog):
         self.label_key = 'name' # 'alias' isn't part of hypernetwork
         self.show_icons = False
 
-        self.thumbnails = {}
+        self.unknown_thumbnails = {'lora': {}, 'hypernetwork': {}, 'embedding': {}}  # Used to 'cache' which thumbnails don't exist on server
 
         self.model_filter = 'all'
         self.search_text = ''
 
         self.loras = []
         self.hypernetworks = []
-        self.embeddings = []
+        self.embeddings = {'loaded':[], 'skipped': []}
         self.tabs = QTabWidget()
         self.lora_list = QListWidget()
         self.hypernetwork_list = QListWidget()
@@ -56,25 +56,27 @@ class ExtraNetworksDialog(QDialog):
         if item is None:
             # The user didn't click on an item
             return
-
-        customizeAction = menu.addAction("Customize")
-        action = menu.exec_(network_list.mapToGlobal(position))
-
-        if action == customizeAction:
-            # Open customize options for this item
-            # raise Exception('Clicked on %s' % item.text())
+        
+        network_name = item.text()
+        network_type = ''
+        if self.tabs.currentWidget() == self.lora_list:
+            network_type = 'lora'
+        elif self.tabs.currentWidget() == self.hypernetwork_list:
+            network_type = 'hypernetwork'
+        else:
+            # Not a valid network type?
             network_type = ''
-            if self.tabs.currentWidget() == self.lora_list:
-                network_type = 'lora'
-            elif self.tabs.currentWidget() == self.hypernetwork_list:
-                network_type = 'hypernetwork'
-            else:
-                # Not a valid network type?
-                return
-            network_name = item.text()
+
+        text = 'Customize' # Don't use menu.addAction('Customize'). For some reason it makes the menu stay open after you click Customize
+        customizeAction = menu.addAction(text)
+        customizeAction.triggered.connect(lambda x: self.open_customizer(network_type, network_name))
+        menu.exec_(network_list.mapToGlobal(position)) # This .exec_ call puts the right click menu on the item being clicked
+    
+    def open_customizer(self, network_type, network_name):
+            # Open customize options for this item
             self.customizer = ExtraNetworksEditDialog(self.settings_controller, self.api, network_type, network_name, show_thumbnail=self.show_icons)
             self.customizer.show()
-            menu.close()
+            
 
     def init_ui(self):
         header = QWidget()
@@ -129,7 +131,7 @@ class ExtraNetworksDialog(QDialog):
         self.lora_list.setIconSize(icon_size) # Adjusts the height/width of preview icons, but hid the label for the items
         # Add right-click menu
         self.lora_list.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.lora_list.customContextMenuRequested.connect(lambda x: self.open_menu(x, self.lora_list))
+        self.lora_list.customContextMenuRequested.connect(lambda position: self.open_menu(position, self.lora_list))
         self.tabs.addTab(self.lora_list, 'Loras')
 
         # Hypernetworks
@@ -143,7 +145,7 @@ class ExtraNetworksDialog(QDialog):
         self.hypernetwork_list.setIconSize(icon_size)
         # Add right-click menu
         self.lora_list.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.lora_list.customContextMenuRequested.connect(lambda x: self.open_menu(x, self.lora_list))
+        self.lora_list.customContextMenuRequested.connect(lambda position: self.open_menu(position, self.hypernetwork_list))
         self.tabs.addTab(self.hypernetwork_list, 'Hypernetworks')
 
         # Embeddings
@@ -194,6 +196,11 @@ class ExtraNetworksDialog(QDialog):
         cached_thumbnail = self.settings_controller.get_cached_thumbnail(network_type, network_name)
         if cached_thumbnail is not None:
             return cached_thumbnail
+        
+        if network_name in self.unknown_thumbnails[network_type] and self.unknown_thumbnails[network_type][network_name]:
+            # Already checked this, it doesn't exist on server
+            return None
+        
         # Get thumbnail from server
         path = ''
         if network_type == 'embedding':
@@ -217,6 +224,8 @@ class ExtraNetworksDialog(QDialog):
         # Save thumbnail to cache
         if raw_img is not None:
             self.settings_controller.cache_thumbnail(network_type, network_name, raw_img)
+        else:
+            self.unknown_thumbnails[network_type][network_name] = True
         return raw_img
         
     
@@ -240,6 +249,14 @@ class ExtraNetworksDialog(QDialog):
     def map_embeddings(self, raw_embeddings):
         # Try to make embeddings return similar to the other network types
         # Need to guess the path based on other methods
+        # {
+        #   'loaded': [
+        #       {'name': 'myEmbedding', 'alias': 'myEmbedding', 'path': 'guess/at/thumbnail.preview.png'}
+        #   ],
+        #   'skipped': [
+        #       {'name': 'myEmbedding2', 'alias': 'myEmbedding2', 'path': 'guess/at/thumbnail.preview.png'}
+        #   ],
+        # }
         new_embeddings = {'loaded':[], 'skipped': []}
 
         if raw_embeddings is None:
@@ -274,54 +291,49 @@ class ExtraNetworksDialog(QDialog):
         self.hypernetwork_list.clear()
         self.embedding_list.clear()
 
-        self.loras = self.api.get_loras()
-        self.hypernetworks = self.api.get_hypernetworks()
-        self.embeddings = self.map_embeddings(self.api.get_embeddings()) # NOT A LIST! A dict with loaded/skipped keys
+        visible_loras = self.loras
+        visible_hypernetworks = self.hypernetworks
+        visible_embeddings = self.embeddings
 
         # Filter by search
         if len(self.search_text) > 0:
             # TODO: Offer option to search by notes and description
-            self.loras = list(filter(lambda lora: self.search_text in lora['name'].lower() or self.search_text in lora['alias'].lower(), self.loras))
+            visible_loras = list(filter(lambda lora: self.search_text in lora['name'].lower() or self.search_text in lora['alias'].lower(), visible_loras))
 
-            self.hypernetworks = list(filter(lambda hypernetwork: self.search_text in hypernetwork['name'].lower(), self.hypernetworks))
+            visible_hypernetworks = list(filter(lambda hypernetwork: self.search_text in hypernetwork['name'].lower(), visible_hypernetworks))
 
             # Need to pop the embeddings that don't match.
-            for loaded in self.embeddings['loaded'].keys():
-                if self.search_text in loaded.lower():
-                    self.embeddings['loaded'].pop(loaded)
-            for skipped in self.embeddings['skipped'].keys():
-                if self.search_text in skipped.lower():
-                    self.embeddings['skipped'].pop(skipped)
+            visible_embeddings['loaded'] = list(filter(lambda embedding: self.search_text in embedding['name'].lower(), visible_embeddings['loaded']))
+            visible_embeddings['skipped'] = list(filter(lambda embedding: self.search_text in embedding['name'].lower(), visible_embeddings['skipped']))
 
         # Filter down the list of models returned
         if self.model_filter != 'all':
             # Edit self.lora and self.hypernetwork to remove the models that don't fit the filter
             # embeddings don't have the same info, and are filtered on server side as 'loaded' or 'skipped' based on current SD model
-            extra_network_settings = self.settings_controller.get_extra_network_settings()
             new_loras = []
-            for lora in self.loras:
+            for lora in visible_loras:
                 sd_version = 'unknown'
-                if lora['name'].lower() in extra_network_settings['lora']:
-                    sd_version = extra_network_settings['lora'][lora['name'].lower()]['sd version'].lower()
+                if lora['name'].lower() in self.extra_network_settings['lora']:
+                    sd_version = self.extra_network_settings['lora'][lora['name'].lower()]['sd version'].lower()
                 if sd_version == self.model_filter:
                     new_loras.append(lora)
-            self.loras = new_loras
+            visible_loras = new_loras
 
             new_hypernetworks = []
-            for hn in self.hypernetworks:
+            for hn in visible_hypernetworks:
                 sd_version = 'unknown'
-                if hn['name'].lower() in extra_network_settings['hypernetwork']:
-                    sd_version = extra_network_settings['hypernetwork'][hn['name'].lower()]['sd version'].lower()
+                if hn['name'].lower() in self.extra_network_settings['hypernetwork']:
+                    sd_version = self.extra_network_settings['hypernetwork'][hn['name'].lower()]['sd version'].lower()
                 if sd_version == self.model_filter:
                     new_hypernetworks.append(hn)
 
-            self.hypernetworks = new_hypernetworks
+            visible_hypernetworks = new_hypernetworks
 
         self.toggle_images_checkbox.setChecked(self.show_icons)
 
         unknown_thumbnail = self.raw_img_to_qicon(self.settings_controller.get_unknown_thumbnail())
 
-        for lora in self.loras:
+        for lora in visible_loras:
             list_item = QListWidgetItem()
             label = lora[self.label_key]
             icon = unknown_thumbnail
@@ -337,7 +349,7 @@ class ExtraNetworksDialog(QDialog):
             list_item.setSelected(re_found is not None)
             # list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
     
-        for hypernetwork in self.hypernetworks:
+        for hypernetwork in visible_hypernetworks:
             list_item = QListWidgetItem()
             label = hypernetwork[self.label_key]
             icon = unknown_thumbnail
@@ -360,7 +372,7 @@ class ExtraNetworksDialog(QDialog):
             sep.setFlags(Qt.NoItemFlags)
             sep.setSizeHint(QSize(self.list_width, 30))
 
-            for embedding in self.embeddings[embedding_status]:
+            for embedding in visible_embeddings[embedding_status]:
                 list_item = QListWidgetItem()
                 label = embedding[self.label_key]
                 icon = unknown_thumbnail
@@ -458,6 +470,19 @@ class ExtraNetworksDialog(QDialog):
                 if len(negative_prompt) > 0:
                     self.negative_txt = "%s %s" % (self.negative_txt, negative_prompt)
 
+    def load_all_settings(self):
+        # Pull in all the settings
+        self.load_server_data()
+        self.load_settings()
+
+    def load_server_data(self):
+        self.loras = self.api.get_loras()
+        self.hypernetworks = self.api.get_hypernetworks()
+        self.embeddings = self.map_embeddings(self.api.get_embeddings()) # NOT A LIST! A dict with loaded/skipped keys
+
+    def load_settings(self):
+        self.extra_network_settings = self.settings_controller.get_extra_network_settings()        
+
     def closeEvent(self, event):
         self.close_children()
         return # Close should act as a cancel, not a confirm.
@@ -473,6 +498,7 @@ class ExtraNetworksDialog(QDialog):
     def show(self):
         super().show()
         self.is_shown = True
+        self.load_all_settings()
         self.set_widget_values()
 
     def close(self):

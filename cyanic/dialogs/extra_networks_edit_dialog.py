@@ -56,7 +56,7 @@ class ExtraNetworksEditDialog(QDialog):
         self.model_filter_box = QComboBox()
         self.model_filter_box.wheelEvent = lambda event : None
         self.model_filter_box.setToolTip('SD Model version')
-        self.model_filter_box.addItems(SettingsController.SD_MODEL_VERSIONS)
+        self.model_filter_box.addItems(self.allowed_versions) # Removes 'All'
         # self.layout().addWidget(self.model_filter_box)
         body.layout().addRow('SD Version', self.model_filter_box)
 
@@ -130,10 +130,9 @@ class ExtraNetworksEditDialog(QDialog):
         self.description_text_edit.setPlainText(self.extra_network_settings['description'])
 
         # Version
+        self.model_filter_box.setCurrentText(SettingsController.SD_MODEL_VERSIONS[-1]) # Unknown should always be last
         matched_version = list(filter(lambda version: version.lower() == self.extra_network_settings['sd version'].lower(), SettingsController.SD_MODEL_VERSIONS))
-        if len(matched_version) == 0:
-            self.model_filter_box.setCurrentText(SettingsController.SD_MODEL_VERSIONS[-1]) # Unknown should always be last
-        else:
+        if len(matched_version) > 0:
             self.model_filter_box.setCurrentText(matched_version[0])
 
         # Weight
@@ -160,4 +159,6 @@ class ExtraNetworksEditDialog(QDialog):
         # self.settings_controller.save_extra_network_settings() # Saving happens automatically.
         
 
-        
+    def show(self):
+        super().show()
+        self.set_widget_values()
