@@ -79,6 +79,15 @@ class ExtraNetworksDialog(QDialog):
             
 
     def init_ui(self):
+        self.warning = QWidget()
+        self.warning.setLayout(QHBoxLayout())
+        self.warning.layout().setContentsMargins(0,0,0,0)
+
+        warning_text = QLabel("Can't grab model settings from remote SD Backends, only thumbnails.\nPlease open Krita on computer running SD, then use the Manage button to export/import settings.")
+        self.warning.layout().addWidget(warning_text)
+
+        self.layout().addWidget(self.warning)
+
         header = QWidget()
         header.setLayout(QHBoxLayout())
         header.layout().setContentsMargins(0,0,0,0)
@@ -484,6 +493,11 @@ class ExtraNetworksDialog(QDialog):
         self.loras = self.api.get_loras()
         self.hypernetworks = self.api.get_hypernetworks()
         self.embeddings = self.map_embeddings(self.api.get_embeddings()) # NOT A LIST! A dict with loaded/skipped keys
+
+        if 'localhost' in self.api.host or '127.0.0.1' in self.api.host:
+            self.warning.setHidden(True)
+        else:
+            self.warning.setHidden(False)
 
     def load_settings(self):
         self.extra_network_settings = self.settings_controller.get_extra_network_settings()        
