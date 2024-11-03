@@ -263,6 +263,11 @@ class ExtraNetworksDialog(QDialog):
             # server isn't started, or has no embeddings
             return new_embeddings
 
+        if len(raw_embeddings.keys()) == 0:
+            # The server doesn't have (or can't return) a list of embeddings
+            # https://github.com/lllyasviel/stable-diffusion-webui-forge/issues/1600
+            return new_embeddings
+
         # TODO: Try to find the directory in the Settings, like a sane person!
         embeddings_dir = ''
         if len(self.loras) > 0:

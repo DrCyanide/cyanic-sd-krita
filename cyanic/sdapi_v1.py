@@ -12,7 +12,7 @@ class SDAPI():
     DEFAULT_HOST = 'http://127.0.0.1:7860'
     def __init__(self, host=DEFAULT_HOST, on_connection_change=None):
         self.host = host
-        self.host_version = 'A1111' # SD.Next also supported
+        self.host_version = 'A1111' # SD.Next and Forge also supported
         self.supports_refiners = True # SD.Next with sd_backend == "original" does not support refiners
         self.models = []
         self.vaes = []
@@ -65,6 +65,8 @@ class SDAPI():
         self.known_thumbnail_paths = {} # Each server can have a different file extension for the same base path
 
         init_processes = [
+            self.get_options,
+            self.set_host_version, # Some get_ functions depend on backend version
             self.get_models,
             self.get_vaes,
             self.get_samplers,
@@ -76,7 +78,6 @@ class SDAPI():
             self.get_loras,
             self.get_embeddings,
             self.get_hypernetworks,
-            self.get_options,
         ]
         for process in init_processes:
             process()
@@ -176,14 +177,39 @@ class SDAPI():
             'postprocessing_sep_upscalers',
             'sd_lyco',
         ]
+        forge_unique = [
+            'forge_try_reproduce',
+            'forge_unet_storage_dtype',
+            'forge_inference_memory',
+            'forge_async_loading',
+            'forge_pin_shared_memory',
+            'forge_preset',
+            'forge_additional_modules',
+        ]
         sdnext_points = 0
         for key in sdnext_unique:
             if key in self.default_settings.keys():
                 sdnext_points = sdnext_points + 1
-        if sdnext_points > len(sdnext_unique) / 2:
+
+        forge_points = 0
+        for key in forge_unique:
+            if key in self.default_settings.keys():
+                forge_points = forge_points + 1
+
+        # If none of the unique values are there, it's good old A1111
+        if forge_points == 0 and sdnext_points == 0:
+            self.host_version = 'A1111'
+        
+        sdnext_percent = sdnext_points / len(sdnext_unique)
+        forge_percent = forge_points / len(forge_unique)
+
+        if sdnext_percent > forge_percent:
             self.host_version = 'SD.Next'
+        elif forge_percent > sdnext_percent:
+            self.host_version = 'Forge'
         else:
             self.host_version = 'A1111'
+
 
     def get_options(self):
         self.default_settings = self.get("/sdapi/v1/options")
@@ -280,7 +306,10 @@ class SDAPI():
             return []
     
     def get_vaes(self):
-        self.vaes = self.get("/sdapi/v1/sd-vae")
+        if self.host_version == 'Forge':
+            self.vaes = self.get("/sdapi/v1/sd-modules")
+        else:
+            self.vaes = self.get("/sdapi/v1/sd-vae")
         if self.vaes:
             return self.vaes
         else:

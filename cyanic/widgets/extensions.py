@@ -15,8 +15,9 @@ class ExtensionWidget(CyanicWidget):
         self.set_widget_values()
         
     def load_server_data(self):
-        self.server_supported['controlnet'] = self.api.script_installed('controlnet')
-        self.server_supported['adetailer'] = self.api.script_installed('adetailer')
+        for extension_name in self.server_supported.keys():
+            self.server_supported[extension_name] = self.api.script_installed(extension_name)
+        self.handle_hidden()
 
     def set_widget_values(self):
         pass
@@ -32,9 +33,18 @@ class ExtensionWidget(CyanicWidget):
 
         # Feel free to add more extensions
 
+        self.handle_hidden()
+
     def handle_hidden(self):
-        self.controlnet_collapse.setHidden(self.server_supported['controlnet'] and not 'controlnet' in self.settings_controller.get('hide_ui_hidden_extensions'))
-        self.adetailer_collapse.setHidden(self.server_supported['adetailer'] and not 'adetailer' in self.settings_controller.get('hide_ui_hidden_extensions'))
+        self.controlnet_collapse.setHidden(self.should_hide('controlnet'))
+        self.adetailer_collapse.setHidden(self.should_hide('adetailer'))
+
+    def should_hide(self, extension_name):
+        if not self.server_supported[extension_name]:
+            return True
+        if extension_name in self.settings_controller.get('hide_ui_hidden_extensions'):
+            return True
+        return False
 
     def get_generation_data(self):
         data = {}

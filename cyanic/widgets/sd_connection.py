@@ -30,7 +30,7 @@ class SDConnectionWidget(CyanicWidget):
 
         self.connect_label = QLabel('No SD connection')
         if self.api.connected:
-            self.connect_label.setText('SD connected')
+            self.connect_label.setText('SD connected - %s backend detected' % self.api.host_version)
         self.layout().addWidget(self.connect_label) 
 
 
@@ -67,7 +67,7 @@ class SDConnectionWidget(CyanicWidget):
         self.connect_btn.setDisabled(False)
 
         if self.api.connected:
-            self.connect_label.setText('SD connected')
+            self.connect_label.setText('SD connected - %s backend detected' % self.api.host_version)
             # Has to be called from here. SDAPI should finish updating itself before threadable_return() is called
             self.save_host()
             self.api.on_connection_change() 

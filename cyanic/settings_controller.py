@@ -11,8 +11,9 @@ class SettingsController():
         'All', # Not official, just allow all options. "All" should always be first.
         'SD1',
         'SD2',
-        'SD3',
+        'SD3', 
         'SDXL',
+        'Flux', # Supported by Forge
         'Unknown', # "Unknown" should always be last.
     ]
     def __init__(self):
