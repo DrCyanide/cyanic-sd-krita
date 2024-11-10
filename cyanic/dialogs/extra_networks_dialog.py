@@ -245,7 +245,7 @@ class ExtraNetworksDialog(QDialog):
     def update_show_icons(self):
         self.show_icons = self.toggle_images_checkbox.isChecked()
         self.settings_controller.set('show_extra_network_thumbnails', self.show_icons)
-        self.settings_controller.save() # This setting should be applied to future opens
+        # self.settings_controller.save() # This setting should be applied to future opens
         self.set_widget_values()
 
     def raw_img_to_qicon(self, raw_img):

@@ -14,7 +14,7 @@ class SettingsController():
         'SD3', 
         'SDXL',
         'Flux', # Supported by Forge
-        'Unknown', # "Unknown" should always be last.
+        'Unknown', # "Unknown" should always be last
     ]
     def __init__(self):
         self.settings = {} # Settings loaded from .json files

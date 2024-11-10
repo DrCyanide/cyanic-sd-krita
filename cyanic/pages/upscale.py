@@ -138,7 +138,7 @@ class UpscalePage(CyanicPage):
     def save_settings(self):
         for key in self.variables:
             self.settings_controller.set(key, self.variables[key])
-        self.settings_controller.save()
+        # self.settings_controller.save()
 
     def btn_click(self):
         if self.generating:

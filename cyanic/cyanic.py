@@ -113,7 +113,12 @@ class CyanicDocker(DockWidget):
         self.update_all_page_settings()
 
         # Set the initial page
-        self.change_page() 
+        # self.change_page()
+        try:
+            self.last_page = self.settings_controller.get('cyanic_sd_last_page')
+        except:
+            pass
+        self.open_page(self.last_page)
 
     def on_api_change(self):
         if self.api.connected:
@@ -132,36 +137,46 @@ class CyanicDocker(DockWidget):
             self.connection_panel.setHidden(False)
             self.content_area.setHidden(True)
 
-    # Update the content widget based on the selected page
-    def change_page(self):
-        current_page = self.page_combobox.currentText()
-
-        # Save the last page's settings, since that's the only one that could've changed
-        last_entry = [x for x in self.pages if x['name'] == self.last_page]
-        if len(last_entry) > 0:
-            last_entry[0]['page'].save_settings()
-            # Update the last page in settings, so it'll resume at the new page
-            self.settings_controller.set('cyanic_sd_last_page', current_page)
-            self.settings_controller.save_kra_settings()
-            self.settings_controller.save()
-
+    def open_page(self, page_name=''):
+        # Will not save settings when changing to page, only what's displayed
+        if len(page_name) == 0:
+            page_name = self.page_combobox.currentText()
         
-
         for page in self.pages:
-            if page['name'] == current_page:
+            if page['name'] == page_name:
                 page['page'].setHidden(False)
                 page['page'].load_all_settings()
             else:
                 page['page'].setHidden(True)
 
-        self.last_page = current_page
         self.update()
+
+    def save_last_page(self, current_page=''):
+        last_entry = [x for x in self.pages if x['name'] == self.last_page]
+        if len(last_entry) > 0:
+            last_entry[0]['page'].save_settings()
+            # self.settings_controller.save_kra_settings() # Redundant - .save() triggers .save_kra_settings() too
+            self.settings_controller.save()
+
+    # Update the content widget based on the selected page
+    def change_page(self):
+        current_page = self.page_combobox.currentText()
+        # Update the last page in settings, so it'll resume at the new page
+        self.settings_controller.set('cyanic_sd_last_page', current_page)
+
+        # Save the last page's settings, since that's the only one that could've changed
+        self.save_last_page()
+
+        self.open_page(current_page)
+        self.last_page = current_page
     
     def update_all_page_settings(self):
         for page in self.pages:
             page['page'].load_settings()
 
     def on_dialog_close(self):
+        # Make sure the current page saves settings first, to avoid erasing prompts that haven't been generated yet
+        self.save_last_page()
         # Reload settings, since they could be changed in the dialog
         self.update_all_page_settings()
         # I don't think there needs to be an API update
