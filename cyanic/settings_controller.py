@@ -3,6 +3,7 @@ import json
 import os.path
 from PyQt5.QtCore import QByteArray
 from krita import *
+import datetime
 
 # Loads and saves settings for the entire plug-in
 class SettingsController():
@@ -21,6 +22,7 @@ class SettingsController():
         self.tmp_settings = {} # What's staged to be saved, the WIP settings
         self.key_mapping = {} # Convert keys the widgets use (controller notation) into paths in the JSON uses (model notation)
         self.loaded_key_mappings = False
+        self.api_host = '' # Used for saving lora/hypernetwork settings
 
         self.active_doc = Krita.instance().activeDocument()
 
@@ -46,6 +48,8 @@ class SettingsController():
         except Exception as e:
             raise Exception('Cyanic SD - Exception with Settings Controller - %s' % e)
 
+    def update_api_host(self, new_host=''):
+        self.api_host = new_host
 
     def update_active_doc(self):
         self.active_doc = Krita.instance().activeDocument()
@@ -289,27 +293,57 @@ class SettingsController():
                 existing_settings = json.load(file)
         return existing_settings
 
+    def write_network_to_network_settings(self, extra_network_settings, network_type, network_name, setting_values, as_override=False):
+        # DOES NOT SAVE! Only used to build the bigger list of networks
+        # setting_values = default_extra_network_data format, can be missing fields if as_override
+        manditory_keys = ['lora', 'hypernetwork']
+        for key in manditory_keys:
+            if key not in extra_network_settings:
+                extra_network_settings[key] = {}
+        
+        if not network_name in extra_network_settings[network_type]:
+            extra_network_settings[network_type] = {
+                network_name: {
+                    'kra_override': {}
+                }
+            }
+        
+        if as_override:
+            # Overrides can be missing default values. Missing values will use the settings from the server
+            setting_values['kra_last_modified'] = '%s' % datetime.datetime.now()
+            extra_network_settings[network_type][network_name]['kra_override'] = setting_values
+        else:
+            # Server settings must have all of the default values
+            data = self.default_extra_network_data
+            for key in data.keys():
+                if key in setting_values.keys():
+                    data[key] = setting_value[key]
+            # Write date that it was updated
+            data['kra_last_modified'] = '%s' % datetime.datetime.now()
+            extra_network_settings[network_type][network_name][self.api_host] = data
 
-    def save_extra_network_settings(self, extra_network_settings, merge_with_existing=True):
+        return extra_network_settings
+    
+
+    def save_extra_network_settings(self, extra_network_settings):
         # {
         #   lora: {
-        #       lora_name: self.default_extra_network_data
+        #       lora_name: {
+        #           kra_overrides: {},           
+        #           server_address: self.default_extra_network_data
+        #       }
         #   },
         #   hypernetwork: {
-        #       hypernetwork_name: self.default_extra_network_data
+        #       hypernetwork_name: {
+        #           kra_overrides: {},
+        #           server_address: self.default_extra_network_data
+        #       }
         #   }
         # }
         manditory_keys = ['lora', 'hypernetwork']
         for key in manditory_keys:
             if key not in extra_network_settings:
                 extra_network_settings[key] = {}
-
-        if merge_with_existing:
-            merged_settings = self.get_extra_network_settings()
-            for network_type in extra_network_settings:
-                for network_name in extra_network_settings[network_type]:
-                    merged_settings[network_type][network_name] = extra_network_settings[network_type][network_name]
-            extra_network_settings = merged_settings
 
         dump = json.dumps(extra_network_settings, indent=4)
         os.makedirs(self.extra_networks_dir, exist_ok=True) # Create the folder if it doesn't already exist
@@ -321,7 +355,7 @@ class SettingsController():
     def delete_extra_network_data(self):
         # Just write an empty array to it
         default_settings = {'lora':{}, 'hypernetwork': {}}
-        self.save_extra_network_settings(default_settings, merge_with_existing=False)
+        self.save_extra_network_settings(default_settings)
 
     def set_extra_network_data_from_dict(self, network_type:str, network_name:str, data):
         # See default_extra_network_data for example of data format
@@ -346,24 +380,40 @@ class SettingsController():
 
 
     def get_extra_network_data(self, network_type:str, network_name:str):
+        # Return one specific instance 
         existing_settings = self.get_extra_network_settings()
         if network_type.lower() not in existing_settings.keys():
             # No data, use the defaults
-            return self.default_extra_network_data
+            empty = {
+                'kra_override': {},
+                self.api_host: self.default_extra_network_data,
+            }
+            return empty
         
         if network_name.lower() not in existing_settings[network_type.lower()].keys():
             # No data, use the defaults
-            return self.default_extra_network_data
+            empty = {
+                'kra_override': {},
+                self.api_host: self.default_extra_network_data,
+            }
+            return empty
         
         found_data = existing_settings[network_type.lower()][network_name.lower()]
         # Make sure the found data has all the keys the default does, to preserve consistency
         # This may seem like overkill, but it will make sure older save files work with newer plugin versions
         returned_data = {}
-        for key in self.default_extra_network_data:
-            if key in found_data:
-                returned_data[key] = found_data[key]
+        for host_name in found_data.keys():
+            if host_name == 'kra_override':
+                # Don't need to check it for completeness, it's likely to be missing fields
+                returned_data[host_name] = found_data[host_name]
+                continue 
             else:
-                returned_data[key] = self.default_extra_network_data[key]
+                returned_data[host_name] = {}
+                for key in self.default_extra_network_data:
+                    if key in found_data[host_name].keys():
+                        returned_data[host_name][key] = found_data[host_name][key]
+                    else:
+                        returned_data[host_name][key] = self.default_extra_network_data[key]
 
         return returned_data
 

@@ -39,6 +39,7 @@ class ExtraNetworksDialog(QDialog):
         self.lora_list = QListWidget()
         self.hypernetwork_list = QListWidget()
         self.embedding_list = QListWidget()
+        self.extra_network_settings = {'lora':{}, 'hypernetwork': {}}
 
         self.list_width = int(ExtraNetworksDialog.MAX_WIDTH * 4.5)
         self.list_height = int(ExtraNetworksDialog.MAX_WIDTH * 2.5)
@@ -299,6 +300,33 @@ class ExtraNetworksDialog(QDialog):
 
     def load_settings(self):
         self.show_icons = self.settings_controller.get('show_extra_network_thumbnails', False) # Default to False for faster loading times
+        self.load_extra_networks()
+
+    def load_extra_networks(self):
+        # Pull extra network settings
+        extra_network_settings = self.settings_controller.get_extra_network_settings()
+        # Check if the settings are missing any network that the server has
+        lora_names = self.api.get_lora_names()
+        hypernetwork_names = self.api.get_hypernetwork_names()
+        updated = False
+        for lora_name in lora_names:
+            if lora_name not in extra_network_settings['lora'].keys() or self.api.host not in extra_network_settings['lora'][lora_name]:
+                # Pull that lora info from the server
+                data = self.api.get_server_extra_network_config(network_type='lora', network_name=lora_name)
+                extra_network_settings = self.settings_controller.write_network_to_network_settings(network_name='lora', network_name=lora_name, data)
+                updated = True
+        for hypernetwork_name in hypernetwork_names:
+            if hypernetwork_name not in extra_network_settings['hypernetwork'].keys() or self.api.host not in extra_network_settings['hypernetwork'][hypernetwork_name]:
+                # Pull that hypernetwork from the server
+                data = self.api.get_server_extra_network_config(network_type='hypernetwork', network_name=hypernetwork_name)
+                extra_network_settings = self.settings_controller.write_network_to_network_settings(network_name='hypernetwork', network_name=hypernetwork_name, data)
+                updated = True
+
+        self.extra_network_settings = extra_network_settings
+        if updated:
+            # New changes should be saved to the cache
+            self.settings_controller.save_extra_network_settings(self.extra_network_settings)
+
 
     def set_widget_values(self):
         self.lora_list.clear()
@@ -409,17 +437,31 @@ class ExtraNetworksDialog(QDialog):
         if network_type is not 'embedding':
             text = '<%s:%s' % (network_type, network_name)
             custom_settings = self.settings_controller.get_extra_network_data(network_type, network_name)
-            if custom_settings['preferred weight'] == 0.0:
-                text = '%s:1.0>' % text
-            else:
-                text = '%s:%s>' % (text, custom_settings['preferred weight'])
 
-            if len(custom_settings['activation text']) > 0:
-                text = '%s %s' % (text, custom_settings['activation text'])
+            # Need to factor in kra_override + api.host settings
+            if 'preferred weight' in custom_settings['kra_override']:
+                if custom_settings['kra_override']['preferred weight'] == 0.0:
+                    text = '%s:1.0>' % text
+                else:
+                    text = '%s:%s>' % (text, custom_settings['kra_override']['preferred weight'])
+            else:
+                if custom_settings[self.api.host]['preferred weight'] == 0.0:
+                    text = '%s:1.0>' % text
+                else:
+                    text = '%s:%s>' % (text, custom_settings[self.api.host]['preferred weight'])
+
+            if 'activation text' in custom_settings['kra_override'] and len(custom_settings['kra_override']['activation text']) > 0:
+                text = '%s %s' % (text, custom_settings['kra_override']['activation text'])
+            else:
+                if len(custom_settings[self.api.host]['activation text']) > 0:
+                    text = '%s %s' % (text, custom_settings[self.api.host]['activation text'])
             
             negative_text = ''
-            if len(custom_settings['negative text']) > 0:
-                negative_text = custom_settings['negative text']
+            if 'negative text' in custom_settings['kra_override'] and len(custom_settings['kra_override']['negative text']) > 0:
+                negative_text = custom_settings['kra_override']['negative text']
+            else:
+                if len(custom_settings[self.api.host]['negative text']) > 0:
+                    negative_text = custom_settings[self.api.host]['negative text']
 
             return text, negative_text
             # return '<%s:%s:1.0>' % (network_type, network_name)
@@ -498,9 +540,6 @@ class ExtraNetworksDialog(QDialog):
             self.warning.setHidden(True)
         else:
             self.warning.setHidden(False)
-
-    def load_settings(self):
-        self.extra_network_settings = self.settings_controller.get_extra_network_settings()        
 
     def closeEvent(self, event):
         self.close_children()

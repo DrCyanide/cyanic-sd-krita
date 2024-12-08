@@ -60,6 +60,7 @@ class SDConnectionWidget(CyanicWidget):
         self.connect_label.setText('Attempting connection...')
         new_host = self.host_addr.text()
         self.api.test_connection(new_host, switch_if_success=True)
+        self.settings_controller.update_api_host(self.api.host)
 
     def threadable_return(self):
         self.testing_connection = False

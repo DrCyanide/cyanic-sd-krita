@@ -122,6 +122,7 @@ class CyanicDocker(DockWidget):
 
     def on_api_change(self):
         if self.api.connected:
+            self.settings_controller.update_api_host(self.api.host)
             self.connection_panel.setHidden(True)
             self.content_area.setHidden(False)
 

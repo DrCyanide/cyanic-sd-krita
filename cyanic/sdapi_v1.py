@@ -1,9 +1,11 @@
 import urllib.request
 import urllib.error
+import html
 import json
 import base64
 import time
 import os
+import re
 # Allow self-signed certs to be used. Self-signed certs allow some WebUI features (like ControlNet's camera) to work over local network.
 # import ssl
 # ssl._create_default_https_context = ssl._create_unverified_context
@@ -345,6 +347,8 @@ class SDAPI():
             return self.hypernetworks
         else:
             return []
+    
+    # TODO: /sdapi/v1/lycos exists in SD.Next, but this might be better to append to loras for consistency with other backends
         
     def get_thumbnail(self, path):
         if path in self.known_thumbnail_paths.keys():
@@ -384,8 +388,63 @@ class SDAPI():
 
         return None # Image was not found
     
-    # TODO: /sdapi/v1/lycos exists in SD.Next
-    
+    def get_server_extra_network_config(self, network_type='', network_name=''):
+        # NOTE: network_name is case sensitive
+        # SD.Next has /sd_extra_networks/info that returns data in the expected format (the same way it's saved in the server files, the .json inside the models dirs)
+        # Forge and A1111 require parsing the /sd_extra_networks/get-single-card endpoint, and are incomplete with the data returned there
+
+        generic_format = {
+            "description": "",
+            "sd version": "Unknown",
+            "activation text": "",
+            "negative text": "",
+            "preferred weight": 0,
+            "notes": "", # Notes don't seem to be available... idk why or where to get them from
+        }
+
+        if self.host_version == 'SD.Next':
+            response = self.get("/sd_extra_networks/info?page=%s&item=%s" % (network_type.lower(), network_name))
+            return response['info']
+        
+        response = self.get("/sd_extra_networks/get-single-card?page=%s&name=%s" % (network_type.lower(), network_name))
+        if response is None:
+            return generic_format
+        
+        # Developed on Forge backend
+        raw_html = response['html']
+
+        generic_format['description'] = re.search('<span class="description">(.*?)<\/span>', raw_html, flags=re.DOTALL)[1]
+        try:
+            generic_format['sd version'] = re.search('SDversion="SdVersion.(.*?)"', raw_html, flags=re.DOTALL)[1]
+        except:
+            generic_format['sd version'] = 'Unknown' # A1111 doesn't have SD Version in card api
+
+        on_click_string = re.search('onclick=\"cardClicked\((.*?)\);', raw_html, flags=re.DOTALL)[1] # Get the parameters of the call
+        on_click_params = html.unescape(on_click_string)
+        # Unknown String (empty)
+        # String including network_type, network_name, preferred weight, and activation text
+        preferred_weight_str = re.search(':" \+ (.*) \+ ">"', on_click_params, flags=re.DOTALL)[1]
+        try:
+            generic_format['preferred weight'] = float(preferred_weight_str)
+        except:
+            # Using extra_networks_default_multiplier setting
+            generic_format['preferred weight'] = self.default_settings['extra_networks_default_multiplier']
+        
+        try:
+            generic_format['activation text'] = re.search('\+ ">" \+ " (.*?)",', on_click_params, flags=re.DOTALL)[1]
+        except:
+            # There is no activation text
+            generic_format['activation text'] = ''
+
+        # String for negative text
+        try:
+            generic_format['negative text'] = re.search('", "(.*?)",', on_click_params, flags=re.DOTALL)[1]
+        except:
+            generic_format['negative text'] = ''
+        # Unknown boolean
+
+        return generic_format
+
     # ===========================
     # Calls to make UI dev easier
     # ===========================
