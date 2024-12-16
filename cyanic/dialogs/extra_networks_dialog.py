@@ -199,7 +199,7 @@ class ExtraNetworksDialog(QDialog):
         self.set_widget_values()
 
     def update_search_text(self):
-        self.search_text = self.search_bar.text().lower()
+        self.search_text = self.search_bar.text().strip().lower()
         self.set_widget_values()
 
     def get_thumbnail(self, network_type, network_name):
@@ -304,28 +304,27 @@ class ExtraNetworksDialog(QDialog):
 
     def load_extra_networks(self):
         # Pull extra network settings
-        extra_network_settings = self.settings_controller.get_extra_network_settings()
+        self.extra_network_settings = self.settings_controller.get_extra_network_settings()
         # Check if the settings are missing any network that the server has
+        if not self.api.connected:
+            return
+        self.settings_controller.update_api_host(self.api.host) # Set the correct server address to save these settings with.
+
         lora_names = self.api.get_lora_names()
         hypernetwork_names = self.api.get_hypernetwork_names()
-        updated = False
         for lora_name in lora_names:
-            if lora_name not in extra_network_settings['lora'].keys() or self.api.host not in extra_network_settings['lora'][lora_name]:
-                # Pull that lora info from the server
-                data = self.api.get_server_extra_network_config(network_type='lora', network_name=lora_name)
-                extra_network_settings = self.settings_controller.write_network_to_network_settings(network_name='lora', network_name=lora_name, data)
-                updated = True
-        for hypernetwork_name in hypernetwork_names:
-            if hypernetwork_name not in extra_network_settings['hypernetwork'].keys() or self.api.host not in extra_network_settings['hypernetwork'][hypernetwork_name]:
-                # Pull that hypernetwork from the server
-                data = self.api.get_server_extra_network_config(network_type='hypernetwork', network_name=hypernetwork_name)
-                extra_network_settings = self.settings_controller.write_network_to_network_settings(network_name='hypernetwork', network_name=hypernetwork_name, data)
-                updated = True
+            # Pull that lora info from the server
+            lora_data = self.api.get_server_extra_network_config(network_type='lora', network_name=lora_name)
+            self.extra_network_settings = self.settings_controller.write_network_to_network_settings(self.extra_network_settings, network_type='lora', network_name=lora_name, setting_values=lora_data)
 
-        self.extra_network_settings = extra_network_settings
-        if updated:
-            # New changes should be saved to the cache
-            self.settings_controller.save_extra_network_settings(self.extra_network_settings)
+        self.settings_controller.save_extra_network_settings(self.extra_network_settings)
+
+        for hn_name in hypernetwork_names:
+            # Pull that lora info from the server
+            hn_data = self.api.get_server_extra_network_config(network_type='hypernetwork', network_name=hn_name)
+            self.extra_network_settings = self.settings_controller.write_network_to_network_settings(self.extra_network_settings, network_type='hypernetwork', network_name=hn_name, setting_values=hn_data)
+
+        self.settings_controller.save_extra_network_settings(self.extra_network_settings)
 
 
     def set_widget_values(self):
@@ -355,8 +354,13 @@ class ExtraNetworksDialog(QDialog):
             new_loras = []
             for lora in visible_loras:
                 sd_version = 'unknown'
-                if lora['name'].lower() in self.extra_network_settings['lora']:
-                    sd_version = self.extra_network_settings['lora'][lora['name'].lower()]['sd version'].lower()
+                lora_name = lora['name']
+                if lora_name in self.extra_network_settings['lora']:
+                    lora_settings = self.extra_network_settings['lora'][lora_name]
+                    if 'kra_override' in lora_settings and 'sd version' in lora_settings['kra_override']:
+                        sd_version = lora_settings['kra_override']['sd version'].lower()
+                    else:
+                        sd_version = lora_settings[self.api.host]['sd version'].lower()
                 if sd_version == self.model_filter:
                     new_loras.append(lora)
             visible_loras = new_loras
@@ -364,8 +368,13 @@ class ExtraNetworksDialog(QDialog):
             new_hypernetworks = []
             for hn in visible_hypernetworks:
                 sd_version = 'unknown'
-                if hn['name'].lower() in self.extra_network_settings['hypernetwork']:
-                    sd_version = self.extra_network_settings['hypernetwork'][hn['name'].lower()]['sd version'].lower()
+                hn_name = hn['name']
+                if hn_name in self.extra_network_settings['hypernetwork']:
+                    hn_settings = self.extra_network_settings['hypernetwork'][hn_name]
+                    if 'kra_override' in hn_settings and 'sd version' in hn_settings['kra_override']:
+                        sd_version = hn_settings['kra_override']['sd version'].lower()
+                    else:
+                        sd_version = hn_settings[self.api.host]['sd version'].lower()
                 if sd_version == self.model_filter:
                     new_hypernetworks.append(hn)
 
@@ -374,6 +383,15 @@ class ExtraNetworksDialog(QDialog):
         self.toggle_images_checkbox.setChecked(self.show_icons)
 
         unknown_thumbnail = self.raw_img_to_qicon(self.settings_controller.get_unknown_thumbnail())
+
+        if len(visible_loras) == 0:
+            sep = QListWidgetItem("--- No Loras Found ---", self.lora_list)
+            sep.setFlags(Qt.NoItemFlags)
+            sep.setSizeHint(QSize(self.list_width, 30))
+        else:
+            sep = QListWidgetItem("--- %s Loras Found ---" % len(visible_loras), self.lora_list)
+            sep.setFlags(Qt.NoItemFlags)
+            sep.setSizeHint(QSize(self.list_width, 30))
 
         for lora in visible_loras:
             list_item = QListWidgetItem()
@@ -391,6 +409,15 @@ class ExtraNetworksDialog(QDialog):
             list_item.setSelected(re_found is not None)
             # list_item.setSizeHint(QSize(ExtraNetworksDialog.MAX_WIDTH, ExtraNetworksDialog.MAX_HEIGHT))
     
+        if len(visible_hypernetworks) == 0:
+            sep = QListWidgetItem("--- No Hypernetworks Found ---", self.hypernetwork_list)
+            sep.setFlags(Qt.NoItemFlags)
+            sep.setSizeHint(QSize(self.list_width, 30))
+        else:
+            sep = QListWidgetItem("--- %s Hypernetworks Found ---" % len(visible_loras), self.hypernetwork_list)
+            sep.setFlags(Qt.NoItemFlags)
+            sep.setSizeHint(QSize(self.list_width, 30))
+
         for hypernetwork in visible_hypernetworks:
             list_item = QListWidgetItem()
             label = hypernetwork[self.label_key]
@@ -410,7 +437,7 @@ class ExtraNetworksDialog(QDialog):
 
         for embedding_status in ['loaded', 'skipped']:
             # Add a separator
-            sep = QListWidgetItem("--- %s ---" % embedding_status, self.embedding_list)
+            sep = QListWidgetItem("--- %s Embeddings ---" % embedding_status.title(), self.embedding_list)
             sep.setFlags(Qt.NoItemFlags)
             sep.setSizeHint(QSize(self.list_width, 30))
 

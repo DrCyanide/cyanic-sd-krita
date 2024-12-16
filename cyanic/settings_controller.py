@@ -302,26 +302,29 @@ class SettingsController():
                 extra_network_settings[key] = {}
         
         if not network_name in extra_network_settings[network_type]:
-            extra_network_settings[network_type] = {
-                network_name: {
-                    'kra_override': {}
-                }
-            }
+            extra_network_settings[network_type][network_name] = {'kra_override': {}}
         
+        # if network_type == 'hypernetwork':
+        #     raise Exception(extra_network_settings)
         if as_override:
             # Overrides can be missing default values. Missing values will use the settings from the server
             setting_values['kra_last_modified'] = '%s' % datetime.datetime.now()
             extra_network_settings[network_type][network_name]['kra_override'] = setting_values
         else:
             # Server settings must have all of the default values
-            data = self.default_extra_network_data
-            for key in data.keys():
-                if key in setting_values.keys():
-                    data[key] = setting_value[key]
+            
+            # data = self.default_extra_network_data # This was causing every lora/hypernetwork to have the exact same values
+            data = {}
+            for key in self.default_extra_network_data.keys():
+                data[key] = self.default_extra_network_data[key]
+
+            for key in setting_values.keys():
+                data[key] = setting_values[key] # Allows for updates if the setting_values has more keys than default
+
             # Write date that it was updated
             data['kra_last_modified'] = '%s' % datetime.datetime.now()
             extra_network_settings[network_type][network_name][self.api_host] = data
-
+            
         return extra_network_settings
     
 
@@ -382,30 +385,25 @@ class SettingsController():
     def get_extra_network_data(self, network_type:str, network_name:str):
         # Return one specific instance 
         existing_settings = self.get_extra_network_settings()
-        if network_type.lower() not in existing_settings.keys():
+        if network_type.lower() not in existing_settings.keys() or network_name not in existing_settings[network_type.lower()].keys():
             # No data, use the defaults
             empty = {
                 'kra_override': {},
-                self.api_host: self.default_extra_network_data,
+                self.api_host: {}
             }
+            for key in self.default_extra_network_data:
+                empty[self.api_host][key] = self.default_extra_network_data[key]
             return empty
         
-        if network_name.lower() not in existing_settings[network_type.lower()].keys():
-            # No data, use the defaults
-            empty = {
-                'kra_override': {},
-                self.api_host: self.default_extra_network_data,
-            }
-            return empty
         
-        found_data = existing_settings[network_type.lower()][network_name.lower()]
+        found_data = existing_settings[network_type.lower()][network_name]
         # Make sure the found data has all the keys the default does, to preserve consistency
         # This may seem like overkill, but it will make sure older save files work with newer plugin versions
         returned_data = {}
         for host_name in found_data.keys():
             if host_name == 'kra_override':
                 # Don't need to check it for completeness, it's likely to be missing fields
-                returned_data[host_name] = found_data[host_name]
+                returned_data[host_name] = found_data['kra_override']
                 continue 
             else:
                 returned_data[host_name] = {}

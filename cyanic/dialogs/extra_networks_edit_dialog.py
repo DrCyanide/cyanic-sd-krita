@@ -125,40 +125,83 @@ class ExtraNetworksEditDialog(QDialog):
 
         # Load settings
         self.extra_network_settings = self.settings_controller.get_extra_network_data(self.extra_network_type, self.extra_network_name)
-        
+        has_override = 'kra_override' in self.extra_network_settings
+
         # Description
-        self.description_text_edit.setPlainText(self.extra_network_settings['description'])
+        description = ''
+        if has_override and 'description' in self.extra_network_settings['kra_override']:
+            description = self.extra_network_settings['kra_override']['description']
+        else:
+            description = self.extra_network_settings[self.api.host]['description']
+        self.description_text_edit.setPlainText(description)
 
         # Version
         self.model_filter_box.setCurrentText(SettingsController.SD_MODEL_VERSIONS[-1]) # Unknown should always be last
-        matched_version = list(filter(lambda version: version.lower() == self.extra_network_settings['sd version'].lower(), SettingsController.SD_MODEL_VERSIONS))
+        sd_version = 'unknown'
+        if has_override and 'sd version' in self.extra_network_settings['kra_override']:
+            sd_version = self.extra_network_settings['kra_override']['sd version'].lower()
+        else:
+            sd_version = self.extra_network_settings[self.api.host]['sd version'].lower()
+        matched_version = list(filter(lambda version: version.lower() == sd_version, SettingsController.SD_MODEL_VERSIONS))
         if len(matched_version) > 0:
             self.model_filter_box.setCurrentText(matched_version[0])
 
         # Weight
-        self.weight_slider.set_value(self.extra_network_settings['preferred weight'])
+        weight = 1.0
+        if has_override and 'preferred weight' in self.extra_network_settings['kra_override']:
+            weight = self.extra_network_settings['kra_override']['preferred weight']
+        else:
+            weight = self.extra_network_settings[self.api.host]['preferred weight']
+        self.weight_slider.set_value(weight)
 
         # Activation text
-        self.activation_text_edit.setText(self.extra_network_settings['activation text'])
+        activation_text = ''
+        if has_override and 'activation text' in self.extra_network_settings['kra_override']:
+            activation_text = self.extra_network_settings['kra_override']['activation text']
+        else:
+            activation_text = self.extra_network_settings[self.api.host]['activation text']
+        self.activation_text_edit.setText(activation_text)
 
         # Negative text
-        self.negative_text_edit.setText(self.extra_network_settings['negative text'])
+        negative_text = ''
+        if has_override and 'negative text' in self.extra_network_settings['kra_override']:
+            activation_text = self.extra_network_settings['kra_override']['negative text']
+        else:
+            activation_text = self.extra_network_settings[self.api.host]['negative text']
+        self.negative_text_edit.setText(negative_text)
 
         # Notes
-        self.note_text_edit.setPlainText(self.extra_network_settings['notes'])
+        notes = ''
+        if has_override and 'notes' in self.extra_network_settings['kra_override']:
+            notes = self.extra_network_settings['kra_override']['notes']
+        else:
+            notes = self.extra_network_settings[self.api.host]['notes']
+        self.note_text_edit.setPlainText(notes)
+
+        # Debugging
+        # self.note_text_edit.setPlainText('%s' % self.extra_network_settings)
 
     def save_settings(self):
-        self.extra_network_settings['description'] = self.description_text_edit.toPlainText()
-        self.extra_network_settings['sd version'] = self.model_filter_box.currentText()
-        self.extra_network_settings['preferred weight'] = self.weight_slider.value()
-        self.extra_network_settings['activation text'] = self.activation_text_edit.toPlainText()
-        self.extra_network_settings['negative text'] = self.negative_text_edit.toPlainText()
-        self.extra_network_settings['notes'] = self.note_text_edit.toPlainText()
+        edited_data = {
+            'description': self.description_text_edit.toPlainText(),
+            'sd version': self.model_filter_box.currentText(),
+            'preferred weight': self.weight_slider.value(),
+            'activation text': self.activation_text_edit.toPlainText(),
+            'negative text': self.negative_text_edit.toPlainText(),
+            'notes':self.note_text_edit.toPlainText(),
+        }
+
+        for key in edited_data.keys():
+            if self.extra_network_settings[self.api.host][key] != edited_data[key]:
+                # Override
+                if not has_override:
+                    self.extra_network_settings['kra_override'] = {}
+                    has_override = True
+                self.extra_network_settings['kra_override'][key] = edited_data[key]
         
         self.settings_controller.set_extra_network_data_from_dict(self.extra_network_type, self.extra_network_name, self.extra_network_settings)
-        # self.settings_controller.save_extra_network_settings() # Saving happens automatically.
+        # Saving happens in set_extra_network_data_from_dict
         
-
     def show(self):
         super().show()
         self.set_widget_values()

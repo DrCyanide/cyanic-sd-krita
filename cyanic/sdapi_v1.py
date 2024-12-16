@@ -418,6 +418,16 @@ class SDAPI():
             generic_format['sd version'] = re.search('SDversion="SdVersion.(.*?)"', raw_html, flags=re.DOTALL)[1]
         except:
             generic_format['sd version'] = 'Unknown' # A1111 doesn't have SD Version in card api
+            if '127.0.0.1' in self.host or 'localhost' in self.host:
+                # Try to access the file system to get the sd version.
+                # Yes, this could be used to get everything if server is local, but I want to use the API as much as possible.
+                local_model_path = re.search('data-clipboard-text="(.*?)"', raw_html, flags=re.DOTALL)[1]
+                local_model_settings_path = os.path.splitext(local_model_path)[0] + '.json'
+                if os.path.exists(local_model_settings_path):
+                    with open(local_model_settings_path, 'r') as file:
+                        local_settings_json = json.load(file)
+                        if 'sd version' in local_settings_json:
+                            generic_format['sd version'] = local_settings_json['sd version']
 
         on_click_string = re.search('onclick=\"cardClicked\((.*?)\);', raw_html, flags=re.DOTALL)[1] # Get the parameters of the call
         on_click_params = html.unescape(on_click_string)
