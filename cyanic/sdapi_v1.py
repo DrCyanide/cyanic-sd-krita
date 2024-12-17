@@ -136,7 +136,7 @@ class SDAPI():
         try:
             last_url = "{}/queue/status".format(host)
         
-            response = urllib.request.urlopen(last_url)
+            response = urllib.request.urlopen(last_url, timeout=5) # Without a timeout a stalled server can cause issues on startup
             text = response.read()
             try:
                 queue_status = json.loads(text)
