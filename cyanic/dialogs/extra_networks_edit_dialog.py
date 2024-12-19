@@ -40,7 +40,7 @@ class ExtraNetworksEditDialog(QDialog):
         # Name
         label = QLabel(self.extra_network_name)
         self.layout().addWidget(label)
-        # Alias too?
+        # Alias too? Some aliases are meaningfully different
 
         body = QWidget()
         body.setLayout(QFormLayout())

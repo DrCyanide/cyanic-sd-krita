@@ -30,10 +30,9 @@ class ExtraNetworksManageDialog(QDialog):
         text_panel.setLayout(QVBoxLayout())
 
         text = [
+            "* To customize an individual Lora or Hypernetwork, right click on it and select 'Customize'.",
             "* Import and Export custom settings, such as default weight, activation text, notes, etc.",
             "* Exported settings can be imported to Cyanic SD plugins on other computers.",
-            "* Importing from a server requires Cyanic SD be installed on that computer.",
-            "* To change an individual Lora or Hypernetwork, right click on it and select 'Customize'."
         ]
         disclaimer = QLabel('\n'.join(text))
         disclaimer.setWordWrap(True)
@@ -50,15 +49,15 @@ class ExtraNetworksManageDialog(QDialog):
         button_panel = QWidget()
         button_panel.setLayout(QVBoxLayout())
 
-        self.import_server_btn = QPushButton('Import from Server')
-        self.import_server_btn.setIcon(Krita.instance().icon('document-import'))
-        self.import_server_btn.setToolTip('If Krita is on the same computer that Stable Diffusion is being run, grab the custom data straight from Stable Diffusion')
-        self.import_server_btn.clicked.connect(lambda: self.import_server())
-        button_panel.layout().addWidget(self.import_server_btn)
+        # self.import_server_btn = QPushButton('Import from Server')
+        # self.import_server_btn.setIcon(Krita.instance().icon('document-import'))
+        # self.import_server_btn.setToolTip('If Krita is on the same computer that Stable Diffusion is being run, grab the custom data straight from Stable Diffusion')
+        # self.import_server_btn.clicked.connect(lambda: self.import_server())
+        # button_panel.layout().addWidget(self.import_server_btn)
 
-        local_host = 'localhost' in self.api.host or '127.0.0.1' in self.api.host
-        if not local_host:
-            self.import_server_btn.setDisabled(True)
+        # local_host = 'localhost' in self.api.host or '127.0.0.1' in self.api.host
+        # if not local_host:
+        #     self.import_server_btn.setDisabled(True)
 
         self.import_external_btn = QPushButton('Import from File')
         self.import_external_btn.setIcon(Krita.instance().icon('document-import'))
@@ -79,6 +78,12 @@ class ExtraNetworksManageDialog(QDialog):
         self.delete_settings_btn.setToolTip('Delete the saved default weights, activation text, SD Model version, etc. info from Cyanic SD')
         self.delete_settings_btn.clicked.connect(lambda: self.delete_data())
         button_panel.layout().addWidget(self.delete_settings_btn)
+
+        self.delete_thumbnails_btn = QPushButton('Delete thumbnails')
+        self.delete_thumbnails_btn.setIcon(Krita.instance().icon('deletelayer'))
+        self.delete_thumbnails_btn.setToolTip('Delete the lora thumbnails saved to this PC')
+        self.delete_thumbnails_btn.clicked.connect(lambda: self.delete_thumbnails())
+        button_panel.layout().addWidget(self.delete_thumbnails_btn)
 
         self.layout().addWidget(button_panel)
 
@@ -143,3 +148,8 @@ class ExtraNetworksManageDialog(QDialog):
         self.clear_status_label()
         self.settings_controller.delete_extra_network_data()
         self.set_status_label('Deleted saved customizations')
+
+    def delete_thumbnails(self):
+        self.clear_status_label()
+        self.settings_controller.delete_thumbnails()
+        self.set_status_label('Deleted saved thumbnails')

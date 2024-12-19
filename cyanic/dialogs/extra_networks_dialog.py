@@ -46,6 +46,7 @@ class ExtraNetworksDialog(QDialog):
 
         # self.importer_tab = QWidget()
         self.setLayout(QVBoxLayout())
+        self.reload_button = QPushButton('Refresh')
         self.load_settings()
         self.init_ui()
 
@@ -93,10 +94,19 @@ class ExtraNetworksDialog(QDialog):
         header.setLayout(QHBoxLayout())
         header.layout().setContentsMargins(0,0,0,0)
 
-        self.toggle_images_checkbox = QCheckBox('Show thumbnails')
+        # Show Thumbnails
+        self.toggle_images_checkbox = QCheckBox('Thumbnails')
+        self.toggle_images_checkbox.setToolTip('Show or Hide thumbnails')
         self.toggle_images_checkbox.setChecked(self.show_icons)
         self.toggle_images_checkbox.toggled.connect(lambda: self.update_show_icons())
         header.layout().addWidget(self.toggle_images_checkbox)
+
+        # Reload from server
+        self.reload_button = QPushButton('Refresh')
+        self.reload_button.setIcon(Krita.instance().icon('view-refresh'))
+        self.setToolTip('Refresh the lora/hypernetwork custom data from server, skips thumbnails')
+        self.reload_button.clicked.connect(lambda: self.load_extra_networks(skip_cached=False))
+        header.layout().addWidget(self.reload_button)
 
         # Model Filter
         self.model_filter_box = QComboBox()
@@ -203,6 +213,9 @@ class ExtraNetworksDialog(QDialog):
         self.set_widget_values()
 
     def get_thumbnail(self, network_type, network_name):
+        if not self.is_shown:
+            return None
+
         cached_thumbnail = self.settings_controller.get_cached_thumbnail(network_type, network_name)
         if cached_thumbnail is not None:
             return cached_thumbnail
@@ -302,30 +315,34 @@ class ExtraNetworksDialog(QDialog):
         self.show_icons = self.settings_controller.get('show_extra_network_thumbnails', False) # Default to False for faster loading times
         self.load_extra_networks()
 
-    def load_extra_networks(self):
+    def load_extra_networks(self, skip_cached=True):
+        self.reload_button.setDisabled(True)
         # Pull extra network settings
         self.extra_network_settings = self.settings_controller.get_extra_network_settings()
         # Check if the settings are missing any network that the server has
-        if not self.api.connected:
+        if not self.api.connected or not self.is_shown:
+            self.reload_button.setDisabled(False)
             return
         self.settings_controller.update_api_host(self.api.host) # Set the correct server address to save these settings with.
 
         lora_names = self.api.get_lora_names()
         hypernetwork_names = self.api.get_hypernetwork_names()
         for lora_name in lora_names:
-            # Pull that lora info from the server
-            lora_data = self.api.get_server_extra_network_config(network_type='lora', network_name=lora_name)
-            self.extra_network_settings = self.settings_controller.write_network_to_network_settings(self.extra_network_settings, network_type='lora', network_name=lora_name, setting_values=lora_data)
+            if lora_name not in self.extra_network_settings['lora'].keys() or (not skip_cached):
+                # Pull that lora info from the server
+                lora_data = self.api.get_server_extra_network_config(network_type='lora', network_name=lora_name)
+                self.extra_network_settings = self.settings_controller.write_network_to_network_settings(self.extra_network_settings, network_type='lora', network_name=lora_name, setting_values=lora_data)
 
         self.settings_controller.save_extra_network_settings(self.extra_network_settings)
 
         for hn_name in hypernetwork_names:
-            # Pull that lora info from the server
-            hn_data = self.api.get_server_extra_network_config(network_type='hypernetwork', network_name=hn_name)
-            self.extra_network_settings = self.settings_controller.write_network_to_network_settings(self.extra_network_settings, network_type='hypernetwork', network_name=hn_name, setting_values=hn_data)
+            if hn_name not in self.extra_network_settings['hypernetwork'].keys() or (not skip_cached):
+                # Pull that lora info from the server
+                hn_data = self.api.get_server_extra_network_config(network_type='hypernetwork', network_name=hn_name)
+                self.extra_network_settings = self.settings_controller.write_network_to_network_settings(self.extra_network_settings, network_type='hypernetwork', network_name=hn_name, setting_values=hn_data)
 
         self.settings_controller.save_extra_network_settings(self.extra_network_settings)
-
+        self.reload_button.setDisabled(False)
 
     def set_widget_values(self):
         self.lora_list.clear()

@@ -360,6 +360,12 @@ class SettingsController():
         default_settings = {'lora':{}, 'hypernetwork': {}}
         self.save_extra_network_settings(default_settings)
 
+    def delete_thumbnails(self):
+        for folder in os.listdir(self.extra_networks_thumbnail_dir):
+            folder_path = os.path.join(self.extra_networks_thumbnail_dir, folder)
+            for file in os.listdir(folder_path):
+                os.remove(os.path.join(folder_path, file))
+
     def set_extra_network_data_from_dict(self, network_type:str, network_name:str, data):
         # See default_extra_network_data for example of data format
         save_data = self.default_extra_network_data
