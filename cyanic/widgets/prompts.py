@@ -14,18 +14,22 @@ class PromptWidget(CyanicWidget):
         self.prompts_only = prompts_only
         self.mode = mode.lower() # txt2img / img2img / inpaint / adetailer1 / adetailer2
         self.variables = {
-            'prompt_history_max': 15, # Default value that can be overwritten by settings
+            'prompt_history_max': 30, # Default value that can be overwritten by settings
             'prompt_share': False,
             'prompt_share_includes': [],
             'prompts_txt_shared': [],
             'prompts_txt_shared_negative': [],
             'prompts_txt_%s' % self.mode : [],
             'prompts_txt_%s_negative' % self.mode : [],
+            'prompt_initial': '',
+            'prompt_negative_initial': '',
         }
         self.read_only_variables = [
             'prompt_history_max',
             'prompt_share',
-            'prompt_share_includes'
+            'prompt_share_includes',
+            'prompt_initial',
+            'prompt_negative_initial',
         ]
         self.server_const = {
             'styles': [],
@@ -60,22 +64,43 @@ class PromptWidget(CyanicWidget):
         self.prompt_history_row.setLayout(QHBoxLayout())
         self.prompt_history_row.layout().setContentsMargins(0,0,0,0)
 
-        self.prompt_history_prev_btn = QPushButton('Prev')
+        # New Prompt
+        self.prompt_history_add_btn = QPushButton('New')
+        self.prompt_history_add_btn.setIcon(Krita.instance().icon('addlayer'))
+        self.prompt_history_add_btn.setToolTip('Create a new prompt')
+        self.prompt_history_add_btn.clicked.connect(self.new_prompt)
+        self.prompt_history_row.layout().addWidget(self.prompt_history_add_btn)
+
+        # Previous
+        # self.prompt_history_prev_btn = QPushButton('Prev')
+        self.prompt_history_prev_btn = QPushButton('')
+        self.prompt_history_prev_btn.setIcon(Krita.instance().icon('prevframe'))
         self.prompt_history_prev_btn.setToolTip('Load a more recent used prompt')
         self.prompt_history_prev_btn.clicked.connect(self.load_prev_prompt)
+        self.prompt_history_row.layout().addWidget(self.prompt_history_prev_btn)
 
-        self.prompt_history_next_btn = QPushButton('Next')
-        self.prompt_history_next_btn.setToolTip('Load older recently used prompt')
-        self.prompt_history_next_btn.clicked.connect(self.load_next_prompt)
-
+        # Label
         self.prompt_history_label = QLabel()
         self.prompt_history_label.setAlignment(Qt.AlignCenter)
         self.update_history_label()
-
-        self.prompt_history_row.layout().addWidget(self.prompt_history_prev_btn)
         self.prompt_history_row.layout().addWidget(self.prompt_history_label)
+
+        # Next
+        # self.prompt_history_next_btn = QPushButton('Next')
+        self.prompt_history_next_btn = QPushButton('')
+        self.prompt_history_next_btn.setIcon(Krita.instance().icon('nextframe'))
+        self.prompt_history_next_btn.setToolTip('Load an older prompt')
+        self.prompt_history_next_btn.clicked.connect(self.load_next_prompt)
         self.prompt_history_row.layout().addWidget(self.prompt_history_next_btn)
 
+        # Delete Prompt
+        self.prompt_history_delete_btn = QPushButton('Delete')
+        self.prompt_history_delete_btn.setIcon(Krita.instance().icon('deletelayer'))
+        self.prompt_history_delete_btn.setToolTip('Delete this prompt from history')
+        self.prompt_history_delete_btn.clicked.connect(self.delete_prompt)
+        self.prompt_history_row.layout().addWidget(self.prompt_history_delete_btn)
+
+        # Add prompt history management row to widget
         self.layout().addWidget(self.prompt_history_row)
 
         # Prompt
@@ -152,6 +177,8 @@ class PromptWidget(CyanicWidget):
         self.variables['prompts_txt_shared_negative'] = self.settings_controller.get('prompts_txt_shared_negative', [])
         self.variables['prompts_txt_%s' % self.mode] = self.settings_controller.get('prompts_txt_%s' % self.mode, [])
         self.variables['prompts_txt_%s_negative' % self.mode] = self.settings_controller.get('prompts_txt_%s_negative' % self.mode, [])
+        self.variables['prompt_initial'] = self.settings_controller.get('prompt_initial', '')
+        self.variables['prompt_negative_initial'] = self.settings_controller.get('prompt_negative_initial', '')
         # Reset the prompt_history_index
         self.prompt_history_index = 0
 
@@ -175,11 +202,14 @@ class PromptWidget(CyanicWidget):
 
         # Remove empty prompts
         for i in range(0, len(active_prompt_history)):
-            if len(active_prompt_history[i]) == 0:
+            empty_prompt = len(active_prompt_history[i]) == 0
+            initial_prompt = active_prompt_history[i] == self.variables['prompt_initial'] and active_negative_prompt_history[i] == self.variables['prompt_negative_initial']
+            if empty_prompt or initial_prompt:
                 active_prompt_history.pop(i)
                 active_negative_prompt_history.pop(i)
                 break
-        
+
+
         # Insert at the beginning
         if len(prompt) > 0 or len(negative_prompt) > 0:
             active_prompt_history.insert(0, prompt)
@@ -211,6 +241,7 @@ class PromptWidget(CyanicWidget):
     def get_generation_data(self):
         self.save_settings()
         self.update_history_label()
+        self.update_btn_disables()
         data = {
             'prompt': self.prompt_text_edit.toPlainText(),
             'negative_prompt': self.negative_prompt_text_edit.toPlainText(),
@@ -234,6 +265,31 @@ class PromptWidget(CyanicWidget):
             self.prompt_text_edit.setPlainText(new_prompt)
             self.negative_prompt_text_edit.setPlainText(new_negative_prompt)
 
+    def update_btn_disables(self):
+        prompt_history_length = len(self.variables[self.active_prompt_variable])
+
+        self.prompt_history_prev_btn.setDisabled(self.prompt_history_index == 0)
+        self.prompt_history_next_btn.setDisabled(self.prompt_history_index == prompt_history_length - 1)
+        self.prompt_history_delete_btn.setDisabled(prompt_history_length == 0)
+
+    def delete_prompt(self):
+        self.variables[self.active_prompt_variable].pop(self.prompt_history_index)
+        self.variables['%s_negative' % self.active_prompt_variable].pop(self.prompt_history_index)
+        # Handle edge cases from deleting too much.
+        prompt_history_length = len(self.variables[self.active_prompt_variable])
+        if self.prompt_history_index > prompt_history_length:
+            self.prompt_history_index = prompt_history_length - 1
+        if prompt_history_length == 0:
+            self.new_prompt()
+        self.load_prompt_edits()
+
+    def new_prompt(self):
+        # Create with default values
+        self.variables[self.active_prompt_variable].insert(0, self.variables['prompt_initial'])
+        self.variables['%s_negative' % self.active_prompt_variable].insert(0, self.variables['prompt_negative_initial'])
+        self.prompt_history_index = 0
+        self.load_prompt_edits()
+
     def load_prev_prompt(self):
         if self.prompt_history_index > 0:
             self.prompt_history_index -= 1
@@ -246,6 +302,7 @@ class PromptWidget(CyanicWidget):
         self.load_prompt_edits()
 
     def load_prompt_edits(self):
+        self.update_btn_disables()
         self.update_history_label()
         active_prompt_history = self.variables[self.active_prompt_variable]
         active_negative_prompt_history = self.variables['%s_negative' % self.active_prompt_variable]
@@ -260,7 +317,17 @@ class PromptWidget(CyanicWidget):
             self.negative_prompt_text_edit.setPlainText(active_negative_prompt_history[self.prompt_history_index])
         else:
             # current_prompt_index is out of bounds?
-            self.clear_prompt_edits()
+            # self.clear_prompt_edits()
+            if self.prompt_history_index > 0:
+                self.prompt_history_index = self.prompt_history_index - 1
+                self.update_btn_disables()
+                self.update_history_label()
+                try:
+                    self.prompt_text_edit.setPlainText(active_prompt_history[self.prompt_history_index])
+                    self.negative_prompt_text_edit.setPlainText(active_negative_prompt_history[self.prompt_history_index])
+                except:
+                    self.clear_prompt_edits()
+        self.update_btn_disables()
 
     def clear_prompt_edits(self):
         self.prompt_text_edit.setPlainText('')
@@ -287,9 +354,6 @@ class PromptWidget(CyanicWidget):
                 item.setSelected(False)
                 # item.setCheckState(Qt.Unchecked)
                 # item.setBackground( QColor('#222222') )
-        
-        # Load loras/hypernetworks/embeddings
-        # self.change_extra_network_list(self.extra_network_box.currentText())
 
     def change_extra_network_list(self, list_type=None):
         if list_type is None:
@@ -328,12 +392,12 @@ class PromptWidget(CyanicWidget):
             # self.style_name_list.item(index).setCheckState(Qt.Unchecked)
             self.style_name_list.item(index).setSelected(False)
 
-    def add_extra_network_to_prompt(self, item):
-        extra_network_name = item.text()
-        extra_network_type = self.extra_network_types[self.extra_network_box.currentText()].split('_names')[0]
-        existing_prompt = self.prompt_text_edit.toPlainText()
-        self.prompt_text_edit.setPlainText('%s <%s:%s:1.0>' % (existing_prompt, extra_network_type, extra_network_name))
-
     def set_prompt(self, prompt='', negative_prompt=''):
         self.prompt_text_edit.setPlainText(prompt)
         self.negative_prompt_text_edit.setPlainText(negative_prompt)
+
+    # This is the general idea, but it's not being called when Krita closes.
+    # def destroy(destroyWindow=True, destroySubWindows=True):
+    #     if self.extra_network_dialog is not None:
+    #         self.extra_network_dialog.close()
+    #     super().destroy(destroyWindow, destroySubWindows)

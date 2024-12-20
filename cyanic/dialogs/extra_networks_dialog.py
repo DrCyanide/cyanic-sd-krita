@@ -253,8 +253,8 @@ class ExtraNetworksDialog(QDialog):
         
     
     def update_prompt_txt(self, prompt_txt='', negative_txt=''):
-        self.prompt_txt = prompt_txt
-        self.negative_txt = negative_txt
+        self.prompt_txt = prompt_txt.strip()
+        self.negative_txt = negative_txt.strip()
 
     def update_show_icons(self):
         self.show_icons = self.toggle_images_checkbox.isChecked()

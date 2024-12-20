@@ -14,7 +14,7 @@
             "size": 1
         },
         "prompting": {
-            "saved_prompts": 10,
+            "saved_prompts": 30,
             "share_prompts": true,
             "include_sharing": [
                 "txt2img",
