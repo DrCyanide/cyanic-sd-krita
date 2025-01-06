@@ -211,7 +211,7 @@ class CyanicDocker(DockWidget):
         doc = Krita.instance().activeDocument()
         if doc is None or doc.width() <= 0:
             return # The document doesn't exist yet.
-        
+        # raise Exception('Document Change!')
         # Save the settings to the existing Krita doc
         for page in self.pages:
             page['page'].save_settings()

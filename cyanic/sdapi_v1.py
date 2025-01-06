@@ -482,6 +482,8 @@ class SDAPI():
             vaes = list(map(lambda x: x['model_name'], self.vaes))
             if not 'None' in vaes:
                 vaes.insert(0, 'None')
+            if not 'Automatic' in vaes:
+                vaes.insert(0, 'Automatic')
             return vaes, self.defaults['vae']
         else:
             return [], 'None'
@@ -632,7 +634,11 @@ class SDAPI():
         if 'model' in data.keys():
             data['override_settings']['sd_model_checkpoint'] = data.pop('model')
         if 'vae' in data.keys():
-            data['override_settings']['sd_vae'] = data.pop('vae')
+            vae = data.pop('vae')
+            if vae.lower() == 'automatic':
+                pass
+            else:
+                data['override_settings']['sd_vae'] = vae
         if 'color_correction' in data.keys():
             data['override_settings']['img2img_color_correction'] = data.pop('color_correction')
 

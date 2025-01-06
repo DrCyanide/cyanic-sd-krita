@@ -20,7 +20,7 @@ class ModelsWidget(CyanicWidget):
         }
         self.server_const = {
             'models': [],
-            'vaes': ['None'],
+            'vaes': ['Automatic', 'None'],
             'refiners': [],
             'samplers': [],
             'schedulers': [],

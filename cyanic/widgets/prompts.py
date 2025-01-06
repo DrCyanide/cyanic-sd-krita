@@ -52,7 +52,8 @@ class PromptWidget(CyanicWidget):
 
     def set_widget_values(self):
         # Unsure what to do on this one
-        pass
+        # pass
+        self.load_prompt_edits()
 
     @property
     def using_shared(self):
