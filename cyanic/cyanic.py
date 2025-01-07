@@ -17,6 +17,7 @@ class CyanicDocker(DockWidget):
             # First time seeing a document (opened or created). Attempt to load settings
             self.last_active_doc = active_document
             self.settings_controller.set_active_doc(active_document)
+            self.settings_controller.load() # Reload the settings
             self.update_all_page_settings()
         else:
             if active_document != self.last_active_doc:
@@ -24,8 +25,11 @@ class CyanicDocker(DockWidget):
                 # Save settings to the last_active document, then switch
                 self.settings_controller.set_active_doc(self.last_active_doc)
                 self.save_all_page_settings()
+                self.settings_controller.save()
+                
                 self.last_active_doc = active_document
                 self.settings_controller.set_active_doc(active_document)
+                self.settings_controller.load() # Reload the settings
                 self.update_all_page_settings()
                 
 

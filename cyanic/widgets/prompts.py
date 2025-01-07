@@ -310,6 +310,9 @@ class PromptWidget(CyanicWidget):
         active_prompt_history = self.variables[self.active_prompt_variable]
         active_negative_prompt_history = self.variables['%s_negative' % self.active_prompt_variable]
 
+        self.prompt_text_edit.setPlainText('')
+        self.negative_prompt_text_edit.setPlainText('')
+
         if self.using_shared:
             # Use the shared prompt
             active_prompt_history = self.variables['prompts_txt_shared']
