@@ -20,11 +20,18 @@ class CyanicDocker(DockWidget):
         # Get notified when Krita closes, so all the popup dialogs can close too
         # Krita.instance().notifier().windowCreated.connect(self.on_krita_close) # Activates on the Create Document dialog coming up
         # https://krita-artists.org/t/connect-to-notifier-windowcreated-from-extension-fails/9981/3
-        Krita.instance().notifier().imageCreated.connect(self.on_document_change)
-        Krita.instance().notifier().imageSaved.connect(self.on_document_change)
+        # Krita.instance().notifier().imageCreated.connect(self.on_document_change)
+        # Krita.instance().notifier().imageSaved.connect(self.on_document_change)
 
-        Krita.instance().notifier().applicationClosing.connect(self.on_krita_close) # Doesn't seem to trigger
+        # Krita.instance().notifier().applicationClosing.connect(self.on_krita_close) # Doesn't seem to trigger
 
+        # https://scripting.krita.org/lessons/notifiers
+        # https://api.kde.org/krita/html/classNotifier.html
+        self.appNotifier = Krita.instance().notifier()
+        self.appNotifier.setActive(True)
+        self.appNotifier.applicationClosing.connect(self.on_krita_close) # Doesn't seem to work.
+        self.appNotifier.imageClosed.connect(self.on_krita_close) # Does seem to work
+        self.appNotifier.imageSaved.connect(self.on_krita_save)
 
         self.last_page = ''
 
@@ -206,6 +213,13 @@ class CyanicDocker(DockWidget):
         #     page['page'].load_settings()
         # self.settings_dialog.load_settings()
 
+    def on_krita_save(self):
+        doc = Krita.instance().activeDocument()
+        if doc is None or doc.width() <= 0:
+            return # The document doesn't exist yet.
+        # Save settings
+        for page in self.pages:
+            page['page'].save_settings()
 
     def on_document_change(self):
         doc = Krita.instance().activeDocument()
@@ -225,9 +239,14 @@ class CyanicDocker(DockWidget):
         self.settings_dialog.load_settings()
 
     def on_krita_close(self):
-        # raise Exception('Cyanic SD - Closing Krita')
-        # self.settings_dialog.close()
-        pass # Wasn't raising the exception. Would be nice to use this to close dialogs
+        try:
+            self.settings_dialog.close()
+        except:
+            pass
+        # Close any nested popups
+        for page in self.pages:
+            page['page'].close_dialogs()
+
 
     def closeEvent(self, event):
         # raise Exception('Cyanic SD - Closing Krita!')

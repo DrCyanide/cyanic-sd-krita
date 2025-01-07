@@ -38,3 +38,6 @@ class CyanicPage(QWidget):
         for widget in self.cyanic_widgets:
             widget.save_settings();
     
+    def close_dialogs(self):
+        for widget in self.cyanic_widgets:
+            widget.close_dialogs()

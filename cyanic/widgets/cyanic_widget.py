@@ -16,6 +16,7 @@ class CyanicWidget(QWidget):
             self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
         self.variables = {}
+        self.dialogs = []
 
     def init_ui(self):
         # Create the UI elements
@@ -58,3 +59,7 @@ class CyanicWidget(QWidget):
     def _update_variable(self, key, value):
         # A convenience function for updating self.variables
         self.variables[key] = value
+
+    def close_dialogs(self):
+        for dialog in self.dialogs:
+            dialog.close()
