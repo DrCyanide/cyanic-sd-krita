@@ -36,6 +36,7 @@ class CyanicWidget(QWidget):
         raise NotImplementedError('load_server_data() not implemented for this widget')
 
     def load_settings(self):
+        # Loads settings saved in default_settings.json, user_settings.json, and the .kra file
         # Refresh UI elements that depend on settings saved to file (prompt history, selected images, selected models, etc)
         # raise NotImplementedError('load_settings() not implemented for this widget')
         for key in self.variables:

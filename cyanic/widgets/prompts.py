@@ -129,7 +129,8 @@ class PromptWidget(CyanicWidget):
 
         self.extra_network_dialog = ExtraNetworksDialog(self.settings_controller, self.api, on_close=self.on_network_dialog_close)
         self.dialogs.append(self.extra_network_dialog)
-        self.show_network_dialog_btn = QPushButton('Open Prompt Extra Networks')
+        # self.show_network_dialog_btn = QPushButton('Open Prompt Extra Networks')
+        self.show_network_dialog_btn = QPushButton('Loras and Hypernetworks')
         self.show_network_dialog_btn.setIcon( Krita.instance().icon('configure') )
         self.show_network_dialog_btn.setToolTip('Access Loras, Hypernetworks, Textual Inversions, etc.')
         self.show_network_dialog_btn.clicked.connect(self.show_network_dialog)

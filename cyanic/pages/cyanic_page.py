@@ -22,14 +22,17 @@ class CyanicPage(QWidget):
         pass
 
     def load_all_settings(self):
+        # Issues both load_server_data() and load_settings() calls
         for widget in self.cyanic_widgets:
             widget.load_all_settings()
 
     def load_server_data(self):
+        # Loads settings from the SD server
         for widget in self.cyanic_widgets:
             widget.load_server_data()
     
     def load_settings(self):
+        # Loads settings saved in default_settings.json, user_settings.json, and the .kra file
         for widget in self.cyanic_widgets:
             widget.load_settings()
         self.handle_hidden()

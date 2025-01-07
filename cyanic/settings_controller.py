@@ -54,6 +54,10 @@ class SettingsController():
     def update_active_doc(self):
         self.active_doc = Krita.instance().activeDocument()
 
+    def set_active_doc(self, doc):
+        # Sometimes "active" isn't what Krita thinks, it's the last document used (for saving)
+        self.active_doc = doc
+
     def merge_dicts(self, original_dict, updated_dict):
         for key in original_dict.keys():
             if key in updated_dict:

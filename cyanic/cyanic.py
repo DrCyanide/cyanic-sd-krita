@@ -12,10 +12,31 @@ DEFAULT_HOST = "http://127.0.0.1:7860"
 
 class CyanicDocker(DockWidget):
     def on_krita_view_change(self):
-        raise Exception('View Changed!')
+        active_document = Krita.instance().activeDocument()
+        if self.last_active_doc == None:
+            # First time seeing a document (opened or created). Attempt to load settings
+            self.last_active_doc = active_document
+            self.settings_controller.set_active_doc(active_document)
+            self.update_all_page_settings()
+        else:
+            if active_document != self.last_active_doc:
+                # Open document is switching.
+                # Save settings to the last_active document, then switch
+                self.settings_controller.set_active_doc(self.last_active_doc)
+                self.save_all_page_settings()
+                self.last_active_doc = active_document
+                self.settings_controller.set_active_doc(active_document)
+                self.update_all_page_settings()
+                
+
+    def on_krita_window_active(self):
+        # MUST save the variable to self. No variable will crash, a local variable will go out of scope and forget the listener
+        self.activeWindow = Krita.instance().activeWindow()
+        self.activeWindow.activeViewChanged.connect(self.on_krita_view_change)
 
     def __init__(self):
         super().__init__()
+        self.last_active_doc = None
         self.settings_controller = SettingsController()
         host = self.settings_controller.get('host') if self.settings_controller.has_key('host') else DEFAULT_HOST
         self.api = SDAPI(host, self.on_api_change)
@@ -30,14 +51,10 @@ class CyanicDocker(DockWidget):
         # https://api.kde.org/krita/html/classNotifier.html
         self.appNotifier = Krita.instance().notifier()
         self.appNotifier.setActive(True)
-        self.appNotifier.applicationClosing.connect(self.on_krita_close) # Does not seem to work.
+        self.appNotifier.applicationClosing.connect(self.on_krita_close) # Does NOT seem to work, but I'm going to keep it anyway.
         self.appNotifier.imageClosed.connect(self.on_krita_close) # Does seem to work. 
         self.appNotifier.imageSaved.connect(self.on_krita_save)
-
-        # self.appNotifier.viewCreated.connect(self.on_krita_view_change) # Fires when creating a new document/opening existing doc, not switching active.
-
-        # Krita.instance().activeWindow().activeViewChanged.connect(self.on_krita_view_change) # Might work, but can't be in initial init, because activeWindow doesn't exist yet.
-
+        self.appNotifier.windowCreated.connect(self.on_krita_window_active)
         self.last_page = ''
 
         self.setWindowTitle("Cyanic SD")
@@ -187,6 +204,10 @@ class CyanicDocker(DockWidget):
         for page in self.pages:
             page['page'].load_settings()
 
+    def save_all_page_settings(self):
+        for page in self.pages:
+            page['page'].save_settings()
+
     def on_dialog_close(self):
         # Make sure the current page saves settings first, to avoid erasing prompts that haven't been generated yet
         self.save_last_page()
@@ -196,7 +217,7 @@ class CyanicDocker(DockWidget):
 
     # This needs to be present in any class that implements DockWidget, even if it's not used
     def canvasChanged(self, canvas):
-        self.on_document_change()
+        # self.on_document_change()
         pass
         # # Can be used to detect active document change, which can update settings
         # doc = Krita.instance().activeDocument()
@@ -226,6 +247,7 @@ class CyanicDocker(DockWidget):
             page['page'].save_settings()
 
     def on_document_change(self):
+        return # Depricating
         if len(Krita.instance().documents()) == 0:
             return # The document doesn't exist yet.
         # raise Exception('Document Change!')
@@ -255,7 +277,7 @@ class CyanicDocker(DockWidget):
                     page['page'].close_dialogs()
 
 
-# This is what tells Krita to add the docker in the first place.
+# This irs what tells Krita to add the docker in the first place.
 Krita.instance().addDockWidgetFactory(
     DockWidgetFactory(
         "cyanicSD",
