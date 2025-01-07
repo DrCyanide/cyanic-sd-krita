@@ -11,6 +11,9 @@ DEFAULT_HOST = "http://127.0.0.1:7860"
 
 
 class CyanicDocker(DockWidget):
+    def on_krita_view_change(self):
+        raise Exception('View Changed!')
+
     def __init__(self):
         super().__init__()
         self.settings_controller = SettingsController()
@@ -23,15 +26,17 @@ class CyanicDocker(DockWidget):
         # Krita.instance().notifier().imageCreated.connect(self.on_document_change)
         # Krita.instance().notifier().imageSaved.connect(self.on_document_change)
 
-        # Krita.instance().notifier().applicationClosing.connect(self.on_krita_close) # Doesn't seem to trigger
-
         # https://scripting.krita.org/lessons/notifiers
         # https://api.kde.org/krita/html/classNotifier.html
         self.appNotifier = Krita.instance().notifier()
         self.appNotifier.setActive(True)
-        self.appNotifier.applicationClosing.connect(self.on_krita_close) # Doesn't seem to work.
-        self.appNotifier.imageClosed.connect(self.on_krita_close) # Does seem to work
+        self.appNotifier.applicationClosing.connect(self.on_krita_close) # Does not seem to work.
+        self.appNotifier.imageClosed.connect(self.on_krita_close) # Does seem to work. 
         self.appNotifier.imageSaved.connect(self.on_krita_save)
+
+        # self.appNotifier.viewCreated.connect(self.on_krita_view_change) # Fires when creating a new document/opening existing doc, not switching active.
+
+        # Krita.instance().activeWindow().activeViewChanged.connect(self.on_krita_view_change) # Might work, but can't be in initial init, because activeWindow doesn't exist yet.
 
         self.last_page = ''
 
@@ -214,16 +219,14 @@ class CyanicDocker(DockWidget):
         # self.settings_dialog.load_settings()
 
     def on_krita_save(self):
-        doc = Krita.instance().activeDocument()
-        if doc is None or doc.width() <= 0:
+        if len(Krita.instance().documents()) == 0:
             return # The document doesn't exist yet.
         # Save settings
         for page in self.pages:
             page['page'].save_settings()
 
     def on_document_change(self):
-        doc = Krita.instance().activeDocument()
-        if doc is None or doc.width() <= 0:
+        if len(Krita.instance().documents()) == 0:
             return # The document doesn't exist yet.
         # raise Exception('Document Change!')
         # Save the settings to the existing Krita doc
@@ -239,19 +242,18 @@ class CyanicDocker(DockWidget):
         self.settings_dialog.load_settings()
 
     def on_krita_close(self):
-        try:
-            self.settings_dialog.close()
-        except:
-            pass
-        # Close any nested popups
-        for page in self.pages:
-            page['page'].close_dialogs()
+        if len(Krita.instance().documents()) <= 0:
+            # This is the last document to close
+            try:
+                self.settings_dialog.close()
+            except:
+                pass
 
+            if self.pages: # If Krita doesn't fully start up then the plugin gets upset.
+                # Close any nested popups
+                for page in self.pages:
+                    page['page'].close_dialogs()
 
-    def closeEvent(self, event):
-        # raise Exception('Cyanic SD - Closing Krita!')
-        # self.settings_dialog.close()
-        pass
 
 # This is what tells Krita to add the docker in the first place.
 Krita.instance().addDockWidgetFactory(

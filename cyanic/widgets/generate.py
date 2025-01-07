@@ -58,6 +58,11 @@ class GenerateWidget(QWidget):
         self.progress_bar.setHidden(False)
         self.update()
 
+        self.kc.refresh_doc()
+        if self.kc.doc is None: 
+            self.kc.create_new_doc()
+        self.generating_for_doc = self.kc.doc # Get the current document, so that if the user switches project files mid generation it'll still update this document
+
         processing_instructions = {} # Used to store instructions that should be executed after the image is generated
 
         x = self.size_dict["x"]
@@ -66,11 +71,11 @@ class GenerateWidget(QWidget):
         h = self.size_dict["h"]
         if w == 0 or h == 0 :
             # Size dict was not updated, try to use the selection size
-            x, y, w, h = self.kc.get_selection_bounds() 
+            x, y, w, h = self.kc.get_selection_bounds(doc=self.generating_for_doc) 
             if w == 0 or h == 0:
                 # Nothing was selected, use the canvas size
                 x, y = 0, 0
-                w, h = self.kc.get_canvas_size()
+                w, h = self.kc.get_canvas_size(doc=self.generating_for_doc)
 
         
         data = {
@@ -137,9 +142,6 @@ class GenerateWidget(QWidget):
             # return
         
         try:
-            self.kc.refresh_doc()
-            if self.kc.doc is None: 
-                self.kc.create_new_doc()
             self.kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return(x, y, w, h, processing_instructions))
             self.progress_timer = QTimer()
             self.progress_timer.timeout.connect(lambda: self.progress_check(x, y, w, h, processing_instructions))
@@ -171,7 +173,7 @@ class GenerateWidget(QWidget):
                 self.abort = False
                 self.finished = False
                 self.update_progress_bar(1)
-                self.kc.delete_preview_layer()
+                self.kc.delete_preview_layer(doc=self.generating_for_doc)
                 self.progress_timer.stop()
                 self.is_generating = False
                 # raise Exception('Cyanic SD - Early progress end - Abort: %s Progress: %s' % (self.abort, results['progress']))
@@ -183,13 +185,13 @@ class GenerateWidget(QWidget):
                     if 'resize' in processing_instructions.keys():
                         w = processing_instructions['resize']['width']
                         h = processing_instructions['resize']['height']
-                    self.kc.update_preview_layer(results['current_image'], x, y, w, h)
+                    self.kc.update_preview_layer(results['current_image'], x, y, w, h, doc=self.generating_for_doc)
         except Exception as e:
             # Kill the progress check
             self.abort = False
             self.finished = False
             self.update_progress_bar(1)
-            self.kc.delete_preview_layer()
+            self.kc.delete_preview_layer(doc=self.generating_for_doc)
             self.progress_timer.stop()
             self.is_generating = False
             # raise Exception('Cyanic SD - Error in progress loop: %s' % e)
@@ -209,8 +211,7 @@ class GenerateWidget(QWidget):
             # self.debug_data.setPlainText('Threadable Run!\n%s' % self.results)
 
     def threadable_return(self, x, y, w, h, processing_instructions={}):
-        kc = KritaController()
-        # self.debug_data.setPlainText('Threadable Return!\n%s' % self.results)
+        # kc = KritaController() # Why am I not using self.kc here?
         if self.results is not None:
             self.finished = True
             # Prune the results images so that ControlNet preprocessors or masks aren't included in the results
@@ -227,10 +228,13 @@ class GenerateWidget(QWidget):
                         self.results['images'] = self.results['images'][:expected_images]
 
             if 'results_below_layer_uuid' in processing_instructions:
-                layer = kc.get_layer_from_uuid(processing_instructions['results_below_layer_uuid'])
-                kc.results_to_layers(self.results, x, y, w, h, below_layer=layer)
+                # layer = kc.get_layer_from_uuid(processing_instructions['results_below_layer_uuid'])
+                # kc.results_to_layers(self.results, x, y, w, h, below_layer=layer)
+                layer = self.kc.get_layer_from_uuid(processing_instructions['results_below_layer_uuid'], doc=self.generating_for_doc)
+                self.kc.results_to_layers(self.results, x, y, w, h, below_layer=layer, doc=self.generating_for_doc)
             else:
-                kc.results_to_layers(self.results, x, y, w, h)
+                # kc.results_to_layers(self.results, x, y, w, h)
+                self.kc.results_to_layers(self.results, x, y, w, h, doc=self.generating_for_doc)
 
             # if self.debug:
             #     temp_results = self.results

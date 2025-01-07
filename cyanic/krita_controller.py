@@ -40,6 +40,7 @@ class KritaController():
             return None
         return QIcon(str(path))
 
+
     def version_gte(self, target_version):
         # Check if the current version is greater than or equal to the target version
         # target_version can be '5', '5.1', '5.1.3'
@@ -64,19 +65,34 @@ class KritaController():
         except Exception as e:
             raise Exception('Cyanic SD - Exception starting thread: %s' % e )
 
+    def handle_no_self_doc(self):
+        if self.doc is None:
+            if self.should_create_new_doc():
+                self.create_new_doc()
+            else:
+                # Just use the active document
+                self.refresh_doc()
+
+    def should_create_new_doc(self):
+        # Versions before 5.2 had the extension displayed before a canvas was opened.
+        # This lets someone hitting "Generate" in one of those versions get a basic document
+        return self.doc is None and not self.version_gte('5.2')
+
     def create_new_doc(self):
         # create new document createDocument(width, height, name, colorSpace, bitDepth, colorProfile, DPI)
-        new_doc = Krita.instance().createDocument(512, 512, "Stable Diffusion", "RGBA", "U8", "", 300.0)
+        default_size = 768 # 768 is a size SD1 and SDXL can both work with, even if results aren't fantastic
+        new_doc = Krita.instance().createDocument(default_size, default_size, "Stable Diffusion", "RGBA", "U8", "", 300.0)
         Krita.instance().activeWindow().addView(new_doc)
         self.doc = new_doc
 
     def refresh_doc(self):
         self.doc = Krita.instance().activeDocument()
 
-    def get_selection_bounds(self):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def get_selection_bounds(self, doc=None):
+        if doc != None:
+            self.doc = doc
+
+        self.handle_no_self_doc()
         # return x, y, width, height
         if self.doc.selection():
             x = self.doc.selection().x()
@@ -87,18 +103,20 @@ class KritaController():
         else:
             return 0, 0, 0, 0
     
-    def set_selection(self, x, y, w, h):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def set_selection(self, x, y, w, h, doc=None):
+        if doc != None:
+            self.doc = doc
+
+        self.handle_no_self_doc()
         selection = Selection()
         selection.select(x, y, w, h, 255) # 255 = totally selected
         self.doc.setSelection(selection)
 
-    def get_canvas_bounds(self):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def get_canvas_bounds(self, doc=None):
+        if doc != None:
+            self.doc = doc
+        
+        self.handle_no_self_doc()
         
         bounds = self.doc.bounds()
         x = bounds.x()
@@ -114,10 +132,11 @@ class KritaController():
         h_real = height - y
         self.doc.resizeImage(x, y, w_real, h_real)
 
-    def get_layer_bounds(self):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def get_layer_bounds(self, doc=None):
+        if doc != None:
+            self.doc = doc
+
+        self.handle_no_self_doc()
 
         bounds = self.doc.activeNode().bounds()
         x = bounds.x()
@@ -129,17 +148,19 @@ class KritaController():
     def set_layer_visible(self, layer, visible=True):
         layer.setVisible(visible)
 
-    def get_active_layer_name(self):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def get_active_layer_name(self, doc=None):
+        if doc != None:
+            self.doc = doc
+        
+        self.handle_no_self_doc()
         layer = self.doc.activeNode()
         return layer.name()
 
-    def get_canvas_size(self):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def get_canvas_size(self, doc=None):
+        if doc != None:
+            self.doc = doc
+        
+        self.handle_no_self_doc()
         # return width, height
         return self.doc.width(), self.doc.height()
     
@@ -201,10 +222,11 @@ class KritaController():
             child_node = self.doc.activeNode()
         return child_node.parentNode()
 
-    def results_to_layers(self, results, x=0, y=0, w=-1, h=-1, layer_name='', below_active=False, below_layer=None):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def results_to_layers(self, results, x=0, y=0, w=-1, h=-1, layer_name='', below_active=False, below_layer=None, doc=None):
+        if doc != None:
+            self.doc = doc
+
+        self.handle_no_self_doc()
 
         if w < 0 or h < 0:
             # This is for img2img/txt2img results
@@ -216,12 +238,12 @@ class KritaController():
                     w = results['poses'][0]['canvas_width']
                     h = results['poses'][0]['canvas_height']
                 else:
-                    s_x, s_y, s_w, s_h = self.get_selection_bounds()
+                    s_x, s_y, s_w, s_h = self.get_selection_bounds(doc=doc)
                     if s_w > 0 and s_h > 0:
                         w = s_w
                         h = s_h
                     else:
-                        c_x, c_y, c_w, c_h = self.get_canvas_bounds()
+                        c_x, c_y, c_w, c_h = self.get_canvas_bounds(doc=doc)
                         w = c_w
                         h = c_h
 
@@ -315,18 +337,20 @@ class KritaController():
             # The transparency mask is the new active
             QTimer.singleShot(delay, lambda:old_active.addChildNode(self.doc.activeNode(), None))
         
-    def get_active_layer_uuid(self):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def get_active_layer_uuid(self, doc=None):
+        if doc != None:
+            self.doc = doc
+
+        self.handle_no_self_doc()
         if len(self.doc.activeNode().channels()) == 0: # Masks don't have channels
             self.doc.setActiveNode(self.doc.activeNode().parentNode())
         return self.doc.activeNode().uniqueId()
     
-    def get_layer_from_uuid(self, uuid):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def get_layer_from_uuid(self, uuid, doc=None):
+        if doc != None:
+            self.doc = doc
+        
+        self.handle_no_self_doc()
         if type(uuid) is str:
             uuid = QUuid(uuid)
         if self.version_gte('5.2'):
@@ -353,10 +377,11 @@ class KritaController():
             # 5.1.5 was having issues, because node was type QObject and not Node
             pass
 
-    def get_selected_layer_img(self):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def get_selected_layer_img(self, doc=None):
+        if doc != None:
+            self.doc = doc
+        
+        self.handle_no_self_doc()
 
         x, y, width, height = self.get_layer_bounds()
         # projectionPixelData works for groups, and applies filters, masks, layers in the group, etc.
@@ -368,19 +393,21 @@ class KritaController():
         image = self.doc.projection(x, y, width, height) # Use the doc projection to include the layers below, we're just shaping it to the 
         return image
     
-    def get_canvas_img(self):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def get_canvas_img(self, doc=None):
+        if doc != None:
+            self.doc = doc
+        
+        self.handle_no_self_doc()
         
         x, y, width, height = self.get_canvas_bounds()
         image = self.doc.projection(x, y, width, height)
         return image
     
-    def get_selection_img(self):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def get_selection_img(self, doc=None):
+        if doc != None:
+            self.doc = doc
+        
+        self.handle_no_self_doc()
         
         x, y, width, height = self.get_selection_bounds()
         image = self.doc.projection(x, y, width, height)
@@ -410,10 +437,12 @@ class KritaController():
                 image.setPixel(pixel_x, pixel_y, newPixel)
         return image
 
-    def get_mask_and_image(self, mode='canvas'):
+    def get_mask_and_image(self, mode='canvas', doc=None):
         # mode: 'canvas', 'layer', 'selection'
         # I'm trying to find the best way to write these repetitive functions.
-        self.doc = Krita.instance().activeDocument()
+        if doc != None:
+            self.doc = doc
+
         if self.doc is None:
             return None, None
         
@@ -487,10 +516,11 @@ class KritaController():
         origin = QPointF(x, y)
         layer.scaleNode(origin, width, height, strategy)
 
-    def use_transform_mask(self, layer, x, y, width, height):
-        self.doc = Krita.instance().activeDocument()
-        if self.doc is None:
-            self.create_new_doc()
+    def use_transform_mask(self, layer, x, y, width, height, doc=None):
+        if doc != None:
+            self.doc = doc
+            
+        self.handle_no_self_doc()
         # Krita 5.2+ only
         mask = self.doc.createTransformMask('Transform')
         layer.addChildNode(mask, None)
@@ -527,7 +557,10 @@ class KritaController():
         """.format(x=x, y=y, scale_x=scale_x, scale_y=scale_y)
         mask.fromXML(xml_data)
 
-    def delete_preview_layer(self):
+    def delete_preview_layer(self, doc=None):
+        if doc != None:
+            self.doc = doc
+
         if self.preview_layer_uid is None:
             return
         layer = self._get_layer_with_uid(self.preview_layer_uid)
@@ -536,8 +569,9 @@ class KritaController():
             layer.remove()
         self.preview_layer_uid = None
 
-    def update_preview_layer(self, base64str:str, x, y, w, h):
-        self.doc = Krita.instance().activeDocument()
+    def update_preview_layer(self, base64str:str, x, y, w, h, doc=None):
+        if doc != None:
+            self.doc = doc
         # byte_array, img_w, img_h = self.base64_to_pixeldata(base64str)
         byte_array, img_w, img_h = self.base64_to_pixeldata(base64str, w, h) # Using a transform over and over on the layer creates flickering. 
         layer = None
