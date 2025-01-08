@@ -12,6 +12,7 @@ class BatchWidget(CyanicWidget):
             'batch_size': 1,
         }
         self.init_ui()
+        self.load_settings()
 
     def load_server_data(self):
         pass

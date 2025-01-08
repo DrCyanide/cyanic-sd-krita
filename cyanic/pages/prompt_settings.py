@@ -162,7 +162,7 @@ class PromptSettingsPage(CyanicPage):
 
     def clear_prompt_history(self):
         self.settings_controller.clear_file_prompt_history()
-        # TODO: Trigger a reload of everything's settings
+        # TODO: Trigger a reload of everything's settings (?)
 
     def update_share_includes(self, mode:str, active:bool):
         # if active and not self.variables['prompt_share_includes'].index(mode) > -1:

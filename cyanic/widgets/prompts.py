@@ -51,8 +51,6 @@ class PromptWidget(CyanicWidget):
         self.handle_hidden()
 
     def set_widget_values(self):
-        # Unsure what to do on this one
-        # pass
         self.load_prompt_edits()
 
     @property

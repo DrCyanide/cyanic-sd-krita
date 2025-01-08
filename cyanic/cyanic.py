@@ -23,13 +23,14 @@ class CyanicDocker(DockWidget):
             if active_document != self.last_active_doc:
                 # Open document is switching.
                 # Save settings to the last_active document, then switch
+                
                 self.settings_controller.set_active_doc(self.last_active_doc)
                 self.save_all_page_settings()
-                self.settings_controller.save()
-                
+                # self.settings_controller.save() # Causing issues, overwriting the settings that were just made
+
                 self.last_active_doc = active_document
                 self.settings_controller.set_active_doc(active_document)
-                self.settings_controller.load() # Reload the settings
+                self.settings_controller.load() # Reload the settings (user_settings + .kra settings) for the new document
                 self.update_all_page_settings()
                 
 
@@ -45,20 +46,6 @@ class CyanicDocker(DockWidget):
         host = self.settings_controller.get('host') if self.settings_controller.has_key('host') else DEFAULT_HOST
         self.api = SDAPI(host, self.on_api_change)
 
-        # Get notified when Krita closes, so all the popup dialogs can close too
-        # Krita.instance().notifier().windowCreated.connect(self.on_krita_close) # Activates on the Create Document dialog coming up
-        # https://krita-artists.org/t/connect-to-notifier-windowcreated-from-extension-fails/9981/3
-        # Krita.instance().notifier().imageCreated.connect(self.on_document_change)
-        # Krita.instance().notifier().imageSaved.connect(self.on_document_change)
-
-        # https://scripting.krita.org/lessons/notifiers
-        # https://api.kde.org/krita/html/classNotifier.html
-        self.appNotifier = Krita.instance().notifier()
-        self.appNotifier.setActive(True)
-        self.appNotifier.applicationClosing.connect(self.on_krita_close) # Does NOT seem to work, but I'm going to keep it anyway.
-        self.appNotifier.imageClosed.connect(self.on_krita_close) # Does seem to work. 
-        self.appNotifier.imageSaved.connect(self.on_krita_save)
-        self.appNotifier.windowCreated.connect(self.on_krita_window_active)
         self.last_page = ''
 
         self.setWindowTitle("Cyanic SD")
@@ -152,6 +139,24 @@ class CyanicDocker(DockWidget):
         except:
             pass
         self.open_page(self.last_page)
+
+        self.set_notifications()
+
+    def set_notifications(self):
+        # Get notified when Krita closes, so all the popup dialogs can close too
+        # Krita.instance().notifier().windowCreated.connect(self.on_krita_close) # Activates on the Create Document dialog coming up
+        # https://krita-artists.org/t/connect-to-notifier-windowcreated-from-extension-fails/9981/3
+        # Krita.instance().notifier().imageCreated.connect(self.on_document_change)
+        # Krita.instance().notifier().imageSaved.connect(self.on_document_change)
+
+        # https://scripting.krita.org/lessons/notifiers
+        # https://api.kde.org/krita/html/classNotifier.html
+        self.appNotifier = Krita.instance().notifier()
+        self.appNotifier.setActive(True)
+        self.appNotifier.applicationClosing.connect(self.on_krita_close) # Does NOT seem to work, but I'm going to keep it anyway.
+        self.appNotifier.imageClosed.connect(self.on_krita_close) # Does seem to work. 
+        self.appNotifier.imageSaved.connect(self.on_krita_save)
+        self.appNotifier.windowCreated.connect(self.on_krita_window_active)
 
     def on_api_change(self):
         if self.api.connected:

@@ -49,6 +49,7 @@ class GenerateWidget(QWidget):
             self.cancel()
         else:
             self.generate()
+            self.settings_controller.save() # Write the settings used to the .kra annotate and user settings
         self.update()
 
     def generate(self):

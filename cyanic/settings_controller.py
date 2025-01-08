@@ -105,14 +105,13 @@ class SettingsController():
                 if os.path.exists(backup_file):
                     os.remove(backup_file)
                 os.rename(self.user_settings_file, backup_file)
-                self.save_user_settings() # Effectively overwrites the user_settings
+                self.save_user_settings() # Effectively overwrites the outdated user_settings with up-to-date version
             else:
                 # Proceed to merge the user_settings with the default
                 self.tmp_settings = self.merge_dicts(self.tmp_settings, user_settings)
 
         self.load_kra_settings()
-
-        # Sync settings with the tmp_settings (done last so that self.saveUserSettings() can work as a way to clear bad user_settings)
+        # Sync settings with the tmp_settings (done last so that self.save_user_settings() can work as a way to clear bad user_settings)
         self.settings = self.tmp_settings
 
     def load_settings_map(self, version):
