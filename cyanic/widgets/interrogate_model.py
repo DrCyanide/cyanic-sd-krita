@@ -12,7 +12,8 @@ class InterrogateModelWidget(CyanicWidget):
         settings_controller: SettingsController,
         api: SDAPI,
         size_dict: dict,
-        hide_prompt_mode: bool = False,
+        # hide_prompt_mode: bool = False,
+        hide_prompt_mode: bool = True,
     ):
         super().__init__(settings_controller, api)
         self.size_dict = size_dict
@@ -41,7 +42,7 @@ class InterrogateModelWidget(CyanicWidget):
 
     def set_widget_values(self):
         self.model_box.setCurrentText(self.variables["interrogate_model"])
-        self.prompt_mode_box.setCurrentText(self.variables["interrogate_prompt_mode"])
+        # self.prompt_mode_box.setCurrentText(self.variables["interrogate_prompt_mode"])
 
 
     def init_ui(self):
@@ -63,23 +64,24 @@ class InterrogateModelWidget(CyanicWidget):
 
         # TODO: maybe move prompt mode to own widget? InterrogateSettingsWidget?
         # might be more useful if there are more settings for the interrogate widget
-        self.prompt_mode_box = QComboBox()
-        self.prompt_mode_box.addItems(
-            ["txt2img", "img2img", "inpaint", "adetailer"]
-        )
-        # self.prompt_mode_box.setCurrentText(self.variables["interrogate_prompt_mode"])
-        self.prompt_mode_box.setStyleSheet("QComboBox { combobox-popup: 0; }")
-        self.prompt_mode_box.setMaxVisibleItems(10)
-        self.prompt_mode_box.currentTextChanged.connect(
-            lambda: self._update_variables(
-                "interrogate_prompt_mode", self.prompt_mode_box.currentText()
-            )
-        )
-        self.prompt_mode_box.setToolTip(
-            "Interrogate Prompt Mode (sync prompt with txt2img / img2img / inpaint / adetailer)"
-        )
-        if not self.hide_prompt_mode:
-            select_form.layout().addRow("Prompt Mode", self.prompt_mode_box)
+        # NOTE: The PromptWidget (which this prompt_mode tries to update) doesn't support dynamically changing modes.
+        # self.prompt_mode_box = QComboBox()
+        # self.prompt_mode_box.addItems(
+        #     ["txt2img", "img2img", "inpaint", "adetailer"]
+        # )
+        # # self.prompt_mode_box.setCurrentText(self.variables["interrogate_prompt_mode"])
+        # self.prompt_mode_box.setStyleSheet("QComboBox { combobox-popup: 0; }")
+        # self.prompt_mode_box.setMaxVisibleItems(10)
+        # self.prompt_mode_box.currentTextChanged.connect(
+        #     lambda: self._update_variables(
+        #         "interrogate_prompt_mode", self.prompt_mode_box.currentText()
+        #     )
+        # )
+        # self.prompt_mode_box.setToolTip(
+        #     "Interrogate Prompt Mode (sync prompt with txt2img / img2img / inpaint / adetailer)"
+        # )
+        # if not self.hide_prompt_mode:
+        #     select_form.layout().addRow("Prompt Mode", self.prompt_mode_box)
 
         self.layout().addWidget(select_form)
 

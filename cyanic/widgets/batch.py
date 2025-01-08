@@ -47,12 +47,11 @@ class BatchWidget(CyanicWidget):
     def save_settings(self):
         self.settings_controller.set('batch_count', self.variables['batch_count'])
         self.settings_controller.set('batch_size', self.variables['batch_size'])
-        # self.settings_controller.save()
 
     def get_generation_data(self):
+        self.save_settings()
         data = {
             'batch_count': self.variables['batch_count'],
             'batch_size': self.variables['batch_size'], # n_iter in the API
         }
-        self.save_settings()
         return data

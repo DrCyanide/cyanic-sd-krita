@@ -162,7 +162,6 @@ class SoftInpaintWidget(CyanicWidget):
         # self.settings_controller.set('soft_inpaint_mask_influence', self.variables['mask_influence'])
         # self.settings_controller.set('soft_inpaint_difference_threshold', self.variables['difference_threshold'])
         # self.settings_controller.set('soft_inpaint_difference_contrast', self.variables['difference_contrast'])
-        # self.settings_controller.save()
         super().save_settings()
         self.settings_controller.set('soft_inpaint_enabled', self.enabled)
 

@@ -18,7 +18,7 @@ class SettingsController():
         'Unknown', # "Unknown" should always be last
     ]
     def __init__(self):
-        self.settings = {} # Settings loaded from .json files
+        self.settings = {} # Settings loaded from .json file and .kra file (gets updated on .save() and .load())
         self.tmp_settings = {} # What's staged to be saved, the WIP settings
         self.key_mapping = {} # Convert keys the widgets use (controller notation) into paths in the JSON uses (model notation)
         self.loaded_key_mappings = False
@@ -178,6 +178,10 @@ class SettingsController():
         str_settings = json.dumps(self.tmp_settings['kra_file_overridden_settings'])
         self.active_doc.setAnnotation(self.kra_unique_key, 'Cyanic SD plugin settings', QByteArray(str_settings.encode()))
 
+    def revert_settings(self):
+        # Revert settings to whatever was used on the last save/load.
+        self.tmp_settings = self.settings
+
     def clear_file_prompt_history(self):
         # tmp_settings should have the most recent file's history.
         if self.active_doc is None:
@@ -202,6 +206,7 @@ class SettingsController():
         self.settings = self.tmp_settings
         self.save_user_settings()
         self.save_kra_settings()
+        
 
     # Extra Network saved settings and thumbnail caching
     # Extra Networks have APIs that differ between A1111, Forge, SD.Next, etc, so handling this locally is the best option.

@@ -249,9 +249,6 @@ class ModelsWidget(CyanicWidget):
 
         for key in self.variables.keys():
             self.settings_controller.set(key, self.variables[key])
-        
-        
-        # self.settings_controller.save()
 
     def get_generation_data(self):
         # Return a formatted dict with data used to generate images.

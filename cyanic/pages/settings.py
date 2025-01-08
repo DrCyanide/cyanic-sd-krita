@@ -185,7 +185,7 @@ class SettingsPage(CyanicPage):
 
     def update_setting(self, key, value):
         self.settings_controller.set(key, value)
-        self.settings_controller.save()
+        self.settings_controller.save() # Kept in so that saves happen automatically, updating cyanic_widgets
 
 
     def save_user_settings(self):

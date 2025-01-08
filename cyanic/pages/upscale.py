@@ -21,7 +21,6 @@ class UpscalePage(CyanicPage):
         }
 
         self.max_scale = 10
-        self.generating = False
         self.upscalers = []
         self.default_upscaler = ''
 
@@ -138,18 +137,17 @@ class UpscalePage(CyanicPage):
     def save_settings(self):
         for key in self.variables:
             self.settings_controller.set(key, self.variables[key])
-        # self.settings_controller.save()
-
-    def btn_click(self):
-        if self.generating:
-            self.upscale_btn.setText('Upscale')
 
     def upscale(self):
+        # This acts similar to "Generate", and should save the settings used
         self.kc = KritaController()
         tab = self.scale_tabs.currentIndex()
         self.settings_controller.set('upscale_tab', tab)
-        # self.settings_controller.save()
         self.save_settings()
+
+        self.generating_for_doc = self.kc.doc
+
+        self.settings_controller.save()
         
         data = {
             'resize_mode': tab, # 0 = "Upscale By", 1 = "Upscale to"
@@ -177,7 +175,7 @@ class UpscalePage(CyanicPage):
         self.upscale_btn.setText('Upscale')
         self.upscale_btn.setDisabled(False)
         kc = KritaController()
-        x, y, canvas_w, canvas_h = kc.get_canvas_bounds()
+        x, y, canvas_w, canvas_h = kc.get_canvas_bounds(doc=self.generating_for_doc)
         if self.settings_controller.get('upscale_tab') == 0:
             # Upscale was a %
             scale = self.settings_controller.get('upscale_resize')
@@ -189,10 +187,10 @@ class UpscalePage(CyanicPage):
             canvas_h = self.settings_controller.get('upscale_height')
 
         if self.settings_controller.get('upscale_resize_canvas'):
-            kc.resize_canvas(canvas_w, canvas_h)
+            kc.resize_canvas(canvas_w, canvas_h, doc=self.generating_for_doc)
 
         # self.debug_text.setPlainText('%s, %s - %sx%s' % (x, y, canvas_w, canvas_h))
-        kc.results_to_layers(self.results, x, y, canvas_w, canvas_h, layer_name='Upscaled')
+        kc.results_to_layers(self.results, x, y, canvas_w, canvas_h, layer_name='Upscaled', doc=self.generating_for_doc)
 
         self.upscale_btn.setText('Upscale')
         self.upscale_btn.setDisabled(False)

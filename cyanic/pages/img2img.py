@@ -80,7 +80,8 @@ class Img2ImgPage(CyanicPage):
             self.interrogate_model_widget.setHidden(True)
             self.interrogate_widget.setHidden(True)
         else:
-            self.interrogate_model_widget.setHidden('hide_ui_interrogate_model')
+            hide_interrogate_model = self.settings_controller.get('hide_ui_interrogate_model')
+            self.interrogate_model_widget.setHidden(hide_interrogate_model)
             self.interrogate_widget.setHidden(False)
 
 

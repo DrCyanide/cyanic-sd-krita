@@ -50,9 +50,12 @@ class InterrogateWidget(CyanicWidget):
         self.update()
 
     def interrogate(self):
-        kc = KritaController()
-        # TODO: Give some sort of indicator if the backend is loading a new model/VAE, because that makes everything take longer.
+        self.interrogate_btn.setText('Interrogating')
+        self.interrogate_btn.setDisabled(True)
         self.update()
+
+        self.kc = KritaController()
+        self.generating_for_doc = self.kc.doc
 
         x = self.size_dict["x"]
         y = self.size_dict["y"]
@@ -60,13 +63,17 @@ class InterrogateWidget(CyanicWidget):
         h = self.size_dict["h"]
         if w == 0 or h == 0:
             # Size dict was not updated, try to use the selection size
-            x, y, w, h = kc.get_selection_bounds()
+            x, y, w, h = self.kc.get_selection_bounds(doc=self.generating_for_doc)
             if w == 0 or h == 0:
                 # Nothing was selected, use the canvas size
                 x, y = 0, 0
-                w, h = kc.get_canvas_size()
+                w, h = self.kc.get_canvas_size(doc=self.generating_for_doc)
 
         image = self.image_in.get_generation_data()[self.image_in.key]
+        if image == None or len(image) == 0:
+            # The user probably forgot to select Use Canvas or similar.
+            self.image_in.get_canvas_img()
+            image = self.image_in.get_generation_data()[self.image_in.key]
 
         data = {
             "model": self.interrogate_model_widget.get_model(),
@@ -80,33 +87,20 @@ class InterrogateWidget(CyanicWidget):
             self.debug_data.setPlainText("%s" % json.dumps(data))
             # return
 
-        processing_instructions = {}
+        self.kc.run_as_thread(lambda: self.threadable_run(data), lambda: self.threadable_return())
 
-        try:
-            kc.refresh_doc()
-            if kc.doc is None:
-                kc.create_new_doc()
+    def threadable_run(self, data):
+        self.results = self.api.interrogate(data)
+        self.interrogate_btn.setText('Interrogate')
+        self.interrogate_btn.setDisabled(False)
+        self.update()
 
-            self.results = self.api.interrogate(data)
-
-        except Exception as e:
-            self.interrogate_btn.setText(
-                "Interrogate"
-            )  # Want the UI to look right, even if we have an exception
-            self.update()
-            self.is_interrogating = False
-            raise Exception(
-                "Cyanic SD - Error getting %s: %s"
-                % (self.interrogate_model_widget.get_model(), e)
-            )
-
+    def threadable_return(self):
         if self.results is not None:
-            self.finished = True
-
             if "caption" in self.results:
-                self.prompt_widget.mode = (
-                    self.interrogate_model_widget.get_prompt_mode()
-                )
+                # self.prompt_widget.mode = (
+                #     self.interrogate_model_widget.get_prompt_mode()
+                # )
 
                 self.prompt_widget.prompt_text_edit.setPlainText(
                     self.results["caption"]
@@ -122,6 +116,8 @@ class InterrogateWidget(CyanicWidget):
                     "%s\nThreadable Return found no results"
                     % self.debug_data.toPlainText()
                 )
+
+        self.update()
 
     def get_generation_data(self):
         return {}

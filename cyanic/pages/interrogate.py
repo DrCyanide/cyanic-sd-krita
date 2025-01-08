@@ -16,7 +16,8 @@ class InterrogatePage(CyanicPage):
     def __init__(self, settings_controller: SettingsController, api: SDAPI):
         super().__init__(settings_controller, api)
         self.size_dict = {"x": 0, "y": 0, "w": 0, "h": 0}
-        self.prompt_mode = "img2img" # Probably not necessary
+        # self.prompt_mode = "img2img" # Probably not necessary
+        self.prompt_mode = 'interrogate'
         self.init_ui()
   
     def load_settings(self):
@@ -34,7 +35,8 @@ class InterrogatePage(CyanicPage):
         self.prompt_widget = PromptWidget(
             self.settings_controller,
             self.api,
-            self.prompt_mode,
+            self.prompt_mode, # PromptWidget's mode isn't dynamic. It sets variables in the init.
+            prompts_only=True
         )
         self.cyanic_widgets.append(self.prompt_widget)
         self.layout().addWidget(self.prompt_widget)

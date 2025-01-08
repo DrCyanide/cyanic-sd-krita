@@ -40,5 +40,4 @@ class DenoiseWidget(CyanicWidget):
         self.update_variables()
         data = self.variables
         self.save_settings()
-        # self.settings_controller.save()
         return data

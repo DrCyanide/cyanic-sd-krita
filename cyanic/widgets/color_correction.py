@@ -38,5 +38,4 @@ class ColorCorrectionWidget(CyanicWidget):
         # }
         data = self.variables
         self.save_settings()
-        # self.settings_controller.save()
         return data

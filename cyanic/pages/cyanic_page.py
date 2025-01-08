@@ -39,7 +39,7 @@ class CyanicPage(QWidget):
 
     def save_settings(self):
         for widget in self.cyanic_widgets:
-            widget.save_settings();
+            widget.save_settings()
     
     def close_dialogs(self):
         for widget in self.cyanic_widgets:

@@ -26,7 +26,7 @@ class CyanicDocker(DockWidget):
                 
                 self.settings_controller.set_active_doc(self.last_active_doc)
                 self.save_all_page_settings()
-                # self.settings_controller.save() # Causing issues, overwriting the settings that were just made
+                self.settings_controller.save() # Causing issues, overwriting the settings that were just made
 
                 self.last_active_doc = active_document
                 self.settings_controller.set_active_doc(active_document)
@@ -194,7 +194,6 @@ class CyanicDocker(DockWidget):
         last_entry = [x for x in self.pages if x['name'] == self.last_page]
         if len(last_entry) > 0:
             last_entry[0]['page'].save_settings()
-            # self.settings_controller.save_kra_settings() # Redundant - .save() triggers .save_kra_settings() too
             self.settings_controller.save()
 
     # Update the content widget based on the selected page
