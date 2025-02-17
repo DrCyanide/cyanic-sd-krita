@@ -155,7 +155,7 @@ class CyanicDocker(DockWidget):
         self.appNotifier.setActive(True)
         self.appNotifier.applicationClosing.connect(self.on_krita_close) # Does NOT seem to work, but I'm going to keep it anyway.
         self.appNotifier.imageClosed.connect(self.on_krita_close) # Does seem to work. 
-        self.appNotifier.imageSaved.connect(self.on_krita_save)
+        # self.appNotifier.imageSaved.connect(self.on_krita_save)
         self.appNotifier.windowCreated.connect(self.on_krita_window_active)
 
     def on_api_change(self):

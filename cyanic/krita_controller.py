@@ -125,12 +125,14 @@ class KritaController():
         height = bounds.height()
         return x, y, width, height
     
-    def resize_canvas(self, width, height):
+    def resize_canvas(self, width, height, doc=None):
+        if doc == None:
+            doc = self.doc
         # Use the existing x, y
-        x, y, w_old, h_old = self.get_canvas_bounds()
+        x, y, w_old, h_old = self.get_canvas_bounds(doc=doc)
         w_real = width - x
         h_real = height - y
-        self.doc.resizeImage(x, y, w_real, h_real)
+        doc.resizeImage(x, y, w_real, h_real)
 
     def get_layer_bounds(self, doc=None):
         if doc != None:

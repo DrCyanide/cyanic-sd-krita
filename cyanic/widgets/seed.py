@@ -19,9 +19,9 @@ class SeedWidget(CyanicWidget):
 
     def set_widget_values(self):
         if self.variables['seed'] != -1:
-            self.seed_edit.setText(self.variables['seed'])
+            self.seed_edit.setText('' + self.variables['seed'])
         if self.variables['subseed'] != -1:
-            self.seed_edit.setText(self.variables['subseed'])
+            self.seed_edit.setText('' + self.variables['subseed'])
         self.subseed_strength_slider.setValue(int(self.variables['subseed_strength'] * 100))
 
     def load_server_data(self):

@@ -51,7 +51,9 @@ class ModelsWidget(CyanicWidget):
             # self.model_box.setCurrentText(self.variables['model'])
             simple_model_names = self.get_simplified_model_names()
             self.model_box.addItems(simple_model_names)
-            self.model_box.setCurrentText(self.get_simplified_name(self.variables['model']))
+            # self.model_box.setCurrentText(self.get_simplified_name(self.variables['model']))
+            model_index = self.model_box.findText(self.get_simplified_name(self.variables['model']))
+            self.model.setCurrentIndex(model_index)
         except:
             self.model_box.setCurrentIndex(0)
 
