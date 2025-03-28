@@ -53,7 +53,7 @@ class ModelsWidget(CyanicWidget):
             self.model_box.addItems(simple_model_names)
             # self.model_box.setCurrentText(self.get_simplified_name(self.variables['model']))
             model_index = self.model_box.findText(self.get_simplified_name(self.variables['model']))
-            self.model.setCurrentIndex(model_index)
+            self.model_box.setCurrentIndex(model_index)
         except:
             self.model_box.setCurrentIndex(0)
 
@@ -108,6 +108,12 @@ class ModelsWidget(CyanicWidget):
         self.form_panel = QWidget()
         self.form_panel.setLayout(QFormLayout())
         self.form_panel.layout().setContentsMargins(0,0,0,0)
+
+        # Use Server Defaults
+        self.use_server_defaults_btn = QPushButton('Use Server Defaults')
+        self.use_server_defaults_btn.setToolTip('Pull the last used model, sampler, etc from the server')
+        self.use_server_defaults_btn.clicked.connect(lambda: self.load_server_defaults())
+        self.form_panel.layout().addRow('', self.use_server_defaults_btn)
 
         # Model select
         self.model_box = QComboBox()
@@ -218,11 +224,36 @@ class ModelsWidget(CyanicWidget):
 
     def load_server_data(self):
         # Refresh UI elements that depend on SD server settings (models, vaes, etc)
-        self.server_const['samplers'], self.variables['sampler'] = self.api.get_samplers_and_default()
-        self.server_const['schedulers'], self.variables['scheduler'] = self.api.get_schedulers_and_default()
-        self.server_const['models'], self.variables['model'] = self.api.get_models_and_default()
-        self.server_const['vaes'], self.variables['vae'] = self.api.get_vaes_and_default()
-        self.server_const['refiners'], self.variables['refiner'] = self.api.get_refiners_and_default()
+        self.server_const['samplers'], default_sampler = self.api.get_samplers_and_default()
+        self.server_const['schedulers'], default_scheduler = self.api.get_schedulers_and_default()
+        self.server_const['models'], default_model = self.api.get_models_and_default()
+        self.server_const['vaes'], default_vae = self.api.get_vaes_and_default()
+        self.server_const['refiners'], default_refiner = self.api.get_refiners_and_default()
+
+        # Don't overwrite these values if they've already been set 
+        if self.variables['sampler'] == '':
+            self.variables['sampler'] = default_sampler
+
+        if self.variables['scheduler'] == '':
+            self.variables['scheduler'] = default_scheduler
+
+        if self.variables['model'] == '':
+            self.variables['model'] == default_model
+
+        if self.variables['vae'] == '':
+            self.variables['vae'] == default_vae
+
+        if self.variables['refiner'] == '':
+            self.variables['refiner'] = default_refiner
+        self.set_widget_values()
+
+    def load_server_defaults(self):
+        # Replace all the values with those from the server
+        self.variables['model'] = self.api.defaults['model']
+        self.variables['sampler'] = self.api.defaults['sampler']
+        self.variables['scheduler'] = self.api.defaults['scheduler']
+        self.variables['vae'] = self.api.defaults['vae']
+        self.variables['refiner'] = self.api.defaults['refiner']
         self.set_widget_values()
 
     def load_settings(self):

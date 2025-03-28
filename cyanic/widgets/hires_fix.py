@@ -92,7 +92,7 @@ class HiResFixWidget(CyanicWidget):
         # Auto-enable
         self.auto_enable_cb = QCheckBox('Auto-Enable Hires Fix')
         # self.auto_enable_cb.setChecked(self.variables['auto_enable_hr'])
-        self.auto_enable_cb.setToolTip('Enable Hires fix every time the image has a side bigger than the specified value')
+        self.auto_enable_cb.setToolTip('Enables Hires fix when an image has a side bigger than the specified value')
         self.auto_enable_cb.toggled.connect(lambda: self._update_variable('auto_enable_hr', self.auto_enable_cb.isChecked()))
         self.auto_enable_row.layout().addWidget(self.auto_enable_cb)
 
