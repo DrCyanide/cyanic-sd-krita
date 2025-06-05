@@ -112,7 +112,8 @@ class ExtraNetworksDialog(QDialog):
         self.model_filter_box = QComboBox()
         self.model_filter_box.wheelEvent = lambda event : None
         self.model_filter_box.setToolTip('SD Model version')
-        self.model_filter_box.addItems(SettingsController.SD_MODEL_VERSIONS)
+        # self.model_filter_box.addItems(SettingsController.SD_MODEL_VERSIONS)
+        self.model_filter_box.addItems(self.settings_controller.sd_versions)
         self.model_filter_box.setCurrentIndex(0)
         self.model_filter_box.currentIndexChanged.connect(lambda: self.update_filtered_models())
         header.layout().addWidget(self.model_filter_box)

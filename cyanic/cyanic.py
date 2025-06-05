@@ -9,10 +9,12 @@ from .krita_controller import KritaController
 
 DEFAULT_HOST = "http://127.0.0.1:7860"
 
-
 class CyanicDocker(DockWidget):
+
     def on_krita_view_change(self):
         active_document = Krita.instance().activeDocument()
+        uid = active_document.rootNode().uniqueId()
+
         if self.last_active_doc == None:
             # First time seeing a document (opened or created). Attempt to load settings
             self.last_active_doc = active_document
@@ -77,7 +79,6 @@ class CyanicDocker(DockWidget):
         self.rembg = RemBGPage(self.settings_controller, self.api)
 
         # Set up the page select
-        
         self.page_combobox = QComboBox()
         kc = KritaController()
         self.pages = [
@@ -285,7 +286,7 @@ class CyanicDocker(DockWidget):
                     page['page'].close_dialogs()
 
 
-# This irs what tells Krita to add the docker in the first place.
+# This is what tells Krita to add the docker in the first place.
 Krita.instance().addDockWidgetFactory(
     DockWidgetFactory(
         "cyanicSD",

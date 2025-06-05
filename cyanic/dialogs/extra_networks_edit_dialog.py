@@ -21,7 +21,8 @@ class ExtraNetworksEditDialog(QDialog):
         self.extra_network_name = extra_network_name
         self.show_thumbnail = show_thumbnail
         self.extra_network_settings = {} 
-        self.allowed_versions = SettingsController.SD_MODEL_VERSIONS[1:]
+        # self.allowed_versions = SettingsController.SD_MODEL_VERSIONS[1:]
+        self.allowed_versions = self.settings_controller.sd_versions[1:]
         self.unknown_icon = self.raw_img_to_qpixmap(self.settings_controller.get_unknown_thumbnail())
         self.setLayout(QVBoxLayout())
 
@@ -136,13 +137,15 @@ class ExtraNetworksEditDialog(QDialog):
         self.description_text_edit.setPlainText(description)
 
         # Version
-        self.model_filter_box.setCurrentText(SettingsController.SD_MODEL_VERSIONS[-1]) # Unknown should always be last
+        # self.model_filter_box.setCurrentText(SettingsController.SD_MODEL_VERSIONS[-1]) # Unknown should always be last
+        self.model_filter_box.setCurrentText(self.settings_controller.sd_versions[-1]) # Unknown should always be last
         sd_version = 'unknown'
         if has_override and 'sd version' in self.extra_network_settings['kra_override']:
             sd_version = self.extra_network_settings['kra_override']['sd version'].lower()
         else:
             sd_version = self.extra_network_settings[self.api.host]['sd version'].lower()
-        matched_version = list(filter(lambda version: version.lower() == sd_version, SettingsController.SD_MODEL_VERSIONS))
+        # matched_version = list(filter(lambda version: version.lower() == sd_version, SettingsController.SD_MODEL_VERSIONS))
+        matched_version = list(filter(lambda version: version.lower() == sd_version, self.settings_controller.sd_versions))
         if len(matched_version) > 0:
             self.model_filter_box.setCurrentText(matched_version[0])
 

@@ -9,3 +9,5 @@ cyanic/debug.png
 cyanic/user_settings_backup_*.json
 cyanic/*.png
 cyanic/icons/krita original svgs
+cyanic/sd_versions.json
+.vscode/settings.json

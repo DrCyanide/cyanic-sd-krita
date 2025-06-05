@@ -8,15 +8,16 @@ import datetime
 # Loads and saves settings for the entire plug-in
 class SettingsController():
     
-    SD_MODEL_VERSIONS = [
-        'All', # Not official, just allow all options. "All" should always be first.
-        'SD1',
-        'SD2',
-        'SD3', 
-        'SDXL',
-        'Flux', # Supported by Forge
-        'Unknown', # "Unknown" should always be last
-    ]
+    # NOTE: Switched to sd_versions.json instead.
+    # SD_MODEL_VERSIONS = [
+    #     'All', # Not official, just allow all options. "All" should always be first.
+    #     'SD1',
+    #     'SD2',
+    #     'SD3', 
+    #     'SDXL',
+    #     'Flux', # Supported by Forge
+    #     'Unknown', # "Unknown" should always be last
+    # ]
     def __init__(self):
         self.settings = {} # Settings loaded from .json file and .kra file (gets updated on .save() and .load())
         self.tmp_settings = {} # What's staged to be saved, the WIP settings
@@ -30,14 +31,19 @@ class SettingsController():
         self.plugin_dir = os.path.dirname(os.path.realpath(__file__))
         self.user_settings_file = os.path.join(self.plugin_dir, 'user_settings.json')
         self.default_settings_file = os.path.join(self.plugin_dir, 'default_settings.json')
+        self.sd_versions_settings_file = os.path.join(self.plugin_dir, 'sd_versions.json')
         self.icon_dir = os.path.join(self.plugin_dir, 'icons')
         self.extra_networks_dir = os.path.join(self.plugin_dir, 'extra_networks')
         self.extra_networks_settings_file = os.path.join(self.extra_networks_dir, 'extra_networks.json')
         self.extra_networks_thumbnail_dir = os.path.join(self.extra_networks_dir, 'thumbnails')
         self.unknown_thumbnail = None
+
+
+        self.load_sd_versions()
         self.default_extra_network_data = {
             'description': '',
-            'sd version': SettingsController.SD_MODEL_VERSIONS[-1], # 'Unknown' should always be the last value
+            # 'sd version': SettingsController.SD_MODEL_VERSIONS[-1], # 'Unknown' should always be the last value
+            'sd version': self.sd_versions[-1], # 'Unknown' should always be the last value
             'activation text': '',
             'negative text': '',
             'preferred weight': 0, # A1111 default is 0, which gets translated to a weight of 1.0
@@ -47,6 +53,38 @@ class SettingsController():
             self.load()
         except Exception as e:
             raise Exception('Cyanic SD - Exception with Settings Controller - %s' % e)
+
+    def load_sd_versions(self):
+        sd_versions = []
+        try:
+            with open(self.sd_versions_settings_file) as settings_file:
+                js = json.loads(settings_file.read())
+                sd_versions = js['SD_MODEL_VERSIONS']
+        except Exception as e:
+            # Provide some default categories
+            sd_versions = [
+                'SD1',
+                'SD2',
+                'SD3',
+                'SDXL',
+                'Flux',
+                'Pony',
+                'Illustrious'
+            ]
+            if not os.path.exists(self.sd_versions_settings_file):
+                # Write these defaults to the config so the user can edit them.
+                # This will cause less issues than committing the settings to Git, since we expect the user to change this.
+                default_sd_version_file = {
+                    'desc': "Update to change the categories for Loras. NOTE: Renaming a category will move all Lora's with that category to 'UNKNOWN'",
+                    'SD_MODEL_VERSIONS': sd_versions
+                }
+                js = json.dumps(default_sd_version_file, indent=4)
+                with open(self.sd_versions_settings_file, 'w') as settings_file:
+                    settings_file.write(js)
+
+        self.sd_versions = ['All']
+        self.sd_versions.extend(sd_versions)
+        self.sd_versions.append('Unknown') # 'Unknown' should always be the last value
 
     def update_api_host(self, new_host=''):
         self.api_host = new_host
