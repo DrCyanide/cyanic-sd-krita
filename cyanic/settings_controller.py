@@ -7,27 +7,24 @@ import datetime
 
 # Loads and saves settings for the entire plug-in
 class SettingsController():
-    
-    # NOTE: Switched to sd_versions.json instead.
-    # SD_MODEL_VERSIONS = [
-    #     'All', # Not official, just allow all options. "All" should always be first.
-    #     'SD1',
-    #     'SD2',
-    #     'SD3', 
-    #     'SDXL',
-    #     'Flux', # Supported by Forge
-    #     'Unknown', # "Unknown" should always be last
-    # ]
     def __init__(self):
-        self.settings = {} # Settings loaded from .json file and .kra file (gets updated on .save() and .load())
-        self.tmp_settings = {} # What's staged to be saved, the WIP settings
+        self.doc_settings = {} # {uid1: {...}, uid2: {...}} - where `{...}` is everything present in default_settings, including kra_file_override_settings
+        self.default_settings = {} # Updated as needed with new releases to Cyanic SD
+        self.user_settings = {} # What the user changes that should stay the same between each launch
+
+        # self.settings = {} # Settings loaded from .json file and .kra file (gets updated on .save() and .load())
+        # self.tmp_settings = {} # What's staged to be saved, the WIP settings
         self.key_mapping = {} # Convert keys the widgets use (controller notation) into paths in the JSON uses (model notation)
         self.loaded_key_mappings = False
         self.api_host = '' # Used for saving lora/hypernetwork settings
 
         self.active_doc = Krita.instance().activeDocument()
+        if self.active_doc is not None:
+            self.active_uid = Krita.instance().activeDocument().rootNode().uniqueId()
+        else:
+            self.active_uid = -1
 
-        self.kra_unique_key = 'cyanic_sd_settings'
+        self.kra_unique_key = 'cyanic_sd_settings' # Annotation key
         self.plugin_dir = os.path.dirname(os.path.realpath(__file__))
         self.user_settings_file = os.path.join(self.plugin_dir, 'user_settings.json')
         self.default_settings_file = os.path.join(self.plugin_dir, 'default_settings.json')
@@ -42,7 +39,6 @@ class SettingsController():
         self.load_sd_versions()
         self.default_extra_network_data = {
             'description': '',
-            # 'sd version': SettingsController.SD_MODEL_VERSIONS[-1], # 'Unknown' should always be the last value
             'sd version': self.sd_versions[-1], # 'Unknown' should always be the last value
             'activation text': '',
             'negative text': '',
@@ -55,6 +51,7 @@ class SettingsController():
             raise Exception('Cyanic SD - Exception with Settings Controller - %s' % e)
 
     def load_sd_versions(self):
+        # Try to pull the SD versions from sd_versions.json, create the file if it doesn't exist
         sd_versions = []
         try:
             with open(self.sd_versions_settings_file) as settings_file:
@@ -88,13 +85,49 @@ class SettingsController():
 
     def update_api_host(self, new_host=''):
         self.api_host = new_host
+        
+    def get_doc_from_uid(self, uid):
+        all_docs = Krita.instance().documents()
+        for doc in all_docs:
+            if doc.rootNode().uniqueId() == uid:
+                return doc
+        return None
 
-    def update_active_doc(self):
-        self.active_doc = Krita.instance().activeDocument()
+    def has_unsaved_cyanic_settings(self, uid=None):
+        if uid == None:
+            uid = self.active_uid()
+        doc = self.get_doc_from_uid(uid)
+        saved_data = doc.annotation(self.kra_unique_key)
+        saved_settings_str = bytes(saved_data).decode()
+        # Standardize formatting, make sure there's no indentation differences
+        if len(saved_settings_str) > 0:
+            saved_settings_str = json.dumps(json.loads(saved_settings_str))
+        doc_settings_str = json.dumps(self.doc_settings[uid])
+        return saved_settings_str != doc_settings_str
 
-    def set_active_doc(self, doc):
+    def update_active_doc(self, doc=None, uid=None):
+        if doc is not None:
+            self.active_doc = doc
+        elif uid is not None:
+            self.active_doc = self.get_doc_from_uid(uid)
+        else:
+            self.active_doc = Krita.instance().activeDocument()
+        
+        if self.active_doc is not None:
+            self.active_uid = self.active_doc.rootNode().uniqueId()
+        else:
+            self.active_uid = -1
+
+    def set_active_doc(self, doc=None, uid=None):
         # Sometimes "active" isn't what Krita thinks, it's the last document used (for saving)
-        self.active_doc = doc
+        if doc != None:
+            self.active_doc = doc
+        elif uid != None:
+            self.active_doc = self.get_doc_from_uid(uid)
+        else:
+            # Just set it to krita doc
+            self.active_doc = Krita.instance().activeDocument()
+        self.active_uid = self.active_doc.rootNode().uniqueId()
 
     def merge_dicts(self, original_dict, updated_dict):
         for key in original_dict.keys():
@@ -109,34 +142,37 @@ class SettingsController():
         # Load default first, then merge in user settings. It's safer for updates that add new settings.
         if os.path.isfile(self.default_settings_file):
             with open(self.default_settings_file, 'r') as f:
-                self.tmp_settings = json.load(f)
+                self.default_settings = json.load(f)
         else:
             raise Exception('Cyanic SD - No default settings file found in %s' % self.plugin_dir)
         
-        self.key_mapping = self.load_settings_map(self.tmp_settings['cyanic_sd_settings_version']) # Shouldn't be None in any version of the plugin distributed with this SettingsController.
+        self.key_mapping = self.load_settings_map(self.default_settings['cyanic_sd_settings_version']) # Shouldn't be None in any version of the plugin distributed with this SettingsController.
         self.loaded_key_mappings = True
 
         # User settings
         if os.path.isfile(self.user_settings_file):
-            user_settings = {}
             with open(self.user_settings_file, 'r') as f:
-                user_settings = json.load(f)
+                self.user_settings = json.load(f)
 
             old_version = None
             # Check if user_settings are on the same version as default_settings
-            if 'cyanic_sd_settings_version' not in user_settings or user_settings['cyanic_sd_settings_version'] != self.tmp_settings['cyanic_sd_settings_version']:
+            if 'cyanic_sd_settings_version' not in self.user_settings or self.user_settings['cyanic_sd_settings_version'] != self.default_settings['cyanic_sd_settings_version']:
+                ported_user_settings = self.default_settings
                 old_key_mapping = None
-                if 'cyanic_sd_settings_version' not in user_settings:
+                if 'cyanic_sd_settings_version' not in self.user_settings:
                     # Going from Alpha (1) to Beta (2). The mapping and versions were added retroactively in Beta
                     old_version = 1
                 else:
-                    old_version = user_settings['cyanic_sd_settings_version']
+                    old_version = self.user_settings['cyanic_sd_settings_version']
                 
                 old_key_mapping = self.load_settings_map(old_version)
                 for key in old_key_mapping.keys():
                     if key in self.key_mapping.keys():
                         # The setting still exists in the new version, so it's OK to port over that setting.
-                        self.tmp_settings[key] = self._get(old_key_mapping[key], user_settings)
+                        ported_user_settings[key] = self._get(old_key_mapping[key], self.user_settings)
+
+                # Update user_settings now that it's been brought up to the standard
+                self.user_settings = ported_user_settings
 
                 # Rename the old settings as a backup.
                 backup_file = os.path.join(self.plugin_dir, 'user_settings_backup_%s.json' % old_version)
@@ -144,13 +180,16 @@ class SettingsController():
                     os.remove(backup_file)
                 os.rename(self.user_settings_file, backup_file)
                 self.save_user_settings() # Effectively overwrites the outdated user_settings with up-to-date version
-            else:
-                # Proceed to merge the user_settings with the default
-                self.tmp_settings = self.merge_dicts(self.tmp_settings, user_settings)
+            # else:
+            #     # Proceed to merge the user_settings with the default
+            #     self.tmp_settings = self.merge_dicts(self.tmp_settings, user_settings)
+        else:
+            # No user_settings_file
+            self.user_settings = self.default_settings
 
         self.load_kra_settings()
-        # Sync settings with the tmp_settings (done last so that self.save_user_settings() can work as a way to clear bad user_settings)
-        self.settings = self.tmp_settings
+        # # Sync settings with the tmp_settings (done last so that self.save_user_settings() can work as a way to clear bad user_settings)
+        # self.settings = self.tmp_settings
 
     def load_settings_map(self, version):
         # Trying a Model-View-Controller system. The mappings allow for the widgets in the plugin to use a common name, and have that data be saved in different places as needs require.
@@ -165,15 +204,22 @@ class SettingsController():
 
 
     def load_kra_settings(self):
-        # Write to tmp_settings, because this will change as the user switches back and forth between documents.
         if self.active_doc is None:
             # Krita can load without an open doc
+            # Set defaults so that the settings won't crash out
+            self.doc_settings[self.active_uid] = self.merge_dicts(self.default_settings, self.user_settings)
             return
+
+        if self.active_uid in self.doc_settings.keys() and self.doc_settings[self.active_uid] is not None:
+            return # This document has been loaded already, don't overwrite it.
+        
+        self.doc_settings[self.active_uid] = self.merge_dicts(self.default_settings, self.user_settings)
 
         data = self.active_doc.annotation(self.kra_unique_key)
         str_settings = bytes(data).decode()
         if len(str_settings) > 0:
-            self.tmp_settings['kra_file_overridden_settings'] = json.loads(str_settings) # No need to merge_dicts(), because that would introduce artifacts from other .kra files
+            # self.tmp_settings['kra_file_overridden_settings'] = json.loads(str_settings) # No need to merge_dicts(), because that would introduce artifacts from other .kra files
+            self.doc_settings[self.active_uid]['kra_file_overridden_settings'] = json.loads(str_settings) 
         else:
             # Set the default prompts for this file
             prompt_keys = ['prompts_txt_shared', 'prompts_txt_txt2img', 'prompts_txt_img2img', 'prompts_txt_inpaint']
@@ -198,27 +244,38 @@ class SettingsController():
                     self.set(key, [''])
 
     def save_user_settings(self):
-        # write tmp_settings to user_setting
+        # write user_setting
         try:
-            str_data = json.dumps(self.tmp_settings, indent=4)
+            # str_data = json.dumps(self.tmp_settings, indent=4)
+            str_data = json.dumps(self.user_settings, indent=4)
             if "&txt2img" in str_data:
-                raise Exception('Cyanic SD - Corrupted user_settings: %s' % self.tmp_settings['common']['prompting']['include_sharing'])
+                # raise Exception('Cyanic SD - Corrupted user_settings: %s' % self.tmp_settings['common']['prompting']['include_sharing'])
+                raise Exception('Cyanic SD - Corrupted user_settings: %s' % self.user_settings['common']['prompting']['include_sharing'])
             with open(self.user_settings_file, 'w') as f:
                 f.write(str_data)
         except Exception as e:
             raise Exception('Cyanic SD - Error saving user settings: %s' % e)
         
-    def save_kra_settings(self):
+    def save_kra_settings(self, uid=None):
         # Write tmp_settings to KRA
         # doc.setAnnotation('my_unique_key', 'description', QByteArray('my data'.encode())
-        if self.active_doc is None:
+        # if self.active_doc is None:
+        #     return
+        active_doc = None
+        if uid is None:
+            if self.active_uid:
+                uid = self.active_uid
+            elif self.active_doc:
+                uid = self.active_doc.rootNode().uniqueId()
+            else:
+                raise Exception('Cyanic SD - Could not save to .kra, no active document found.')
+        active_doc = self.get_doc_from_uid(uid)
+        if active_doc is None:
             return
-        str_settings = json.dumps(self.tmp_settings['kra_file_overridden_settings'])
-        self.active_doc.setAnnotation(self.kra_unique_key, 'Cyanic SD plugin settings', QByteArray(str_settings.encode()))
 
-    def revert_settings(self):
-        # Revert settings to whatever was used on the last save/load.
-        self.tmp_settings = self.settings
+        # str_settings = json.dumps(self.tmp_settings['kra_file_overridden_settings'])
+        str_settings = json.dumps(self.doc_settings[uid]['kra_file_overridden_settings'])
+        active_doc.setAnnotation(self.kra_unique_key, 'Cyanic SD plugin settings', QByteArray(str_settings.encode()))
 
     def clear_file_prompt_history(self):
         # tmp_settings should have the most recent file's history.
@@ -241,7 +298,7 @@ class SettingsController():
         self.save_kra_settings()
 
     def save(self):
-        self.settings = self.tmp_settings
+        # self.settings = self.tmp_settings
         self.save_user_settings()
         self.save_kra_settings()
         
@@ -479,14 +536,20 @@ class SettingsController():
 
     def get(self, key, default=None):
         try:
-            return self._get(self.key_mapping[key])
+            my_dict = {}
+            if 'common.' in self.key_mapping[key].lower() and self.key_mapping[key].lower().index('common.') == 0:
+                my_dict = self.user_settings
+            else:
+                my_dict = self.doc_settings[self.active_uid]
+            return self._get(self.key_mapping[key], my_dict=my_dict)
         except:
             return default
 
     def _get(self, key, my_dict=None):
         # Recursive way to iterate through the key
         if my_dict == None:
-            my_dict = self.tmp_settings
+            # my_dict = self.tmp_settings
+            my_dict = self.doc_settings[self.active_uid]
 
         if key.count('.') > 0:
             # split_key = key.split('.', 1)
@@ -499,14 +562,21 @@ class SettingsController():
             
     def set(self, key, value):
         if key in self.key_mapping:
-            self._set(self.key_mapping[key], value)
+            my_dict = {}
+            if 'common.' in self.key_mapping[key].lower() and self.key_mapping[key].lower().index('common.') == 0:
+                my_dict = self.user_settings
+            else:
+                my_dict = self.doc_settings[self.active_uid]
+            
+            self._set(self.key_mapping[key], value, my_dict=my_dict)
         # Else, trying to set a key that doesn't exist.
         # Some widgets can trigger this behavior on accident due to reuse in new settings, so it's ignored rather than raising an error
 
     def _set(self, key, value, my_dict=None):
         # Recursive way to iterate through the key and set the value
         if my_dict == None:
-            my_dict = self.tmp_settings
+            # my_dict = self.tmp_settings
+            my_dict = self.doc_settings[self.active_uid]
 
         if key.count('.') > 0:
             # split_key = key.split('.', 1)
@@ -519,11 +589,17 @@ class SettingsController():
 
     def append(self, key, value):
         # Append the value to the list if it's not in the list.
-        self._append(self.key_mapping[key], value)
+        my_dict = {}
+        if 'common.' in self.key_mapping[key].lower() and self.key_mapping[key].lower().index('common.') == 0:
+            my_dict = self.user_settings
+        else:
+            my_dict = self.doc_settings[self.active_uid]
+        self._append(self.key_mapping[key], value, my_dict=my_dict)
 
     def _append(self, key, value, my_dict=None):
         if my_dict == None:
-            my_dict = self.tmp_settings
+            # my_dict = self.tmp_settings
+            my_dict = self.doc_settings[self.active_uid]
 
         if key.count('.') > 0:
             # split_key = key.split('.', 1)
@@ -537,11 +613,17 @@ class SettingsController():
 
     def remove(self, key, value):
         # Remove the value from a list if it's in the list
-        self._remove(self.key_mapping[key], value)
+        my_dict = {}
+        if 'common.' in self.key_mapping[key].lower() and self.key_mapping[key].lower().index('common.') == 0:
+            my_dict = self.user_settings
+        else:
+            my_dict = self.doc_settings[self.active_uid]
+        self._remove(self.key_mapping[key], value, my_dict=my_dict)
 
     def _remove(self, key, value, my_dict=None):
         if my_dict == None:
-            my_dict = self.tmp_settings
+            # my_dict = self.tmp_settings
+            my_dict = self.doc_settings[self.active_uid]
         
         if key.count('.') > 0:
             # split_key = key.split('.', 1)
@@ -556,11 +638,17 @@ class SettingsController():
 
     def toggle(self, key, value=None):
         # Can toggle booleans, or toggle an value being in or out of a list.
-        self._toggle(self.key_mapping[key], value)
+        my_dict = {}
+        if 'common.' in self.key_mapping[key].lower() and self.key_mapping[key].lower().index('common.') == 0:
+            my_dict = self.user_settings
+        else:
+            my_dict = self.doc_settings[self.active_uid]
+        self._toggle(self.key_mapping[key], value, my_dict=my_dict)
 
     def _toggle(self, key, value=None, my_dict=None):
         if my_dict == None:
-            my_dict = self.tmp_settings
+            # my_dict = self.tmp_settings
+            my_dict = self.doc_settings[self.active_uid]
         
         if key.count('.') > 0:
             # split_key = key.split('.', 1)
@@ -578,12 +666,18 @@ class SettingsController():
                     self._append(key, value, my_dict)
 
 
-    def has_key(self, key):
-        return self._has_key(self.key_mapping[key])
+    def has_key(self, key):      
+        my_dict = {}
+        if 'common.' in self.key_mapping[key].lower() and self.key_mapping[key].lower().index('common.') == 0:
+            my_dict = self.user_settings
+        else:
+            my_dict = self.doc_settings[self.active_uid]
+        return self._has_key(self.key_mapping[key], my_dict=my_dict)
 
     def _has_key(self, key, my_dict=None):
         if my_dict == None:
-            my_dict = self.tmp_settings
+            # my_dict = self.tmp_settings
+            my_dict = self.doc_settings[self.active_uid]
         
         if key.count('.') > 0:
             new_key, my_dict = self._navigate_dict(key, my_dict)

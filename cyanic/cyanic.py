@@ -10,40 +10,11 @@ from .krita_controller import KritaController
 DEFAULT_HOST = "http://127.0.0.1:7860"
 
 class CyanicDocker(DockWidget):
-
-    def on_krita_view_change(self):
-        active_document = Krita.instance().activeDocument()
-        uid = active_document.rootNode().uniqueId()
-
-        if self.last_active_doc == None:
-            # First time seeing a document (opened or created). Attempt to load settings
-            self.last_active_doc = active_document
-            self.settings_controller.set_active_doc(active_document)
-            self.settings_controller.load() # Reload the settings
-            self.update_all_page_settings()
-        else:
-            if active_document != self.last_active_doc:
-                # Open document is switching.
-                # Save settings to the last_active document, then switch
-                
-                self.settings_controller.set_active_doc(self.last_active_doc)
-                self.save_all_page_settings()
-                self.settings_controller.save() # Causing issues, overwriting the settings that were just made
-
-                self.last_active_doc = active_document
-                self.settings_controller.set_active_doc(active_document)
-                self.settings_controller.load() # Reload the settings (user_settings + .kra settings) for the new document
-                self.update_all_page_settings()
-                
-
-    def on_krita_window_active(self):
-        # MUST save the variable to self. No variable will crash, a local variable will go out of scope and forget the listener
-        self.activeWindow = Krita.instance().activeWindow()
-        self.activeWindow.activeViewChanged.connect(self.on_krita_view_change)
-
     def __init__(self):
         super().__init__()
         self.last_active_doc = None
+        self.last_active_id = -1
+
         self.settings_controller = SettingsController()
         host = self.settings_controller.get('host') if self.settings_controller.has_key('host') else DEFAULT_HOST
         self.api = SDAPI(host, self.on_api_change)
@@ -143,21 +114,117 @@ class CyanicDocker(DockWidget):
 
         self.set_notifications()
 
-    def set_notifications(self):
-        # Get notified when Krita closes, so all the popup dialogs can close too
-        # Krita.instance().notifier().windowCreated.connect(self.on_krita_close) # Activates on the Create Document dialog coming up
-        # https://krita-artists.org/t/connect-to-notifier-windowcreated-from-extension-fails/9981/3
-        # Krita.instance().notifier().imageCreated.connect(self.on_document_change)
-        # Krita.instance().notifier().imageSaved.connect(self.on_document_change)
+    # -----
 
+    def set_notifications(self):
         # https://scripting.krita.org/lessons/notifiers
         # https://api.kde.org/krita/html/classNotifier.html
         self.appNotifier = Krita.instance().notifier()
         self.appNotifier.setActive(True)
+        
+        # Close notifications (used to detect when to close all dialogs)
         self.appNotifier.applicationClosing.connect(self.on_krita_close) # Does NOT seem to work, but I'm going to keep it anyway.
         self.appNotifier.imageClosed.connect(self.on_krita_close) # Does seem to work. 
-        # self.appNotifier.imageSaved.connect(self.on_krita_save)
+
+        # New window notifications (which listen for new images created)
         self.appNotifier.windowCreated.connect(self.on_krita_window_active)
+
+        # On save notification
+        self.appNotifier.imageSaved.connect(self.on_save)
+
+        # Might be able to add unofficial notifications (like layer duplication) with other methods
+        # https://krita-artists.org/t/krita-save-detect/38835/2
+    
+    def get_active_uid(self):
+        try:
+            active_document = Krita.instance().activeDocument()
+            uid = active_document.rootNode().uniqueId()
+            return uid
+        except:
+            return -1
+
+    def on_krita_window_active(self):
+        # MUST save the variable to self. No variable will crash, a local variable will go out of scope and forget the listener
+        self.activeWindow = Krita.instance().activeWindow()
+        self.activeWindow.activeViewChanged.connect(self.on_krita_view_change)
+
+    def on_krita_view_change(self):
+        try:
+            uid = self.get_active_uid()
+            if uid != self.last_active_id:
+                # Switched active tab
+                self.on_active_switch()
+                self.last_active_id = uid
+        except Exception as e:
+            # raise Exception('UID: %s Last: %s' % (self.get_active_uid(), self.last_active_id))
+            pass # Likely no active document/root node, like a popup window
+
+        # active_document = Krita.instance().activeDocument()
+        # uid = active_document.rootNode().uniqueId()
+        # if self.last_active_doc is None:
+        #     # First time seeing a document (opened or created). Attempt to load settings
+        #     self.last_active_doc = active_document
+        #     self.settings_controller.set_active_doc(active_document)
+        #     self.settings_controller.load() # Reload the settings
+        #     self.update_all_page_settings()
+        # else:
+        #     if active_document != self.last_active_doc:
+        #         # Open document is switching.
+        #         # Save settings to the last_active document, then switch
+                
+        #         self.settings_controller.set_active_doc(self.last_active_doc)
+        #         self.save_all_page_settings()
+        #         self.settings_controller.save() # Causing issues, overwriting the settings that were just made
+
+        #         self.last_active_doc = active_document
+        #         self.settings_controller.set_active_doc(active_document)
+        #         self.settings_controller.load() # Reload the settings (user_settings + .kra settings) for the new document
+        #         self.update_all_page_settings()
+                
+    def on_save(self):
+        # Triggered on save/save as
+        # ONLY proceed if the settings or layers don't match what's already saved in the document
+        uid = self.get_active_uid()
+        # Disconnect notifier to prevent infinite loop.
+        self.appNotifier.imageSaved.disconnect(self.on_save)
+        self.appNotifier.imageSaved.connect(self.save_delay)
+
+        # self.save_last_page()
+        # self.save_all_page_settings()
+        for page in self.pages:
+            page['page'].save_settings()
+
+        current_page = self.page_combobox.currentText()
+        # Update the last page in settings, so it'll resume at the new page
+        self.settings_controller.set('cyanic_sd_last_page', current_page)
+
+        # Add annotations to the .kra file
+        self.settings_controller.save()
+        # Trigger another save now that the annotations are added
+        Krita.instance().action('file_save').trigger()
+        # self.save_delay() will now kick off, since it detected this save.
+
+    def save_delay(self):
+        # Used to prevent a save loop with on_save.
+        self.appNotifier.imageSaved.disconnect(self.save_delay)
+        self.appNotifier.imageSaved.connect(self.on_save)# https://scripting.krita.org/action-dictionary
+
+    def on_active_switch(self):
+        # Save edited savings in add-on's memory
+        self.save_all_page_settings()
+        # Load new active document's settings from document or add-on's memory (whichever is newest)
+        self.settings_controller.update_active_doc()
+        self.settings_controller.load()
+        # Refresh the pages
+        self.update_all_page_settings()
+
+    def on_duplicate_layer(self):
+        # Update layer info (requires unofficial listener)
+        pass
+
+
+    # ---------------------
+
 
     def on_api_change(self):
         if self.api.connected:
@@ -248,29 +315,29 @@ class CyanicDocker(DockWidget):
         #     page['page'].load_settings()
         # self.settings_dialog.load_settings()
 
-    def on_krita_save(self):
-        if len(Krita.instance().documents()) == 0:
-            return # The document doesn't exist yet.
-        # Save settings
-        for page in self.pages:
-            page['page'].save_settings()
+    # def on_krita_save(self):
+    #     if len(Krita.instance().documents()) == 0:
+    #         return # The document doesn't exist yet.
+    #     # Save settings
+    #     for page in self.pages:
+    #         page['page'].save_settings()
 
-    def on_document_change(self):
-        return # Depricating
-        if len(Krita.instance().documents()) == 0:
-            return # The document doesn't exist yet.
-        # raise Exception('Document Change!')
-        # Save the settings to the existing Krita doc
-        for page in self.pages:
-            page['page'].save_settings()
+    # def on_document_change(self):
+    #     return # Depricating
+    #     if len(Krita.instance().documents()) == 0:
+    #         return # The document doesn't exist yet.
+    #     # raise Exception('Document Change!')
+    #     # Save the settings to the existing Krita doc
+    #     for page in self.pages:
+    #         page['page'].save_settings()
 
-        # Load the new doc's settings
-        self.settings_controller.update_active_doc()
+    #     # Load the new doc's settings
+    #     self.settings_controller.update_active_doc()
 
-        self.settings_controller.load_kra_settings()
-        for page in self.pages:
-            page['page'].load_settings()
-        self.settings_dialog.load_settings()
+    #     self.settings_controller.load_kra_settings()
+    #     for page in self.pages:
+    #         page['page'].load_settings()
+    #     self.settings_dialog.load_settings()
 
     def on_krita_close(self):
         if len(Krita.instance().documents()) <= 0:

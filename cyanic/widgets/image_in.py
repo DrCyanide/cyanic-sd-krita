@@ -32,6 +32,7 @@ class ImageInWidget(CyanicWidget):
             self.img_ref_key: None, # QImage
             self.img_ref_coords_key: size_dict, 
         }
+        self.raw_img = None
 
         self.init_ui()
         self.set_widget_values()
@@ -154,6 +155,7 @@ class ImageInWidget(CyanicWidget):
         else:
             self.image = kc.get_canvas_img()
         
+        self.raw_img = self.image
         self.update_preview_icons()
 
     def update_preview_icons(self):
@@ -173,19 +175,30 @@ class ImageInWidget(CyanicWidget):
                 # Convert the byte array to QImage
                 value = self.settings_controller.get(key)
                 if value is not None and len(value) > 0:
-                    byte_array = QByteArray(bytes(value, encoding='UTF-16', errors='ignore'))
+                    # Attempt 3 - Base 64
+                    image = QImage()
+                    byte_array = QByteArray.fromBase64(bytes(value, 'utf-8'))
+                    # kc = KritaController()
+                    # byte_array = kc.base64_to_pixeldata(value, width=self.variables[self.img_ref_coords_key]['w'], height=self.variables[self.img_ref_coords_key]['h'])
+                    # image.loadFromData(byte_array)
+                    image.loadFromData(byte_array)
+                    self.variables[key] = image
+
+                    # Attempt 2
+                    # byte_array = QByteArray(bytes(value, encoding='UTF-16', errors='ignore'))
+                    # self.variables[key] = QImage.fromData(byte_array)
+                    # Attempt 1
+                    # byte_array = QByteArray(bytes(value, encoding='UTF-16', errors='ignore'))
                     # w = self.variables[self.img_ref_coords_key]['w']
                     # h = self.variables[self.img_ref_coords_key]['h']
                     # f = QImage.Format_RGBA8888
                     # self.variables[key] = QImage(byte_array, width=w,  height=h, format=f)
-                    self.variables[key] = QImage.fromData(byte_array)
                 else:
                     self.variables[key] = None
             else:
                 self.variables[key] = self.settings_controller.get(key)
         self.update_preview_icons()
         # Update selected area to match? Might cause confusion going back and forth either way.
-        # I'm going to leave it turned off for now.
         # kc = KritaController()
         # coords = self.variables[self.img_ref_coords_key]
         # kc.set_selection(coords['x'], coords['y'], coords['w'], coords['h'])
@@ -195,13 +208,23 @@ class ImageInWidget(CyanicWidget):
             if key == self.img_ref_key:
                 # Convert the QImage to byte array
                 if self.variables[key] is not None:
-                    bits = self.variables[key].constBits()
-                    if bits is None:
-                        continue
-                    char_pointer = ctypes.cast(int(bits), ctypes.c_char_p)
-                    byte_array = char_pointer.value # Unsigned Chars have a 0-255 value
-                    # self.settings_controller.set(key, '%s' % byte_array) # Can write it to a string, but not decode it
-                    self.settings_controller.set(key, byte_array.decode('UTF-16', errors="ignore"))
+                    # QImage to Bytes
+                    # bits = self.variables[key].constBits()
+                    # if bits is None:
+                    #     continue
+                    # char_pointer = ctypes.cast(int(bits), ctypes.c_char_p)
+                    # byte_array = char_pointer.value # Unsigned Chars have a 0-255 value
+                    # # self.settings_controller.set(key, '%s' % byte_array) # Can write it to a string, but not decode it
+                    # self.settings_controller.set(key, byte_array.decode('UTF-16', errors="ignore"))
+                    # QImage to Base64
+                    data = QByteArray()
+                    buffer = QBuffer(data)
+                    self.variables[key].save(buffer, 'PNG')
+                    b64_qbytearray = data.toBase64()
+                    b64_str = str(b64_qbytearray)
+                    if type(b64_str) is not str:
+                        raise Exception('Wrong type: %s' % type(b64_str))
+                    self.settings_controller.set(key, b64_str)
             else:
                 self.settings_controller.set(key, self.variables[key])
 

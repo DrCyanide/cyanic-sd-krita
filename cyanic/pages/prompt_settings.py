@@ -161,7 +161,7 @@ class PromptSettingsPage(CyanicPage):
             self.variables['new_doc_prompt_mode'] = 'empty'
 
     def clear_prompt_history(self):
-        self.settings_controller.clear_file_prompt_history()
+        self.settings_controller.clear_file_prompt_history() # Deletes the history from the .kra file
         # TODO: Trigger a reload of everything's settings (?)
 
     def update_share_includes(self, mode:str, active:bool):

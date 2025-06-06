@@ -147,7 +147,7 @@ class UpscalePage(CyanicPage):
 
         self.generating_for_doc = self.kc.doc
 
-        self.settings_controller.save()
+        # self.settings_controller.save()
         
         data = {
             'resize_mode': tab, # 0 = "Upscale By", 1 = "Upscale to"
